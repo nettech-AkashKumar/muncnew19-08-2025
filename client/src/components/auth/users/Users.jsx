@@ -138,9 +138,9 @@ const Users = () => {
   const handleAddUser = async (e) => {
     e.preventDefault();
 
-    if (!selectedRole) {
-      return toast.error("Please select a role.");
-    }
+    // if (!selectedRole) {
+    //   return toast.error("Please select a role.");
+    // }
 
     const formData = new FormData();
     formData.append("firstName", firstName);
@@ -409,15 +409,15 @@ const Users = () => {
                   />
                 </button>
                 <ul
-                  className="dropdown-menu  dropdown-menu-end p-3"
+                  className="dropdown-menu  dropdown-menu-end p-3" aria-labelledby="statusDropdown"
                   style={{ minWidth: "150px" }}
                 >
                   <li>
                     <button
                       className="dropdown-item rounded-1"
                       onClick={() => setSelectedStatus("")}
-                      onMouseEnter={() => setHovertw(true)}
-                      onMouseLeave={() => setHovertw(false)}
+                      onMouseOver={(e) => { e.target.style.backgroundColor = '#e3f3ff'; e.target.style.color = 'black'; }}
+                                onMouseOut={(e) => { e.target.style.backgroundColor = 'white'; e.target.style.color = 'initial'; }}
                       style={{
                         color: "#676767",
                         padding: "6px 10px",
@@ -428,8 +428,8 @@ const Users = () => {
                           selectedStatus === "Active"
                             ? "#ffff"
                             : hovertw
-                            ? "#e3f3ff"
-                            : "transparent",
+                              ? "#e3f3ff"
+                              : "transparent",
                       }}
                     >
                       All
@@ -439,8 +439,8 @@ const Users = () => {
                     <button
                       className="dropdown-item rounded-1"
                       onClick={() => setSelectedStatus("Active")}
-                      onMouseEnter={() => setHover(true)}
-                      onMouseLeave={() => setHover(false)}
+                      onMouseOver={(e) => { e.target.style.backgroundColor = '#e3f3ff'; e.target.style.color = 'black'; }}
+                                onMouseOut={(e) => { e.target.style.backgroundColor = 'white'; e.target.style.color = 'initial'; }}
                       style={{
                         color: "#676767",
                         padding: "6px 10px",
@@ -451,8 +451,8 @@ const Users = () => {
                           selectedStatus === "Active"
                             ? "#ffff"
                             : hover
-                            ? "#e3f3ff"
-                            : "transparent",
+                              ? "#e3f3ff"
+                              : "transparent",
                       }}
                     >
                       Active
@@ -462,8 +462,8 @@ const Users = () => {
                     <button
                       className="dropdown-item rounded-1"
                       onClick={() => setSelectedStatus("Inactive")}
-                      onMouseEnter={() => setHoveroe(true)}
-                      onMouseLeave={() => setHoveroe(false)}
+                      onMouseOver={(e) => { e.target.style.backgroundColor = '#e3f3ff'; e.target.style.color = 'black'; }}
+                                onMouseOut={(e) => { e.target.style.backgroundColor = 'white'; e.target.style.color = 'initial'; }}
                       style={{
                         color: "#676767",
                         padding: "6px 10px",
@@ -474,8 +474,8 @@ const Users = () => {
                           selectedStatus === "Active"
                             ? "#ffff"
                             : hoveroe
-                            ? "#e3f3ff"
-                            : "transparent",
+                              ? "#e3f3ff"
+                              : "transparent",
                       }}
                     >
                       Inactive
@@ -688,21 +688,20 @@ const Users = () => {
                         >
                           {/*  */}
                           <span
-                            className={`badge table-badge fw-medium fs-10 ${
-                              user.status === "Active" ? "" : ""
-                            }`}
+                            className={`badge table-badge fw-medium fs-10 ${user.status === "Active" ? "" : ""
+                              }`}
                             style={
                               user.status === "Active"
                                 ? {
-                                    backgroundColor: "#DFFFE0",
-                                    color: "#0F5132",
-                                    padding: "6px 8px 6px 8px",
-                                  }
+                                  backgroundColor: "#DFFFE0",
+                                  color: "#0F5132",
+                                  padding: "6px 8px 6px 8px",
+                                }
                                 : {
-                                    backgroundColor: "#FCE4E6",
-                                    color: "#0F5132",
-                                    padding: "6px 8px 6px 8px",
-                                  }
+                                  backgroundColor: "#FCE4E6",
+                                  color: "#0F5132",
+                                  padding: "6px 8px 6px 8px",
+                                }
                             }
                           >
                             {user.status}
@@ -792,9 +791,9 @@ const Users = () => {
                   {filteredUsers.length === 0
                     ? "0 of 0"
                     : `${(currentPage - 1) * itemsPerPage + 1}-${Math.min(
-                        currentPage * itemsPerPage,
-                        filteredUsers.length
-                      )} of ${filteredUsers.length}`}
+                      currentPage * itemsPerPage,
+                      filteredUsers.length
+                    )} of ${filteredUsers.length}`}
                   <button
                     style={{
                       border: "none",
@@ -1066,6 +1065,7 @@ const Users = () => {
                               value={firstName}
                               onChange={(e) => setFirstName(e.target.value)}
                               placeholder="Akash"
+                              required
                             />
                           </div>
                         </div>
@@ -1095,6 +1095,7 @@ const Users = () => {
                               value={lastName}
                               onChange={(e) => setLastName(e.target.value)}
                               placeholder="Kumar"
+                              required
                             />
                           </div>
                         </div>
@@ -1140,6 +1141,7 @@ const Users = () => {
                               onChange={setSelectedRole}
                               placeholder="select a role..."
                               isSearchable
+                              required
                               // style={{
                               //   backgroundColor: "#FBFBFB",
                               //   color: "#676767",
@@ -1151,12 +1153,12 @@ const Users = () => {
                                 control: (base) => ({
                                   ...base,
                                   backgroundColor: "#FBFBFB",
-                                   border: "1px solid #C2C2C2",
+                                  border: "1px solid #C2C2C2",
                                   borderRadius: "8px",
                                   fontSize: "14px",
                                   fontWeight: 400,
                                   color: "#676767",
-                                  outline:'none'
+                                  outline: 'none'
                                 }),
                               }}
                             />
@@ -1195,6 +1197,7 @@ const Users = () => {
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
                                 placeholder="akash@gmail.com"
+                                required
                               />
                             </div>
                           </div>
@@ -1224,6 +1227,7 @@ const Users = () => {
                                 value={phone}
                                 onChange={(e) => setPhone(e.target.value)}
                                 placeholder="9876543210"
+                                required
                               />
                             </div>
                           </div>
@@ -1269,6 +1273,7 @@ const Users = () => {
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
                                 placeholder="Password@123"
+                                required
                               />
                             </div>
                           </div>
@@ -1300,6 +1305,7 @@ const Users = () => {
                                   setConfirmPassword(e.target.value)
                                 }
                                 placeholder="Password@123"
+                                required
                               />
                               <i className="ti ti-eye-off toggle-password" />
                             </div>
@@ -1324,37 +1330,51 @@ const Users = () => {
                           >
                             Status
                           </label>
-                          <div className="dropdown">
+                          <div className="dropdown" style={{ boxShadow: "rgba(0, 0, 0, 0.25)" }}>
                             <button
-                              className="btn btn-light dropdown-toggle"
+                              className="dropdown-toggle btn-md d-inline-flex align-items-center"
                               type="button"
                               id="roleStatus"
                               data-bs-toggle="dropdown"
                               aria-expanded="false"
+                              style={{
+                              backgroundColor: "#ffffff",
+                              color: "#676767",
+                              fontWeight: 400,
+                              fontSize: "16px",
+                              lineHeight: "14px",
+                              borderRadius: "4px",
+                              border: "1px solid #E6E6E6",
+                              boxShadow: "rgba(0, 0, 0, 0.25)",
+                              padding: "10px",
+                            }}
                             >
-                              {status ? "Active" : "Inactive"}<BiChevronDown/>
+                              {status ? "Active" : "Inactive"}<BiChevronDown style={{ marginLeft: "10px", fontSize: "20px" }}/>
                             </button>
-                             <ul
-                          className="dropdown-menu"
-                          aria-labelledby="statusDropdown"
-                        >
-                          <li>
-                            <a
-                              className="dropdown-item"
-                              onClick={() => setStatus(true)}
+                            <ul
+                              className="dropdown-menu dropdown-menu-end p-3" aria-labelledby="statusDropdown"
                             >
-                              Active
-                            </a>
-                          </li>
-                          <li>
-                            <a
-                              className="dropdown-item"
-                              onClick={() => setStatus(false)}
-                            >
-                              Inactive
-                            </a>
-                          </li>
-                        </ul>
+                              <li>
+                                <button
+                                  className="dropdown-item"
+                                  onClick={() => setStatus(true)}
+                                onMouseOver={(e) => { e.target.style.backgroundColor = '#e3f3ff'; e.target.style.color = 'black'; }}
+                                onMouseOut={(e) => { e.target.style.backgroundColor = 'white'; e.target.style.color = 'initial'; }}
+                                >
+                                  Active
+                                </button>
+                              </li>
+                              <li>
+                                <button
+                                  className="dropdown-item"
+                                  onClick={() => setStatus(false)}
+                                  onMouseOver={(e) => { e.target.style.backgroundColor = '#e3f3ff'; e.target.style.color = 'black'; }}
+                                  onMouseOut={(e) => { e.target.style.backgroundColor = 'white'; e.target.style.color = 'initial'; }}
+                                >
+                                  Inactive
+                                </button>
+                              </li>
+                            </ul>
                           </div>
                           {/* <input
                             type="checkbox"
@@ -1382,6 +1402,7 @@ const Users = () => {
                     >
                       <button
                         // className="settingbtn"
+                        data-bs-dismiss="modal"
                         style={{
                           border: "1px solid #E6E6E6",
                           borderRadius: "4px",
@@ -1423,146 +1444,355 @@ const Users = () => {
 
         {/* Edit User */}
         <div className="modal" id="edit-user">
-          <div className="modal-dialog modal-dialog-centered">
-            <div className="modal-content" style={{ width: "500px" }}>
+          <div className="modal-dialog modal-dialog-centered"
+            style={{ maxWidth: "970px", height: "540px" }}
+          >
+            <div className="modal-content" style={{ height: "100%", padding: "10px" }}>
               <div className="page-wrapper-new p-0">
                 <div className="content">
-                  <div className="modal-header">
+                  <div className="">
                     <div className="page-title">
-                      <h4>Edit User</h4>
+                      <h4
+                        style={{
+                          color: "#262626",
+                          fontSize: "14px",
+                          fontWeight: 400,
+                          lineHeight: "14px",
+                        }}
+                      >Edit User</h4>
                     </div>
-                    <button
-                      type="button"
-                      className="close"
-                      data-bs-dismiss="modal"
-                      aria-label="Close"
-                      id="edit-user-close-btn"
-                    >
-                      <span aria-hidden="true">×</span>
-                    </button>
+                    <hr style={{ height: "1px", color: "#bbbbbb" }} />
                   </div>
-                  <form onSubmit={handleUpdate}>
-                    <div className="modal-body">
-                      <div className="row">
-                        <div className="col-lg-12">
-                          <div className="new-employee-field">
-                            <div className="profile-pic-upload image-field">
-                              <div className="profile-pic p-2">
-                                <img
-                                  src={
-                                    typeof editUserData.profileImage ===
-                                    "string"
-                                      ? editUserData.profileImage
-                                      : editUserData.profileImage
-                                      ? URL.createObjectURL(
-                                          editUserData.profileImage
-                                        ) //newly selected file
-                                      : "assets/img/users/user-49.png"
-                                  }
-                                  className="object-fit-cover h-100 rounded-1"
-                                  alt="user"
-                                  style={{
-                                    height: "120px",
-                                    width: "120px",
-                                    borderRadius: "13px",
-                                  }}
-                                />
-                              </div>
-                              <div className="mb-3">
-                                <div className="image-upload mb-0">
-                                  <input
-                                    type="file"
-                                    accept="image/*"
-                                    ref={editFileInputRef}
-                                    onChange={(e) =>
-                                      setEditUserData({
-                                        ...editUserData,
-                                        profileImage: e.target.files[0],
-                                      })
-                                    }
-                                  />
-                                  <div className="image-uploads">
-                                    <h4
-                                      style={{ cursor: "pointer" }}
-                                      onClick={editHandleIconClick}
-                                    >
-                                      Change Image
-                                    </h4>
-                                  </div>
-                                </div>
-                                <p className="mt-2">JPEG, PNG up to 2 MB</p>
-                              </div>
+                  <form onSubmit={handleUpdate} style={{ padding: "0px 20px" }}>
+                    <div
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "space-between",
+                        border: "2px dashed #dadadaff",
+                        padding: "10px",
+                        borderRadius: "8px",
+                        marginBottom: "20px",
+                      }}
+                    >
+                      {/* Circle Image Preview */}
+                      <div
+                        className="add-image-circle"
+                        style={{
+                          border: "2px dashed #dadadaff",
+                          width: "100px",
+                          height: "100px",
+                          display: "flex",
+                          justifyContent: "center",
+                          alignItems: "center",
+                          color: "grey",
+                          cursor: "pointer",
+                          borderRadius: "50%",
+                          overflow: "hidden",
+                        }}
+                        onClick={() => editFileInputRef.current.click()} // clicking circle opens file picker
+                      >
+                        {editUserData.profileImage ? (
+                          <img
+                            src={
+                              typeof editUserData.profileImage === "string"
+                                ? editUserData.profileImage
+                                : URL.createObjectURL(editUserData.profileImage)
+                            }
+                            alt="Preview"
+                            style={{
+                              width: "100%",
+                              height: "100%",
+                              objectFit: "cover",
+                              pointerEvents: "none",
+                              borderRadius: "50%",
+                            }}
+                          />
+                        ) : (
+                          <span
+                            style={{
+                              color: "#676767",
+                              fontSize: "32px",
+                              fontWeight: 400,
+                              lineHeight: "18px",
+                            }}
+                          >
+                            +
+                          </span>
+                        )}
+                      </div>
+
+                      {/* Hidden file input */}
+                      <input
+                        type="file"
+                        accept="image/*"
+                        ref={editFileInputRef}
+                        style={{ display: "none" }}
+                        onChange={(e) =>
+                          setEditUserData({
+                            ...editUserData,
+                            profileImage: e.target.files[0],
+                          })
+                        }
+                      />
+
+                      {/* Upload button + hint */}
+                      <div
+                        style={{
+                          display: "flex",
+                          flexDirection: "column",
+                          alignItems: "center",
+                        }}
+                      >
+                        <div
+                          style={{
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            gap: "5px",
+                            textAlign: "center",
+                            backgroundColor: "#E3F3FF",
+                            color: "#1368EC",
+                            border: "1px solid #BBE1FF",
+                            borderRadius: "15px",
+                            width: "150px",
+                            height: "45px",
+                            cursor: "pointer",
+                          }}
+                          onClick={() => editFileInputRef.current.click()}
+                        >
+                          <img
+                            src={Iconss} // your upload icon
+                            alt=""
+                            style={{ width: "20px", height: "20px" }}
+                          />
+                          <span className="setting-imgupload-btn">Upload Image</span>
+                        </div>
+
+                        <p
+                          style={{
+                            color: "#888888",
+                            fontFamily: '"Roboto", sans-serif',
+                            fontWeight: 400,
+                            fontSize: "12px",
+                            marginTop: "10px",
+                          }}
+                        >
+                          Upload an image below 2MB, Accepted File format JPG, PNG
+                        </p>
+                      </div>
+
+                      {/* filler to balance flex (like your invisible div) */}
+                      <div className="invisible">.</div>
+                    </div>
+
+                    {/* <img
+                            src={
+                              typeof editUserData.profileImage ===
+                                "string"
+                                ? editUserData.profileImage
+                                : editUserData.profileImage
+                                  ? URL.createObjectURL(
+                                    editUserData.profileImage
+                                  ) //newly selected file
+                                  : "assets/img/users/user-49.png"
+                            }
+                            className="object-fit-cover h-100 rounded-1"
+                            alt="user"
+                            style={{
+                              height: "120px",
+                              width: "120px",
+                              borderRadius: "13px",
+                            }}
+                          />
+                       
+                        <div className="mb-3">
+                          <div className="image-upload mb-0">
+                            <input
+                              type="file"
+                              accept="image/*"
+                              ref={editFileInputRef}
+                              onChange={(e) =>
+                                setEditUserData({
+                                  ...editUserData,
+                                  profileImage: e.target.files[0],
+                                })
+                              }
+                            />
+                            <div className="image-uploads">
+                              <h4
+                                style={{ cursor: "pointer" }}
+                                onClick={editHandleIconClick}
+                              >
+                                Change Image
+                              </h4>
                             </div>
                           </div>
-                        </div>
+                          <p className="mt-2">JPEG, PNG up to 2 MB</p>
+                        </div> */}
 
-                        {/* First Name */}
-                        <div className="col-lg-6">
-                          <div className="mb-3">
-                            <label className="form-label">First Name *</label>
-                            <input
-                              type="text"
-                              className="form-control"
-                              value={editUserData.firstName}
-                              onChange={(e) =>
-                                setEditUserData({
-                                  ...editUserData,
-                                  firstName: e.target.value,
-                                })
-                              }
-                            />
-                          </div>
-                        </div>
 
-                        {/* Last Name */}
-                        <div className="col-lg-6">
-                          <div className="mb-3">
-                            <label className="form-label">Last Name *</label>
-                            <input
-                              type="text"
-                              className="form-control"
-                              value={editUserData.lastName}
-                              onChange={(e) =>
-                                setEditUserData({
-                                  ...editUserData,
-                                  lastName: e.target.value,
-                                })
-                              }
-                            />
-                          </div>
-                        </div>
 
-                        {/* Role */}
-                        <div className="col-lg-12">
-                          <div className="mb-3">
-                            <label className="form-label">
-                              Role<span className="text-danger ms-1">*</span>
-                            </label>
-                            <Select
-                              options={activeRoles}
-                              value={editUserData.role}
-                              isDisabled={
-                                editUserData.role.label === "Unknown Role"
-                              }
-                              onChange={(selectedOption) => {
-                                setEditUserData({
-                                  ...editUserData,
-                                  role: selectedOption,
-                                });
+
+                    {/* First Name */}
+                    <div
+                      style={{
+                        display: "flex",
+                        gap: "20px",
+                        marginBottom: "20px",
+                      }}
+                    >
+                      <div style={{ flex: 1 }}>
+                        <div
+                          style={{
+                            display: "flex",
+                            flexDirection: "column",
+                            width: "100%",
+                            gap: "5px",
+                          }}
+                        >
+                          <label className="ffrrstname"
+                            style={{
+                              fontWeight: "400",
+                              fontSize: "14px",
+                              lineHeight: "14px",
+                            }}
+                          >First Name </label>
+                          <input
+                            type="text"
+                            className="ffrrstnameinput"
+                            value={editUserData.firstName}
+                            onChange={(e) =>
+                              setEditUserData({
+                                ...editUserData,
+                                firstName: e.target.value,
+                              })
+                            }
+                          />
+                        </div>
+                      </div>
+
+                      {/* Last Name */}
+                      <div style={{ flex: 1 }}>
+                        <div
+                          style={{
+                            display: "flex",
+                            flexDirection: "column",
+                            width: "100%",
+                            gap: "5px",
+                          }}
+                        >
+                          <label className="ffrrstname"
+                            style={{
+                              fontWeight: "400",
+                              fontSize: "14px",
+                              lineHeight: "14px",
+                            }}
+                          >Last Name </label>
+                          <input
+                            type="text"
+                            className="ffrrstnameinput"
+                            value={editUserData.lastName}
+                            onChange={(e) =>
+                              setEditUserData({
+                                ...editUserData,
+                                lastName: e.target.value,
+                              })
+                            }
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Role */}
+                    <div
+                      style={{
+                        display: "flex",
+                        gap: "20px",
+                        marginBottom: "20px",
+                      }}
+                    >
+                      <div
+                        style={{
+                          flex: "0 0 50%",
+                          display: "flex",
+                          gap: "20px",
+                        }}
+                      >
+                        <div
+                          style={{
+                            display: "flex",
+                            flexDirection: "column",
+                            width: "100%",
+                            gap: "5px",
+                          }}
+                        >
+                          <label className="ffrrstname"
+                            style={{
+                              fontWeight: "400",
+                              fontSize: "14px",
+                              lineHeight: "14px",
+                            }}
+                          >
+                            Role
+                          </label>
+                          <Select
+                            options={activeRoles}
+                            value={editUserData.role}
+                            isDisabled={
+                              editUserData.role.label === "Unknown Role"
+                            }
+                            onChange={(selectedOption) => {
+                              setEditUserData({
+                                ...editUserData,
+                                role: selectedOption,
+                              });
+                            }}
+                            placeholder="Search or select a role..."
+                            isSearchable
+                            styles={{
+                              control: (base) => ({
+                                ...base,
+                                backgroundColor: "#FBFBFB",
+                                border: "1px solid #C2C2C2",
+                                borderRadius: "8px",
+                                fontSize: "14px",
+                                fontWeight: 400,
+                                color: "#676767",
+                                outline: 'none'
+                              }),
+                            }}
+                          />
+                        </div>
+                      </div>
+
+                      {/* Email */}
+                      <div
+                        style={{
+                          flex: "0 0 48%",
+                          display: "flex",
+                          gap: "20px",
+                        }}
+                      >
+                        <div style={{ flex: 1 }}>
+                          <div
+                            style={{
+                              display: "flex",
+                              flexDirection: "column",
+                              width: "100%",
+                              gap: "5px",
+                            }}
+                          >
+                            <label className="ffrrstname"
+                              style={{
+                                fontWeight: "400",
+                                fontSize: "14px",
+                                lineHeight: "14px",
                               }}
-                              placeholder="Search or select a role..."
-                              isSearchable
-                            />
-                          </div>
-                        </div>
-
-                        {/* Email */}
-                        <div className="col-lg-12">
-                          <div className="mb-3">
-                            <label className="form-label">Email *</label>
+                            >Email </label>
                             <input
                               type="email"
-                              className="form-control"
+                              className="ffrrstnameinput"
                               value={editUserData.email}
                               onChange={(e) =>
                                 setEditUserData({
@@ -1575,12 +1805,25 @@ const Users = () => {
                         </div>
 
                         {/* Phone */}
-                        <div className="col-lg-12">
-                          <div className="mb-3">
-                            <label className="form-label">Phone *</label>
+                        <div style={{ flex: 1 }}>
+                          <div
+                            style={{
+                              display: "flex",
+                              flexDirection: "column",
+                              width: "100%",
+                              gap: "5px",
+                            }}
+                          >
+                            <label className="ffrrstname"
+                              style={{
+                                fontWeight: "400",
+                                fontSize: "14px",
+                                lineHeight: "14px",
+                              }}
+                            >Phone </label>
                             <input
                               type="tel"
-                              className="form-control"
+                              className="ffrrstnameinput"
                               value={editUserData.phone}
                               onChange={(e) =>
                                 setEditUserData({
@@ -1591,14 +1834,43 @@ const Users = () => {
                             />
                           </div>
                         </div>
+                      </div>
+                    </div>
 
-                        {/* Password */}
-                        <div className="col-lg-6">
-                          <div className="mb-3">
-                            <label className="form-label">Password *</label>
+                    {/* Password */}
+                    <div
+                      style={{
+                        display: "flex",
+                        gap: "20px",
+                        marginBottom: "20px",
+                      }}
+                    >
+                      <div
+                        style={{
+                          flex: "0 0 50%",
+                          display: "flex",
+                          gap: "20px",
+                        }}
+                      >
+                        <div style={{ flex: "1" }}>
+                          <div
+                            style={{
+                              display: "flex",
+                              flexDirection: "column",
+                              width: "100%",
+                              gap: "5px",
+                            }}
+                          >
+                            <label className="ffrrstname"
+                              style={{
+                                fontWeight: "400",
+                                fontSize: "14px",
+                                lineHeight: "14px",
+                              }}
+                            >Password </label>
                             <input
                               type="password"
-                              className="form-control"
+                              className="ffrrstnameinput"
                               value={editUserData.password}
                               onChange={(e) =>
                                 setEditUserData({
@@ -1611,14 +1883,27 @@ const Users = () => {
                         </div>
 
                         {/* Confirm Password */}
-                        <div className="col-lg-6">
-                          <div className="mb-3">
-                            <label className="form-label">
-                              Confirm Password *
+                        <div style={{ flex: "1" }}>
+                          <div
+                            style={{
+                              display: "flex",
+                              flexDirection: "column",
+                              width: "100%",
+                              gap: "5px",
+                            }}
+                          >
+                            <label className="ffrrstname"
+                              style={{
+                                fontWeight: "400",
+                                fontSize: "14px",
+                                lineHeight: "14px",
+                              }}
+                            >
+                              Confirm Password
                             </label>
                             <input
                               type="password"
-                              className="form-control"
+                              className="ffrrstnameinput"
                               value={editUserData.confirmPassword}
                               onChange={(e) =>
                                 setEditUserData({
@@ -1629,12 +1914,75 @@ const Users = () => {
                             />
                           </div>
                         </div>
+                      </div>
+                    </div>
 
-                        {/* Status */}
-                        <div className="col-lg-12">
-                          <div className="status-toggle modal-status d-flex justify-content-between align-items-center">
-                            <span className="status-label">Status</span>
-                            <input
+                    {/* Status */}
+                    <div
+                      style={{
+                        flex: "0 0 50%",
+                        display: "flex",
+                        gap: "20px",
+                      }}
+                    >
+                      <div style={{ flex: "1" }}>
+                        <label
+                          className="ffrrstname"
+                          style={{
+                            fontWeight: "400",
+                            fontSize: "14px",
+                            lineHeight: "14px",
+                          }}
+                        >
+                          Status
+                        </label>
+                        <div className="dropdown" style={{ boxShadow: "rgba(0, 0, 0, 0.25)" }}>
+                          <button
+                            className="dropdown-toggle btn-md d-inline-flex align-items-center" type="button" id="statusDropdown" data-bs-toggle="dropdown" aria-expanded="false"
+                            style={{
+                              backgroundColor: "#ffffff",
+                              color: "#676767",
+                              fontWeight: 400,
+                              fontSize: "16px",
+                              lineHeight: "14px",
+                              borderRadius: "4px",
+                              border: "1px solid #E6E6E6",
+                              boxShadow: "rgba(0, 0, 0, 0.25)",
+                              padding: "10px",
+                            }}
+                          >
+                            {editUserData.status ? "Active" : "Inactive"} <BiChevronDown style={{ marginLeft: "10px", fontSize: "20px" }} />
+                          </button>
+                          <ul className="dropdown-menu dropdown-menu-end p-3" aria-labelledby="statusDropdown" >
+                            <li>
+                              <button
+                                className="dropdown-item"
+                                onClick={() => setEditUserData({
+                                  ...editUserData,
+                                  status: true,
+                                })}
+                                onMouseOver={(e) => { e.target.style.backgroundColor = '#e3f3ff'; e.target.style.color = 'black'; }}
+                                onMouseOut={(e) => { e.target.style.backgroundColor = 'white'; e.target.style.color = 'initial'; }}
+                              >
+                                Active
+                              </button>
+                            </li>
+                            <li>
+                              <button
+                                className="dropdown-item"
+                                onClick={() => setEditUserData({
+                                  ...editUserData,
+                                  status: false,
+                                })}
+                                onMouseOver={(e) => { e.target.style.backgroundColor = '#e3f3ff'; e.target.style.color = 'black'; }}
+                                onMouseOut={(e) => { e.target.style.backgroundColor = 'white'; e.target.style.color = 'initial'; }}
+                              >
+                                Inactive
+                              </button>
+                            </li>
+                          </ul>
+                        </div>
+                        {/* <input
                               type="checkbox"
                               id="user-status"
                               className="check"
@@ -1649,21 +1997,43 @@ const Users = () => {
                             <label
                               htmlFor="user-status"
                               className="checktoggle"
-                            />
-                          </div>
-                        </div>
+                            /> */}
                       </div>
                     </div>
-
-                    <div className="modal-footer">
+                    <div
+                      style={{
+                        display: "flex",
+                        justifyContent: "end",
+                        gap: "10px",
+                        fontFamily: "Roboto, sans-serif",
+                        fontWeight: 400,
+                        fontSize: "16px",
+                        lineHeight: "14px",
+                      }}
+                    >
                       <button
                         type="button"
-                        className="btn me-2 btn-secondary"
                         data-bs-dismiss="modal"
+                        style={{
+                          border: "1px solid #E6E6E6",
+                          borderRadius: "4px",
+                          padding: "8px",
+                          backgroundColor: "#FFFFFF",
+                          color: "#676767",
+                          borderRadius: "5px",
+                        }}
                       >
                         Cancel
                       </button>
-                      <button type="submit" className="btn btn-primary">
+                      <button type="submit" style={{
+                        border: "1px solid #676767",
+                        borderRadius: "4px",
+                        padding: "8px",
+                        backgroundColor: "#262626",
+                        color: "#FFFFFF",
+                        borderRadius: "5px",
+                      }}
+                      >
                         Save Changes
                       </button>
                     </div>
