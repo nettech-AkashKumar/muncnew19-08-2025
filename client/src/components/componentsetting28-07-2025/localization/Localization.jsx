@@ -63,8 +63,7 @@ const Localization = () => {
       localStorage.setItem("Localization info", JSON.stringify(formData));
       if (res.status === 200 || res.status === 201) {
         toast.success(
-          `Localization setting ${
-            isUpdating ? "updated" : "created"
+          `Localization setting ${isUpdating ? "updated" : "created"
           } successfully`,
           {
             position: "top-center",
@@ -246,27 +245,27 @@ const Localization = () => {
                   padding: "14px 0",
                 }}
               >
-                <div style={{display:'flex', gap:'10px'}}>
-                <span 
-                    style={{
-                  backgroundColor: " #F1F1F1",
-                  width: "35px",
-                  height: "35px",
-                  display: "flex",
-                  justifyContent: "center",
-                  alignItems: "center",
-                }}
-
-                    > <img src={CompyIc} alt='itmimg' style={{ width: 20, height: 20, objectFit: "contain" }} /></span>
-                <div style={{ display: "flex", flexDirection: "column" }}>
-                  <span className="localizatreck">{t("date_format")}</span>
+                <div style={{ display: 'flex', gap: '10px' }}>
                   <span
-                    className="localizatreckdes"
-                    style={{ color: "rgb(92, 91, 91)" }}
-                  >
-                    {t("select_date_format")}
-                  </span>
-                </div>
+                    style={{
+                      backgroundColor: " #F1F1F1",
+                      width: "35px",
+                      height: "35px",
+                      display: "flex",
+                      justifyContent: "center",
+                      alignItems: "center",
+                    }}
+
+                  > <img src={CompyIc} alt='itmimg' style={{ width: 20, height: 20, objectFit: "contain" }} /></span>
+                  <div style={{ display: "flex", flexDirection: "column" }}>
+                    <span className="localizatreck">{t("date_format")}</span>
+                    <span
+                      className="localizatreckdes"
+                      style={{ color: "rgb(92, 91, 91)" }}
+                    >
+                      {t("select_date_format")}
+                    </span>
+                  </div>
                 </div>
                 <div>
                   <select
@@ -339,28 +338,28 @@ const Localization = () => {
                   padding: "12px 0",
                 }}
               >
-                 <div style={{display:'flex', gap:'10px'}}>
-                <span 
+                <div style={{ display: 'flex', gap: '10px' }}>
+                  <span
                     style={{
-                  backgroundColor: " #F1F1F1",
-                  width: "35px",
-                  height: "35px",
-                  display: "flex",
-                  justifyContent: "center",
-                  alignItems: "center",
-                }}
+                      backgroundColor: " #F1F1F1",
+                      width: "35px",
+                      height: "35px",
+                      display: "flex",
+                      justifyContent: "center",
+                      alignItems: "center",
+                    }}
 
-                    > <img src={CompyIc} alt='itmimg' style={{ width: 20, height: 20, objectFit: "contain" }} /></span>
-                <div style={{ display: "flex", flexDirection: "column" }}>
-                  <span className="localizatreck">{t("time_format")}</span>
-                  <span className="localizatreckdes">
-                    {t("select_time_format")}
-                  </span>
-                </div>
+                  > <img src={CompyIc} alt='itmimg' style={{ width: 20, height: 20, objectFit: "contain" }} /></span>
+                  <div style={{ display: "flex", flexDirection: "column" }}>
+                    <span className="localizatreck">{t("time_format")}</span>
+                    <span className="localizatreckdes">
+                      {t("select_time_format")}
+                    </span>
+                  </div>
                 </div>
                 <div>
                   <select
-                  className="timmmmgeinput"
+                    className="timmmmgeinput"
                     name="timeformat"
                     value={formData.timeformat}
                     onChange={handleChange}
@@ -384,28 +383,28 @@ const Localization = () => {
                   padding: "12px 0",
                 }}
               >
-                 <div style={{display:'flex', gap:'10px'}}>
-                <span 
+                <div style={{ display: 'flex', gap: '10px' }}>
+                  <span
                     style={{
-                  backgroundColor: " #F1F1F1",
-                  width: "35px",
-                  height: "35px",
-                  display: "flex",
-                  justifyContent: "center",
-                  alignItems: "center",
-                }}
+                      backgroundColor: " #F1F1F1",
+                      width: "35px",
+                      height: "35px",
+                      display: "flex",
+                      justifyContent: "center",
+                      alignItems: "center",
+                    }}
 
-                    > <img src={CompyIc} alt='itmimg' style={{ width: 20, height: 20, objectFit: "contain" }} /></span>
-                <div style={{ display: "flex", flexDirection: "column" }}>
-                  <span className="localizatreck">{t("financial_year")}</span>
-                  <span className="localizatreckdes">
-                    {t("select_financial_year")}
-                  </span>
-                </div>
+                  > <img src={CompyIc} alt='itmimg' style={{ width: 20, height: 20, objectFit: "contain" }} /></span>
+                  <div style={{ display: "flex", flexDirection: "column" }}>
+                    <span className="localizatreck">{t("financial_year")}</span>
+                    <span className="localizatreckdes">
+                      {t("select_financial_year")}
+                    </span>
+                  </div>
                 </div>
                 <div>
                   <select
-                  className="timmmmgeinput"
+                    className="timmmmgeinput"
                     name="financialyear"
                     value={formData.financialyear}
                     onChange={handleChange}
@@ -432,28 +431,28 @@ const Localization = () => {
                   padding: "12px 0",
                 }}
               >
-                 <div style={{display:'flex', gap:'10px'}}>
-                <span 
+                <div style={{ display: 'flex', gap: '10px' }}>
+                  <span
                     style={{
-                  backgroundColor: " #F1F1F1",
-                  width: "35px",
-                  height: "35px",
-                  display: "flex",
-                  justifyContent: "center",
-                  alignItems: "center",
-                }}
+                      backgroundColor: " #F1F1F1",
+                      width: "35px",
+                      height: "35px",
+                      display: "flex",
+                      justifyContent: "center",
+                      alignItems: "center",
+                    }}
 
-                    > <img src={CompyIc} alt='itmimg' style={{ width: 20, height: 20, objectFit: "contain" }} /></span>
-                <div style={{ display: "flex", flexDirection: "column" }}>
-                  <span className="localizatreck">{t("starting_month")}</span>
-                  <span className="localizatreckdes">
-                    {t("select_starting_month")}
-                  </span>
-                </div>
+                  > <img src={CompyIc} alt='itmimg' style={{ width: 20, height: 20, objectFit: "contain" }} /></span>
+                  <div style={{ display: "flex", flexDirection: "column" }}>
+                    <span className="localizatreck">{t("starting_month")}</span>
+                    <span className="localizatreckdes">
+                      {t("select_starting_month")}
+                    </span>
+                  </div>
                 </div>
                 <div>
                   <select
-                  className="timmmmgeinput"
+                    className="timmmmgeinput"
                     name="startingmonth"
                     value={formData.startingmonth}
                     onChange={handleChange}
@@ -487,28 +486,28 @@ const Localization = () => {
                   padding: "12px 0",
                 }}
               >
-                 <div style={{display:'flex', gap:'10px'}}>
-                <span 
+                <div style={{ display: 'flex', gap: '10px' }}>
+                  <span
                     style={{
-                  backgroundColor: " #F1F1F1",
-                  width: "35px",
-                  height: "35px",
-                  display: "flex",
-                  justifyContent: "center",
-                  alignItems: "center",
-                }}
+                      backgroundColor: " #F1F1F1",
+                      width: "35px",
+                      height: "35px",
+                      display: "flex",
+                      justifyContent: "center",
+                      alignItems: "center",
+                    }}
 
-                    > <img src={Curny} alt='itmimg' style={{ width: 20, height: 20, objectFit: "contain" }} /></span>
-                <div style={{ display: "flex", flexDirection: "column" }}>
-                  <span className="localizatreck">{t("currency")}</span>
-                  <span className="localizatreckdes">
-                    {t("select_currency")}
-                  </span>
-                </div>
+                  > <img src={Curny} alt='itmimg' style={{ width: 20, height: 20, objectFit: "contain" }} /></span>
+                  <div style={{ display: "flex", flexDirection: "column" }}>
+                    <span className="localizatreck">{t("currency")}</span>
+                    <span className="localizatreckdes">
+                      {t("select_currency")}
+                    </span>
+                  </div>
                 </div>
                 <div>
                   <select
-                  className="timmmmgeinput"
+                    className="timmmmgeinput"
                     name="currency"
                     value={formData.currency}
                     onChange={handleChange}
@@ -532,28 +531,28 @@ const Localization = () => {
                   padding: "12px 0",
                 }}
               >
-                 <div style={{display:'flex', gap:'10px'}}>
-                <span 
+                <div style={{ display: 'flex', gap: '10px' }}>
+                  <span
                     style={{
-                  backgroundColor: " #F1F1F1",
-                  width: "35px",
-                  height: "35px",
-                  display: "flex",
-                  justifyContent: "center",
-                  alignItems: "center",
-                }}
+                      backgroundColor: " #F1F1F1",
+                      width: "35px",
+                      height: "35px",
+                      display: "flex",
+                      justifyContent: "center",
+                      alignItems: "center",
+                    }}
 
-                    > <img src={Curny} alt='itmimg' style={{ width: 20, height: 20, objectFit: "contain" }} /></span>
-                <div style={{ display: "flex", flexDirection: "column" }}>
-                  <span className="localizatreck">{t("currency_symbol")}</span>
-                  <span className="localizatreckdes">
-                    {t("select_currency_symbol")}
-                  </span>
-                </div>
+                  > <img src={Curny} alt='itmimg' style={{ width: 20, height: 20, objectFit: "contain" }} /></span>
+                  <div style={{ display: "flex", flexDirection: "column" }}>
+                    <span className="localizatreck">{t("currency_symbol")}</span>
+                    <span className="localizatreckdes">
+                      {t("select_currency_symbol")}
+                    </span>
+                  </div>
                 </div>
                 <div>
                   <select
-                  className="timmmmgeinput"
+                    className="timmmmgeinput"
                     name="currencysymbol"
                     value={formData.currencysymbol}
                     onChange={handleChange}
@@ -576,33 +575,33 @@ const Localization = () => {
                   padding: "12px 0",
                 }}
               >
-                 <div style={{display:'flex', gap:'10px'}}>
-                <span 
-                    style={{
-                  backgroundColor: " #F1F1F1",
-                  width: "35px",
-                  height: "35px",
-                  display: "flex",
-                  justifyContent: "center",
-                  alignItems: "center",
-                }}
-
-                    > <img src={Curny} alt='itmimg' style={{ width: 20, height: 20, objectFit: "contain" }} /></span>
-                <div style={{ display: "flex", flexDirection: "column" }}>
-                  <span className="localizatreck">
-                    {t("currency_position")}
-                  </span>
+                <div style={{ display: 'flex', gap: '10px' }}>
                   <span
-                    className="localizatreckdes"
-                    style={{ color: "rgb(92, 91, 91)" }}
-                  >
-                    {t("select_currency_position")}
-                  </span>
-                </div>
+                    style={{
+                      backgroundColor: " #F1F1F1",
+                      width: "35px",
+                      height: "35px",
+                      display: "flex",
+                      justifyContent: "center",
+                      alignItems: "center",
+                    }}
+
+                  > <img src={Curny} alt='itmimg' style={{ width: 20, height: 20, objectFit: "contain" }} /></span>
+                  <div style={{ display: "flex", flexDirection: "column" }}>
+                    <span className="localizatreck">
+                      {t("currency_position")}
+                    </span>
+                    <span
+                      className="localizatreckdes"
+                      style={{ color: "rgb(92, 91, 91)" }}
+                    >
+                      {t("select_currency_position")}
+                    </span>
+                  </div>
                 </div>
                 <div>
                   <select
-                  className="timmmmgeinput"
+                    className="timmmmgeinput"
                     name="currencyposition"
                     value={formData.currencyposition}
                     onChange={handleChange}
@@ -626,30 +625,30 @@ const Localization = () => {
                   padding: "12px 0",
                 }}
               >
-                 <div style={{display:'flex', gap:'10px'}}>
-                <span 
+                <div style={{ display: 'flex', gap: '10px' }}>
+                  <span
                     style={{
-                  backgroundColor: " #F1F1F1",
-                  width: "35px",
-                  height: "35px",
-                  display: "flex",
-                  justifyContent: "center",
-                  alignItems: "center",
-                }}
+                      backgroundColor: " #F1F1F1",
+                      width: "35px",
+                      height: "35px",
+                      display: "flex",
+                      justifyContent: "center",
+                      alignItems: "center",
+                    }}
 
-                    > <img src={Curny} alt='itmimg' style={{ width: 20, height: 20, objectFit: "contain" }} /></span>
-                <div style={{ display: "flex", flexDirection: "column" }}>
-                  <span className="localizatreck">
-                    {t("decimal_separator")}
-                  </span>
-                  <span className="localizatreckdes">
-                    {t("select_decimal_separator")}
-                  </span>
-                </div>
+                  > <img src={Curny} alt='itmimg' style={{ width: 20, height: 20, objectFit: "contain" }} /></span>
+                  <div style={{ display: "flex", flexDirection: "column" }}>
+                    <span className="localizatreck">
+                      {t("decimal_separator")}
+                    </span>
+                    <span className="localizatreckdes">
+                      {t("select_decimal_separator")}
+                    </span>
+                  </div>
                 </div>
                 <div>
                   <select
-                  className="timmmmgeinput"
+                    className="timmmmgeinput"
                     name="decimalseparator"
                     value={formData.decimalseparator}
                     onChange={handleChange}
@@ -673,33 +672,33 @@ const Localization = () => {
                   padding: "12px 0",
                 }}
               >
-                 <div style={{display:'flex', gap:'10px'}}>
-                <span 
-                    style={{
-                  backgroundColor: " #F1F1F1",
-                  width: "35px",
-                  height: "35px",
-                  display: "flex",
-                  justifyContent: "center",
-                  alignItems: "center",
-                }}
-
-                    > <img src={Curny} alt='itmimg' style={{ width: 20, height: 20, objectFit: "contain" }} /></span>
-                <div style={{ display: "flex", flexDirection: "column" }}>
-                  <span className="localizatreck">
-                    {t("thousand_separator")}
-                  </span>
+                <div style={{ display: 'flex', gap: '10px' }}>
                   <span
-                    className="localizatreckdes"
-                    style={{ color: "rgb(92, 91, 91)" }}
-                  >
-                    {t("select_thousand_separator")}
-                  </span>
-                </div>
+                    style={{
+                      backgroundColor: " #F1F1F1",
+                      width: "35px",
+                      height: "35px",
+                      display: "flex",
+                      justifyContent: "center",
+                      alignItems: "center",
+                    }}
+
+                  > <img src={Curny} alt='itmimg' style={{ width: 20, height: 20, objectFit: "contain" }} /></span>
+                  <div style={{ display: "flex", flexDirection: "column" }}>
+                    <span className="localizatreck">
+                      {t("thousand_separator")}
+                    </span>
+                    <span
+                      className="localizatreckdes"
+                      style={{ color: "rgb(92, 91, 91)" }}
+                    >
+                      {t("select_thousand_separator")}
+                    </span>
+                  </div>
                 </div>
                 <div>
                   <select
-                  className="timmmmgeinput"
+                    className="timmmmgeinput"
                     name="thousandseparator"
                     value={formData.thousandseparator}
                     onChange={handleChange}
@@ -729,7 +728,7 @@ const Localization = () => {
               <button
                 type="submit"
                 onClick={() => window.location.reload()}
-                className="settingbtn"
+                // className="settingbtn"
                 style={{
                   border: "1px solid #E6E6E6",
                   borderRadius: "4px",
@@ -743,7 +742,7 @@ const Localization = () => {
               </button>
               <button
                 type="submit"
-                className="settingbtn"
+                // className="settingbtn"
                 style={{
                   border: "1px solid #676767",
                   borderRadius: "4px",

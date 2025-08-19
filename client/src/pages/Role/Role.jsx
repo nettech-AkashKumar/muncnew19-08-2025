@@ -270,77 +270,110 @@ const Role = () => {
               </div>
             </div>
 
-            <div className="d-flex table-dropdown my-xl-auto right-content align-items-center flex-wrap row-gap-3">
-              <div className="dropdown me-2 alio">
-                <a
-                  href="#"
-                  className="dropdown-toggle btn btn-light btn-md d-inline-flex align-items-center"
+            <div className="d-flex table-dropdown my-xl-auto right-content align-items-center flex-wrap row-gap-3" style={{ gap: '10px' }}>
+              <div className="dropdown" style={{ boxShadow: "rgba(0, 0, 0, 0.25)" }}>
+                <button
+                  className="dropdown-toggle btn-md d-inline-flex align-items-center"
                   data-bs-toggle="dropdown"
                   role="button"
+                  aria-expanded="false"
+                  style={{
+                    backgroundColor: "#ffffff",
+                    color: "#676767",
+                    fontWeight: 400,
+                    fontSize: "16px",
+                    lineHeight: "14px",
+                    borderRadius: "4px",
+                    border: "1px solid #E6E6E6",
+                    boxShadow: "rgba(0, 0, 0, 0.25)",
+                    padding: "10px",
+                  }}
                 >
                   All
-                  <IoIosArrowDown style={{ marginLeft: "5px" }} />
-                </a>
-                <ul className="dropdown-menu  dropdown-menu-end p-3">
+                  <IoIosArrowDown style={{ marginLeft: "10px", fontSize: "20px" }} />
+                </button>
+                <ul className="dropdown-menu  dropdown-menu-end p-3" aria-labelledby="statusDropdown">
                   <li>
-                    <a
+                    <button
                       onClick={() => setStatusFilter("All")}
-                      className="dropdown-item rounded-1"
+                      className="dropdown-item"
+                      onMouseOver={(e) => { e.target.style.backgroundColor = '#e3f3ff'; e.target.style.color = 'black'; }}
+                      onMouseOut={(e) => { e.target.style.backgroundColor = 'white'; e.target.style.color = 'initial'; }}
                     >
                       All
-                    </a>
+                    </button>
                   </li>
                   <li>
-                    <a
+                    <button
                       onClick={() => setStatusFilter("Active")}
-                      className="dropdown-item rounded-1"
+                      className="dropdown-item"
+                      onMouseOver={(e) => { e.target.style.backgroundColor = '#e3f3ff'; e.target.style.color = 'black'; }}
+                      onMouseOut={(e) => { e.target.style.backgroundColor = 'white'; e.target.style.color = 'initial'; }}
                     >
                       Active
-                    </a>
+                    </button>
                   </li>
                   <li>
-                    <a
+                    <button
                       onClick={() => setStatusFilter("Inactive")}
-                      className="dropdown-item rounded-1"
+                      className="dropdown-item"
+                      onMouseOver={(e) => { e.target.style.backgroundColor = '#e3f3ff'; e.target.style.color = 'black'; }}
+                      onMouseOut={(e) => { e.target.style.backgroundColor = 'white'; e.target.style.color = 'initial'; }}
                     >
                       Inactive
-                    </a>
+                    </button>
                   </li>
                 </ul>
               </div>
-              <div className="dropdown alio">
-                <a
+              <div className="dropdown" style={{ boxShadow: "rgba(0, 0, 0, 0.25)" }}>
+                <button
                   href="javascript:void(0);"
-                  className="dropdown-toggle btn btn-light btn-md d-inline-flex align-items-center"
-                  data-bs-toggle="dropdown"
+                  className="dropdown-toggle btn-md d-inline-flex align-items-center" type="button" id="statusDropdown" data-bs-toggle="dropdown" aria-expanded="false"
+                  style={{
+                    backgroundColor: "#ffffff",
+                    color: "#676767",
+                    fontWeight: 400,
+                    fontSize: "16px",
+                    lineHeight: "14px",
+                    borderRadius: "4px",
+                    border: "1px solid #E6E6E6",
+                    boxShadow: "rgba(0, 0, 0, 0.25)",
+                    padding: "10px",
+                  }}
                 >
                   Latest{" "}
-                  <img src={IConnie} alt="" style={{ marginLeft: "5px" }} />
-                </a>
-                <ul className="dropdown-menu  dropdown-menu-end p-3">
+                  <img src={IConnie} alt="" style={{ marginLeft: "10px", fontSize: "20px" }} />
+                </button>
+                <ul className="dropdown-menu  dropdown-menu-end p-3" aria-labelledby="statusDropdown">
                   <li>
-                    <a
+                    <button
                       onClick={() => setSortOrder("Latest")}
-                      className="dropdown-item rounded-1"
+                      className="dropdown-item"
+                      onMouseOver={(e) => { e.target.style.backgroundColor = '#e3f3ff'; e.target.style.color = 'black'; }}
+                      onMouseOut={(e) => { e.target.style.backgroundColor = 'white'; e.target.style.color = 'initial'; }}
                     >
                       Latest
-                    </a>
+                    </button>
                   </li>
                   <li>
-                    <a
+                    <button
                       onClick={() => setSortOrder("Ascending")}
-                      className="dropdown-item rounded-1"
+                      className="dropdown-item"
+                      onMouseOver={(e) => { e.target.style.backgroundColor = '#e3f3ff'; e.target.style.color = 'black'; }}
+                      onMouseOut={(e) => { e.target.style.backgroundColor = 'white'; e.target.style.color = 'initial'; }}
                     >
                       Ascending
-                    </a>
+                    </button>
                   </li>
                   <li>
-                    <a
+                    <button
                       onClick={() => setSortOrder("Descending")}
-                      className="dropdown-item rounded-1"
+                      className="dropdown-item"
+                      onMouseOver={(e) => { e.target.style.backgroundColor = '#e3f3ff'; e.target.style.color = 'black'; }}
+                      onMouseOut={(e) => { e.target.style.backgroundColor = 'white'; e.target.style.color = 'initial'; }}
                     >
                       Descending
-                    </a>
+                    </button>
                   </li>
                 </ul>
               </div>
@@ -471,21 +504,20 @@ const Role = () => {
                           }}
                         >
                           <span
-                            className={`badge table-badge fw-medium fs-10 ${
-                              role.status === "Active" ? "" : ""
-                            }`}
+                            className={`badge table-badge fw-medium fs-10 ${role.status === "Active" ? "" : ""
+                              }`}
                             style={
                               role.status === "Active"
                                 ? {
-                                    backgroundColor: "#DFFFE0",
-                                    color: "#0F5132",
-                                    padding: "6px 8px 6px 8px",
-                                  }
+                                  backgroundColor: "#DFFFE0",
+                                  color: "#0F5132",
+                                  padding: "6px 8px 6px 8px",
+                                }
                                 : {
-                                    backgroundColor: "#FCE4E6",
-                                    color: "#0F5132",
-                                    padding: "6px 8px 6px 8px",
-                                  }
+                                  backgroundColor: "#FCE4E6",
+                                  color: "#0F5132",
+                                  padding: "6px 8px 6px 8px",
+                                }
                             }
                           >
                             {role.status}
@@ -508,7 +540,7 @@ const Role = () => {
                               onClick={() =>
                                 navigate(`/permissions/${role._id}`)
                               }
-                              // onClick={() => handleViewPermissions(role.roleName)}
+                            // onClick={() => handleViewPermissions(role.roleName)}
                             >
                               <TbEye />
                             </a>
@@ -583,9 +615,9 @@ const Role = () => {
                 {filteredRoles.length === 0
                   ? "0 of 0"
                   : `${(currentPage - 1) * itemsPerPage + 1}-${Math.min(
-                      currentPage * itemsPerPage,
-                      filteredRoles.length
-                    )} of ${filteredRoles.length}`}
+                    currentPage * itemsPerPage,
+                    filteredRoles.length
+                  )} of ${filteredRoles.length}`}
                 <button
                   style={{
                     border: "none",
@@ -620,7 +652,7 @@ const Role = () => {
         <div className="modal" id="add-role">
           <div className="modal-dialog modal-dialog-centered">
             <div className="modal-content">
-              <div className="modal-header">
+              <div className="p-3">
                 <h4
                   style={{
                     color: "#262626",
@@ -658,15 +690,35 @@ const Role = () => {
                     />
                   </div>
                   <div className="mb-0">
-                    <div className="status-toggle modal-status d-flex justify-content-between align-items-center">
-                      <span className="status-label" style={{fontSize:'16px', fontWeight:400, lineHeight:'14px', color:'#262626'}}>Status</span>
-                      <div className="dropdown">
+                    <div className="status-toggle modal-status d-flex flex-column" style={{ gap: '4px' }}>
+                      <label
+                        className="ffrrstname"
+                        style={{
+                          fontWeight: "400",
+                          fontSize: "14px",
+                          lineHeight: "14px",
+                        }}
+                      >
+                        Status
+                      </label>
+                      <div className="dropdown" style={{ boxShadow: "rgba(0, 0, 0, 0.25)" }}>
                         <button
-                          className="btn btn-light dropdown-toggle"
+                          className="dropdown-toggle btn-md d-inline-flex align-items-center"
                           type="button"
                           id="roleStatus"
                           data-bs-toggle="dropdown"
                           aria-expanded="false"
+                          style={{
+                            backgroundColor: "#ffffff",
+                            color: "#676767",
+                            fontWeight: 400,
+                            fontSize: "16px",
+                            lineHeight: "14px",
+                            borderRadius: "4px",
+                            border: "1px solid #E6E6E6",
+                            boxShadow: "rgba(0, 0, 0, 0.25)",
+                            padding: "10px",
+                          }}
                         >
                           {roleStatus ? "Active" : "Inactive"}
                         </button>
@@ -675,20 +727,24 @@ const Role = () => {
                           aria-labelledby="statusDropdown"
                         >
                           <li>
-                            <a
+                            <button
                               className="dropdown-item"
                               onClick={() => setRoleStatus(true)}
+                              onMouseOver={(e) => { e.target.style.backgroundColor = '#e3f3ff'; e.target.style.color = 'black'; }}
+                              onMouseOut={(e) => { e.target.style.backgroundColor = 'white'; e.target.style.color = 'initial'; }}
                             >
                               Active
-                            </a>
+                            </button>
                           </li>
                           <li>
-                            <a
+                            <button
                               className="dropdown-item"
                               onClick={() => setRoleStatus(false)}
+                              onMouseOver={(e) => { e.target.style.backgroundColor = '#e3f3ff'; e.target.style.color = 'black'; }}
+                              onMouseOut={(e) => { e.target.style.backgroundColor = 'white'; e.target.style.color = 'initial'; }}
                             >
                               Inactive
-                            </a>
+                            </button>
                           </li>
                         </ul>
                       </div>
@@ -696,7 +752,6 @@ const Role = () => {
                   </div>
                 </div>
                 <div
-                  className="modal-footer"
                   style={{
                     display: "flex",
                     justifyContent: "end",
@@ -705,10 +760,10 @@ const Role = () => {
                     fontWeight: 400,
                     fontSize: "16px",
                     lineHeight: "14px",
+                    margin: "10px"
                   }}
                 >
                   <button
-                    className="btn btn-secondary"
                     data-bs-dismiss="modal"
                     style={{
                       border: "1px solid #E6E6E6",
@@ -790,16 +845,36 @@ const Role = () => {
                       }}
                     />
                   </div>
-                  <div className="mb-0">
-                    <div className="status-toggle modal-status d-flex justify-content-between align-items-center">
-                      <span className="status-label">Status</span>
-                      <div className="dropdown">
+                  <div className="mb-3">
+                    <div className="status-toggle modal-status d-flex flex-column" style={{ gap: '4px' }}>
+                      <label
+                        className="ffrrstname"
+                        style={{
+                          fontWeight: "400",
+                          fontSize: "14px",
+                          lineHeight: "14px",
+                        }}
+                      >
+                        Status
+                      </label>
+                      <div className="dropdown" style={{ boxShadow: "rgba(0, 0, 0, 0.25)" }}>
                         <button
-                          className="btn btn-light dropdown-toggle"
+                          className="dropdown-toggle btn-md d-inline-flex align-items-center"
                           type="button"
                           id="statusDropdown"
                           data-bs-toggle="dropdown"
                           aria-expanded="false"
+                          style={{
+                            backgroundColor: "#ffffff",
+                            color: "#676767",
+                            fontWeight: 400,
+                            fontSize: "16px",
+                            lineHeight: "14px",
+                            borderRadius: "4px",
+                            border: "1px solid #E6E6E6",
+                            boxShadow: "rgba(0, 0, 0, 0.25)",
+                            padding: "10px",
+                          }}
                         >
                           {editRoleStatus ? "Active" : "Inactive"}
                         </button>
@@ -808,20 +883,24 @@ const Role = () => {
                           aria-labelledby="statusDropdown"
                         >
                           <li>
-                            <a
+                            <button
                               className="dropdown-item"
                               onClick={() => setEditRoleStatus(true)}
+                              onMouseOver={(e) => { e.target.style.backgroundColor = '#e3f3ff'; e.target.style.color = 'black'; }}
+                              onMouseOut={(e) => { e.target.style.backgroundColor = 'white'; e.target.style.color = 'initial'; }}
                             >
                               Active
-                            </a>
+                            </button>
                           </li>
                           <li>
-                            <a
+                            <button
                               className="dropdown-item"
                               onClick={() => setEditRoleStatus(false)}
+                              onMouseOver={(e) => { e.target.style.backgroundColor = '#e3f3ff'; e.target.style.color = 'black'; }}
+                              onMouseOut={(e) => { e.target.style.backgroundColor = 'white'; e.target.style.color = 'initial'; }}
                             >
                               Inactive
-                            </a>
+                            </button>
                           </li>
                         </ul>
                       </div>
@@ -829,7 +908,6 @@ const Role = () => {
                   </div>
                 </div>
                 <div
-                  className="modal-footer"
                   style={{
                     display: "flex",
                     justifyContent: "end",
@@ -838,10 +916,10 @@ const Role = () => {
                     fontWeight: 400,
                     fontSize: "16px",
                     lineHeight: "14px",
+                    margin: "10px"
                   }}
                 >
                   <button
-                    className="btn btn-secondary"
                     data-bs-dismiss="modal"
                     style={{
                       border: "1px solid #E6E6E6",
@@ -856,7 +934,6 @@ const Role = () => {
                   </button>
                   <button
                     type="submit"
-                    className="btn btn-primary"
                     style={{
                       border: "1px solid #676767",
                       borderRadius: "4px",

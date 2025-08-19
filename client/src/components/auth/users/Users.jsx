@@ -417,7 +417,7 @@ const Users = () => {
                       className="dropdown-item rounded-1"
                       onClick={() => setSelectedStatus("")}
                       onMouseOver={(e) => { e.target.style.backgroundColor = '#e3f3ff'; e.target.style.color = 'black'; }}
-                                onMouseOut={(e) => { e.target.style.backgroundColor = 'white'; e.target.style.color = 'initial'; }}
+                      onMouseOut={(e) => { e.target.style.backgroundColor = 'white'; e.target.style.color = 'initial'; }}
                       style={{
                         color: "#676767",
                         padding: "6px 10px",
@@ -440,7 +440,7 @@ const Users = () => {
                       className="dropdown-item rounded-1"
                       onClick={() => setSelectedStatus("Active")}
                       onMouseOver={(e) => { e.target.style.backgroundColor = '#e3f3ff'; e.target.style.color = 'black'; }}
-                                onMouseOut={(e) => { e.target.style.backgroundColor = 'white'; e.target.style.color = 'initial'; }}
+                      onMouseOut={(e) => { e.target.style.backgroundColor = 'white'; e.target.style.color = 'initial'; }}
                       style={{
                         color: "#676767",
                         padding: "6px 10px",
@@ -463,7 +463,7 @@ const Users = () => {
                       className="dropdown-item rounded-1"
                       onClick={() => setSelectedStatus("Inactive")}
                       onMouseOver={(e) => { e.target.style.backgroundColor = '#e3f3ff'; e.target.style.color = 'black'; }}
-                                onMouseOut={(e) => { e.target.style.backgroundColor = 'white'; e.target.style.color = 'initial'; }}
+                      onMouseOut={(e) => { e.target.style.backgroundColor = 'white'; e.target.style.color = 'initial'; }}
                       style={{
                         color: "#676767",
                         padding: "6px 10px",
@@ -718,7 +718,7 @@ const Users = () => {
                             fontFamily: 'Roboto", sans-serif',
                           }}
                         >
-                          <div className="d-flex">
+                          <div className="d-flex" style={{ cursor: 'pointer' }}>
                             {/* <a className="me-2 p-2">
                               <TbEye />
                             </a> */}
@@ -1338,18 +1338,18 @@ const Users = () => {
                               data-bs-toggle="dropdown"
                               aria-expanded="false"
                               style={{
-                              backgroundColor: "#ffffff",
-                              color: "#676767",
-                              fontWeight: 400,
-                              fontSize: "16px",
-                              lineHeight: "14px",
-                              borderRadius: "4px",
-                              border: "1px solid #E6E6E6",
-                              boxShadow: "rgba(0, 0, 0, 0.25)",
-                              padding: "10px",
-                            }}
+                                backgroundColor: "#ffffff",
+                                color: "#676767",
+                                fontWeight: 400,
+                                fontSize: "16px",
+                                lineHeight: "14px",
+                                borderRadius: "4px",
+                                border: "1px solid #E6E6E6",
+                                boxShadow: "rgba(0, 0, 0, 0.25)",
+                                padding: "10px",
+                              }}
                             >
-                              {status ? "Active" : "Inactive"}<BiChevronDown style={{ marginLeft: "10px", fontSize: "20px" }}/>
+                              {status ? "Active" : "Inactive"}<BiChevronDown style={{ marginLeft: "10px", fontSize: "20px" }} />
                             </button>
                             <ul
                               className="dropdown-menu dropdown-menu-end p-3" aria-labelledby="statusDropdown"
@@ -1358,8 +1358,8 @@ const Users = () => {
                                 <button
                                   className="dropdown-item"
                                   onClick={() => setStatus(true)}
-                                onMouseOver={(e) => { e.target.style.backgroundColor = '#e3f3ff'; e.target.style.color = 'black'; }}
-                                onMouseOut={(e) => { e.target.style.backgroundColor = 'white'; e.target.style.color = 'initial'; }}
+                                  onMouseOver={(e) => { e.target.style.backgroundColor = '#e3f3ff'; e.target.style.color = 'black'; }}
+                                  onMouseOut={(e) => { e.target.style.backgroundColor = 'white'; e.target.style.color = 'initial'; }}
                                 >
                                   Active
                                 </button>

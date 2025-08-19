@@ -683,7 +683,7 @@ const Companysettings = () => {
               ))}
             </div>
             <div style={{ display: "flex", justifyContent: "end", gap: "10px" }}>
-              <button type="submit" className="settingbtn" 
+              <button type="submit" 
                 style={{
                       border: "1px solid #E6E6E6",
                       borderRadius:'4px',
@@ -694,7 +694,7 @@ const Companysettings = () => {
                     }}
 
                >Cancel</button>
-              <button type="submit" className="settingbtn" style={{
+              <button type="submit"  style={{
                       border: "1px solid #676767",
                       borderRadius:'4px',
                       padding: "8px",

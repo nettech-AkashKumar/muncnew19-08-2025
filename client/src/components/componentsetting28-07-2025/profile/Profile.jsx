@@ -109,43 +109,43 @@ const UserProfile = () => {
   return (
     <div>
       <div className="profile-container pb-2">
-          {userData ? (
-            <div>
-              <form onSubmit={handleSubmit} style={{display:'flex', flexDirection:'column', gap:'20px'}}>
-        <div className="section-top-profile">
-          <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', padding:'4px'}}>
-          <span className="pprreofile" style={{color:'#262626'}}>
-            Profile
-          </span>
-          <span className="pprreofile" style={{backgroundColor:'#1368EC', borderRadius:'4px', padding:'8px', color:'#FFFFFF'}}>
-            Sales Manager
-          </span>
-          </div>
-          <hr style={{ color:'#b9b9b9ff', height:'1px', }} />
-              <label
-                htmlFor=""
-              >
-                <span className="pprreofile" style={{color:'#262626'}}>Basic Information</span>
-              </label>
-              
+        {userData ? (
+          <div>
+            <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+              <div className="section-top-profile">
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '4px' }}>
+                  <span className="pprreofile" style={{ color: '#262626' }}>
+                    Profile
+                  </span>
+                  <span className="pprreofile" style={{ backgroundColor: '#1368EC', borderRadius: '4px', padding: '8px', color: '#FFFFFF' }}>
+                    Sales Manager
+                  </span>
+                </div>
+                <hr style={{ color: '#b9b9b9ff', height: '1px', }} />
+                <label
+                  htmlFor=""
+                >
+                  <span className="pprreofile" style={{ color: '#262626' }}>Basic Information</span>
+                </label>
+
                 <div
                   className=""
-                 style={{
-                  display:'flex',
-                  alignItems:'center',
-                  justifyContent:'space-between',
-                  border:'2px dashed #dadadaff',
-                  padding:'20px 20px',
-                  borderRadius:'8px',
-                  margin:'10px',
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    border: '2px dashed #dadadaff',
+                    padding: '20px 20px',
+                    borderRadius: '8px',
+                    margin: '10px',
 
-                 }}
+                  }}
 
                 >
                   <div
                     className="add-image-circle"
                     style={{
-                      display:'flex',
+                      display: 'flex',
                       border: "2px solid #1368EC",
                       width: "100px",
                       height: "100px",
@@ -167,7 +167,7 @@ const UserProfile = () => {
                           height: "100%",
                           objectFit: "cover",
                           pointerEvents: "none",
-                          borderRadius:'50%'
+                          borderRadius: '50%'
                         }}
                       />
                     ) : (
@@ -180,7 +180,7 @@ const UserProfile = () => {
                     )}
                   </div>
 
-                  <input 
+                  <input
                     type="file"
                     name="profileImage"
                     accept="image/*"
@@ -188,31 +188,31 @@ const UserProfile = () => {
                     ref={fileInputRef}
                     onChange={handleFileChange}
                   />
-                  
-                  <div style={{ display: "flex", flexDirection: "column", alignItems:'center' }}>
+
+                  <div style={{ display: "flex", flexDirection: "column", alignItems: 'center' }}>
                     <div style={{
-                       display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        gap:'5px',
-                        textAlign: "center",
-                        backgroundColor: " #E3F3FF",
-                        color: "#1368EC",
-                        border: "1px solid #BBE1FF",
-                        borderRadius: "15px",
-                        width: "150px",
-                        height: "45px",
-                        cursor: "pointer",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      gap: '5px',
+                      textAlign: "center",
+                      backgroundColor: " #E3F3FF",
+                      color: "#1368EC",
+                      border: "1px solid #BBE1FF",
+                      borderRadius: "15px",
+                      width: "150px",
+                      height: "45px",
+                      cursor: "pointer",
                     }}>
-                    <img src={Iconss} alt="" style={{width:'20px', height:'20px'}} />
-                    <span
-                      onClick={handleIconClick}
-                      className="setting-imgupload-btn"
-                    >
-                      Upload Image
-                    </span>
+                      <img src={Iconss} alt="" style={{ width: '20px', height: '20px' }} />
+                      <span
+                        onClick={handleIconClick}
+                        className="setting-imgupload-btn"
+                      >
+                        Upload Image
+                      </span>
                     </div>
-                    <p style={{color:'#888888', fontFamily:'"Roboto", sans-serif', fontWeight:400, fontSize:'12px', marginTop:'10px'}}>
+                    <p style={{ color: '#888888', fontFamily: '"Roboto", sans-serif', fontWeight: 400, fontSize: '12px', marginTop: '10px' }}>
                       Upload an image below 2MB, Accepted File format JPG, PNG
                     </p>
                   </div>
@@ -222,8 +222,8 @@ const UserProfile = () => {
                 </div>
               </div>
 
-                {/* details field */}
-                <div className="section-top-profile">
+              {/* details field */}
+              <div className="section-top-profile">
                 <div className="profle-details-form py-4 d-flex flex-column gap-3">
                   <div style={{ display: "flex", gap: "20px" }}>
                     <div
@@ -293,7 +293,7 @@ const UserProfile = () => {
                       }}
                     >
                       <label className="ffrrstname" style={{ fontWeight: "500" }} htmlFor="">
-                        Email 
+                        Email
                       </label>
                       <input className="ffrrstnameinput"
                         readOnly
@@ -307,7 +307,7 @@ const UserProfile = () => {
                     </div>
                   </div>
                 </div>
-                <div className="address-information pb-4" style={{padding:'0px 13px'}}>
+                <div className="address-information pb-4" style={{ padding: '0px 13px' }}>
                   <div className="d-flex flex-column gap-3">
                     <div
                       style={{
@@ -322,7 +322,7 @@ const UserProfile = () => {
                       <input className="ffrrstnameinput"
                         readOnly
                         style={{
-                          height:'100px',
+                          height: '100px',
                           border: "1px solid #cbc6c6",
                           padding: "8px 5px",
                         }}
@@ -379,7 +379,7 @@ const UserProfile = () => {
                           <option value="">Jharkhand</option>
                         </select>
                       </div>
-                       <div
+                      <div
                         style={{
                           display: "flex",
                           flexDirection: "column",
@@ -431,17 +431,17 @@ const UserProfile = () => {
                     display: "flex",
                     justifyContent: "end",
                     gap: "10px",
-                      fontFamily: "Roboto, sans-serif",
-                     fontWeight:400,
-                     fontSize:'16px',
-                     lineHeight:'14px',
+                    fontFamily: "Roboto, sans-serif",
+                    fontWeight: 400,
+                    fontSize: '16px',
+                    lineHeight: '14px',
                   }}
                 >
                   <button
-                    className="settingbtn"
+                    // className="settingbtn"
                     style={{
                       border: "1px solid #E6E6E6",
-                      borderRadius:'4px',
+                      borderRadius: '4px',
                       padding: "8px",
                       backgroundColor: "#FFFFFF",
                       color: "#676767",
@@ -451,10 +451,10 @@ const UserProfile = () => {
                     Cancel
                   </button>
                   <button
-                    className="settingbtn"
+                    // className="settingbtn"
                     style={{
                       border: "1px solid #676767",
-                      borderRadius:'4px',
+                      borderRadius: '4px',
                       padding: "8px",
                       backgroundColor: "#262626",
                       color: "#FFFFFF",
@@ -464,12 +464,12 @@ const UserProfile = () => {
                     Save
                   </button>
                 </div>
-                </div>
-                </form>
-            </div>
-          ) : (
-            <p>No Data found</p>
-          )}
+              </div>
+            </form>
+          </div>
+        ) : (
+          <p>No Data found</p>
+        )}
       </div>
     </div>
   );
