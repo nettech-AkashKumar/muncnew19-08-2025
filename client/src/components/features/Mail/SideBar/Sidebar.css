@@ -177,7 +177,7 @@
   color: rgb(255, 94, 0);
 }
 .border-bootom {
-  border-bottom: 1px solid #e8e9eb;
+  /* border-bottom: 1px solid #e8e9eb; */
   padding-bottom: 18px;
 }
 /* models  */

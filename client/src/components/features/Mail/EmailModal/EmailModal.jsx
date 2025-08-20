@@ -212,8 +212,9 @@ const EmailModal = ({
         </div>
 
         <div className="modal-body" style={{ margin: '10px' }}>
-          <div className="to-field">
-            <label style={{ color: '#676767', fontWeight: 400, fontSize: '16px', lineHeight: '10px', letterSpacing: '0' }}>To:</label>
+          <div className="to-field"  style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+            <label style={{ color: '#676767', fontWeight: 400, fontSize: '16px', lineHeight: '10px', letterSpacing: '0', marginTop:'10px' }}>To:</label>
+            {/* <hr style={{width:'100%', height:'1px'}} /> */}
             <input
               type="email"
               defaultValue="Angela Thomas"
@@ -225,6 +226,7 @@ const EmailModal = ({
                 outline: 'none',
                 background: 'transparent',
                 fontSize: '16px',
+                marginLeft:'-10px',
                 padding: '4px 0',
                 width: '100%',
               }}
@@ -284,7 +286,7 @@ const EmailModal = ({
           )}
           <div>
             <div className="to-field">
-              <label style={{ color: '#676767', fontWeight: 400, fontSize: '16px', lineHeight: '10px', letterSpacing: '0' }} htmlFor="">Subject: </label>
+              <label style={{ color: '#676767', fontWeight: 400, fontSize: '16px', lineHeight: '10px', letterSpacing: '0', }} htmlFor="">Subject: </label>
               <input
                 type="text"
                 className="subject"

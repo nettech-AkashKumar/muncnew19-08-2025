@@ -2264,10 +2264,7 @@ ul{
     min-width: 200px;
   }
   .user-menu.nav > li.profile-nav .profileset {
-    background: #F9FAFB;
     border-radius: 5px;
-    padding: 16px;
-    margin-bottom: 8px;
   }
   .user-menu.nav > li.profile-nav .profileset img {
     width: 40px;

@@ -42,9 +42,10 @@ const EmailMessages = ({
 
 
   const fetchUsers = async () => {
+    console.log('ftchusr', fetchUsers)
     try {
       const token = localStorage.getItem("token"); // ⬅️ Get token from localStorage
-
+      console.log('trken', token)
       const res = await axios.get(`${BASE_URL}/api/user/getuser`, {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -62,6 +63,7 @@ const EmailMessages = ({
   useEffect(() => {
     fetchUsers();
   }, []);
+  
 
 
   useEffect(() => {
@@ -247,8 +249,8 @@ const EmailMessages = ({
     });
   };
 
-  const [activeTabs, setActiveTabs] = useState('All')
-  const tabs = ['All', 'Unread', 'Archived']
+  // const [activeTabs, setActiveTabs] = useState('All')
+  // const tabs = ['All', 'Unread', 'Archived']
 
 
 
@@ -285,11 +287,11 @@ const EmailMessages = ({
           </span>
           <span className="twothreemail">
             {/* {(filteredEmails || emails).length}Emails{" "} */}
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '40px', width: '350px', height: '30px', borderRadius: '4px', padding: '5px 0px 5px 0px', marginTop: '20px', backgroundColor: '#F7F7F7', }}>
+            {/* <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '40px', width: '350px', height: '30px', borderRadius: '4px', padding: '5px 0px 5px 0px', marginTop: '20px', backgroundColor: '#F7F7F7', }}>
               {tabs.map((tab) => (
                 <span key={tab} onClick={() => setActiveTabs(tab)} style={{ fontSize: '14px', fontWeight: 400, width: '200px', textAlign: 'center', cursor: 'pointer', borderRadius: '4px', backgroundColor: activeTabs === tab ? '#BBE1FF' : 'transparent', transition: 'background-color 0.3s', }}>{tab}</span>
               ))}
-            </div>
+            </div> */}
             <span
               style={{
                 fontSize: "22px",
@@ -546,7 +548,7 @@ const EmailMessages = ({
 
                       {/* folder gallery */}
                       <div className="foldergallerydiv">
-                        <div
+                        {/* <div
                           style={{
                             display: "flex",
                             gap: "10px",
@@ -562,8 +564,7 @@ const EmailMessages = ({
                             <GrGallery />
                           </span>
                           <span>{email.image?.length}</span>
-                          {/* {console.log('imgg length', email.image?.length)} */}
-                        </div>
+                        </div> */}
                         <div
                           style={{
                             display: "flex",
