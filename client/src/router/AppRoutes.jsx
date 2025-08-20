@@ -121,6 +121,7 @@ import Pos from "../pages/pos/Pos.jsx";
 import ViewSupplierModal from "../pages/Modal/suppliers/ViewSupplierModal.jsx";
 import ViewProductStock from "../pages/ViewProductStock.jsx";
 import ViewReturnProduct from "../pages/ViewReturnProduct.jsx";
+import PurchaseReport from "../components/features/inventory/report/PurchaseReport.jsx";
 
 const AppRoutes = () => {
   return (
@@ -232,6 +233,7 @@ const AppRoutes = () => {
         <Route path="/sidebar-settings" element={<SidebarSettings />} />
         <Route path="/stock-movement-log" element={<StockMovementLog />} />
 
+        <Route path="/purchase-report" element={<PurchaseReport />} />
 
 
 

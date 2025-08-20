@@ -538,7 +538,7 @@ export const getMenuData = () => {
         },
         {
           label: "Purchase Report",
-          path: "/reports/purchase",
+          path: "/purchase-report",
           icon: <FaRegFileAlt className="icons" />,
         },
         {
