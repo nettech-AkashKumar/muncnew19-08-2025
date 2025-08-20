@@ -24,7 +24,9 @@ import { useSocket } from '../../../Context/SocketContext';
 import ChatIcon from '../../../assets/img/icons/chat.png';
 import BASE_URL from '../../../pages/config/config';
 
-const SOCKET_URL = import.meta.env.BACKEND_URL || 'http://localhost:5000'; // Use your backend port
+import axios from "axios";
+
+const SOCKET_URL = BASE_URL;
 // const socket = io("http://localhost:5000"); // same as backend port
 
 const Chat = () => {
@@ -46,8 +48,9 @@ const Chat = () => {
   const navigate = useNavigate();
   const messagesEndRef = useRef(null);
   const messageContainerRef = useRef(null);
-
-  // const BASE_URL = import.meta.env.BACKEND_URL || 'http://localhost:5000';
+  
+  // const backendurl = import.meta.env.BACKEND_URL || 'http://localhost:5000';
+  const backendurl = BASE_URL;
 
   const [clickDropdown, setClickDropdown] = useState();
   const [clickDropdowntwo, setClickDropdownTwo] = useState();
