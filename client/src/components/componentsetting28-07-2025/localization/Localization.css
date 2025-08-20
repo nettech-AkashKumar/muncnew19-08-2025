@@ -1,6 +1,6 @@
-.localization-container {
+/* .localization-container {
   height: calc(100vh - 40px);
-}
+} */
 .localization-container::-webkit-scrollbar {
   display: none;
 }

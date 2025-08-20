@@ -57,10 +57,12 @@ import Deleted from "../components/features/Mail/EmailLayout/Deleted.jsx";
 import EmailMessages from "../components/features/Mail/EmailMessages/EmailMessages.jsx";
 
 
+import LowStock from "../components/features/stock/lowstock/LowStock.jsx";
 
 import ManageStock from "../components/features/stock/manageStock/ManageStock";
 import StockAdujestment from "../components/features/stock/stockAdujestment/StockAdujestment";
 import StockTransfer from "../components/features/stock/stockTransfer/StockTransfer";
+
 
 import Purchase from "../components/features/purchase/Purchases/Purchase.jsx";
 import PurchaseReturn from "../components/features/purchase/PurchaseReturn//PurchaseReturn.jsx";
@@ -116,6 +118,10 @@ import StockMovementLog from "../components/features/warehouse/StockMovementLog.
 
 //pos
 import Pos from "../pages/pos/Pos.jsx";
+import ViewSupplierModal from "../pages/Modal/suppliers/ViewSupplierModal.jsx";
+import ViewProductStock from "../pages/ViewProductStock.jsx";
+import ViewReturnProduct from "../pages/ViewReturnProduct.jsx";
+import PurchaseReport from "../components/features/inventory/report/PurchaseReport.jsx";
 
 const AppRoutes = () => {
   return (
@@ -142,7 +148,7 @@ const AppRoutes = () => {
         <Route path="/home" element={<Dashboard />} />
         <Route path="/dashboard" element={<Dashboard />} />
         {/* <Route path="/general-settings" element={<Setting />} /> */}
-         <Route path="/" element={<Settings />}>
+        <Route path="/" element={<Settings />}>
           <Route path="profile/:id" element={<UserProfiles />} />
           <Route path="security-settings" element={<Security />} />
           <Route path="notification" element={<Notification />} />
@@ -159,7 +165,7 @@ const AppRoutes = () => {
 
         <Route path="/profile" element={<Profile />} />
         <Route path="/product" element={<Product />} />
-        <Route path="/choose-adproduct" element={<ChooseToAddProduct/>}/>
+        <Route path="/choose-adproduct" element={<ChooseToAddProduct />} />
         <Route path="/scan-product" element={<ScanToAddProduct />} />
         <Route path="/add-product" element={<ProductCreate />} />
         <Route path="/expired-products" element={<ExpriedProduct />} />
@@ -182,7 +188,7 @@ const AppRoutes = () => {
         <Route path="/chat" element={<Chat />} />
         <Route path="/variant-attributes" element={<Variant />} />
         <Route path="/admin" element={<AdminDashboard />} />
-        <Route path="/admin-2" element={<Dashboards/>} />
+        <Route path="/admin-2" element={<Dashboards />} />
         <Route path="/theme" element={<ThemeCustomizer />} />
         <Route path="/language" element={<LanguageSwitcher />} />
         <Route path="/debit-note" element={<DebitNote />} />
@@ -191,7 +197,7 @@ const AppRoutes = () => {
         <Route path="/ViewAllNotifications" element={<ViewAllNotifications />} />
         <Route path="/barcode" element={<Barcode />} />
         <Route path="/pos" element={<Pos />} />
-        
+
         {/* purchase */}
         <Route path="/purchase-list" element={<Purchase />} />
         <Route path="/purchase-order" element={<PurchaseOrder />} />
@@ -201,26 +207,34 @@ const AppRoutes = () => {
         <Route path="/online-orders" element={<Sales />} />
 
         {/* stock */}
+        <Route path="/low-stocks" element={<LowStock />} />
+        <Route path="/stock" element={<ViewProductStock />} />
+        <Route path="/return-stock" element={<ViewReturnProduct />} />
         <Route path="/manage-stocks" element={<ManageStock />} />
         <Route path="/stock-adjustment" element={<StockAdujestment />} />
         <Route path="/stock-transfer" element={<StockTransfer />} />
         <Route path="/hsn" element={<Hsn />} />
         <Route path="/warehouse" element={<Warehouse />} />
         <Route path="/addwarehouse" element={<AddWarehouse />} />
-        <Route path="/WarehouseDetails" element={<WarehouseDetails/>} />
-        <Route path="/Godown" element={<Godown/>} />
-        <Route path="/selectpage" element={<SelectPage/>} />
+        <Route path="/WarehouseDetails/:id" element={<WarehouseDetails />} />
+        <Route path="/Godown" element={<Godown />} />
+        <Route path="/selectpage" element={<SelectPage />} />
 
         {/* customer */}
         <Route path="/customers" element={<AllCustomer />} />
         {/* suppplier */}
         <Route path="/suppliers" element={<AllSuppliers />} />
+        <Route path="/viewsupplier/:id" element={<ViewSupplierModal />} />
+
 
         {/* settings */}
         <Route path="/Purchase-settings" element={<PurchaseSettings />} />
         <Route path="/warehouse-settings" element={<RackSettings />} />
         <Route path="/sidebar-settings" element={<SidebarSettings />} />
         <Route path="/stock-movement-log" element={<StockMovementLog />} />
+
+        <Route path="/purchase-report" element={<PurchaseReport />} />
+
 
 
 
@@ -240,22 +254,22 @@ const AppRoutes = () => {
 
 
         {/* ------------------ Finance & Accounts ------------------ */}
-        <Route path="/balance-sheet" element={<BalanceSheet/>}/>
-        <Route path="/profit&loss" element={<ProfitLoss/>}/>
-        <Route path="/profit_lossdate_choose" element={<ProfitLossDateChoose/>}/>
-        <Route path="/profit_lossselect_date" element={<ProfitLossSelectDate/>}/>
-        <Route path="/overdue-report" element={<OverdueReport/>}/>
-        <Route path="/expense-report" element={<ExpenseReport/>}/>
-        <Route path="/add_expenses" element={<ExpenseForm/>}/>
-        <Route path="/expenseformedit" element={<ExpenseFormEdit/>}/>
-        <Route path="/bc" element={<BC/>}/>
-        <Route path="/payment-history" element={<PaymentHistory/>}/>
-        <Route path="/credit&debit-note" element={<CreditDebitNotes/>}/>
-        <Route path="/credit" element={<Credit/>}/>
-        <Route path="/debit" element={<Debit/>}/>
+        <Route path="/balance-sheet" element={<BalanceSheet />} />
+        <Route path="/profit&loss" element={<ProfitLoss />} />
+        <Route path="/profit_lossdate_choose" element={<ProfitLossDateChoose />} />
+        <Route path="/profit_lossselect_date" element={<ProfitLossSelectDate />} />
+        <Route path="/overdue-report" element={<OverdueReport />} />
+        <Route path="/expense-report" element={<ExpenseReport />} />
+        <Route path="/add_expenses" element={<ExpenseForm />} />
+        <Route path="/expenseformedit" element={<ExpenseFormEdit />} />
+        <Route path="/bc" element={<BC />} />
+        <Route path="/payment-history" element={<PaymentHistory />} />
+        <Route path="/credit&debit-note" element={<CreditDebitNotes />} />
+        <Route path="/credit" element={<Credit />} />
+        <Route path="/debit" element={<Debit />} />
       </Route>
 
-       
+
 
 
     </Routes>
