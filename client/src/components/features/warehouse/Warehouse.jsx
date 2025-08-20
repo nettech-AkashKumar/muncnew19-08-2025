@@ -1091,7 +1091,7 @@ import axios from "axios";
 function Warehouse() {
   const [warehouses, setWarehouses] = useState([]);
     const [loading, setLoading] = useState(false);
-    const [error, setError] = useState(null);
+     const [error, setError] = useState(null);
 
 
   const fetchWarehouses = useCallback(async () => {
@@ -1269,7 +1269,7 @@ function Warehouse() {
 
                   {/* Arrow */}
                   <div>
-                    <Link to="/WarehouseDetails">
+                    <Link to={`/WarehouseDetails/${item._id}`}>
                       <FaArrowRight />
                     </Link>
                   </div>

@@ -207,7 +207,7 @@ const AppRoutes = () => {
         <Route path="/hsn" element={<Hsn />} />
         <Route path="/warehouse" element={<Warehouse />} />
         <Route path="/addwarehouse" element={<AddWarehouse />} />
-        <Route path="/WarehouseDetails" element={<WarehouseDetails/>} />
+        <Route path="/WarehouseDetails/:id" element={<WarehouseDetails/>} />
         <Route path="/Godown" element={<Godown/>} />
         <Route path="/selectpage" element={<SelectPage/>} />
 
