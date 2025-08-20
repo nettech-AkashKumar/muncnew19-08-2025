@@ -547,34 +547,34 @@ export const getMenuData = () => {
       key: "Finance & Accounts",
 
       items: [
-        {
-          label: "Expenses",
-          stateKey: "expenses",
-          icon: <TbFileStack className="icons" />,
-          children: [
-            { label: "Expenses", path: "/expense-list" },
-            { label: "Expense Category", path: "/expense-category" },
-          ],
-        },
-        {
-          label: "Income",
-          stateKey: "income",
-          icon: <TbFilePencil className="icons" />,
-          children: [
-            { label: "Income", path: "/income" },
-            { label: "Income Category", path: "/income-category" },
-          ],
-        },
-        {
-          label: "Bank Accounts",
-          path: "/account-list",
-          icon: <CiBank className="icons" />,
-        },
-        {
-          label: "Money Transfer",
-          path: "/money-transfer",
-          icon: <TbMoneybag className="icons" />,
-        },
+        // {
+        //   label: "Expenses",
+        //   stateKey: "expenses",
+        //   icon: <TbFileStack className="icons" />,
+        //   children: [
+        //     { label: "Expenses", path: "/expense-list" },
+        //     { label: "Expense Category", path: "/expense-category" },
+        //   ],
+        // },
+        // {
+        //   label: "Income",
+        //   stateKey: "income",
+        //   icon: <TbFilePencil className="icons" />,
+        //   children: [
+        //     { label: "Income", path: "/income" },
+        //     { label: "Income Category", path: "/income-category" },
+        //   ],
+        // },
+        // {
+        //   label: "Bank Accounts",
+        //   path: "/account-list",
+        //   icon: <CiBank className="icons" />,
+        // },
+        // {
+        //   label: "Money Transfer",
+        //   path: "/money-transfer",
+        //   icon: <TbMoneybag className="icons" />,
+        // },
         {
           label: "Balance Sheet",
           path: "/balance-sheet",
@@ -610,21 +610,21 @@ export const getMenuData = () => {
           path: "/credit&debit-note",
           icon: <MdOutlineSpeakerNotes className="icons"/>,
         },
-        {
-          label: "Trial Balance",
-          path: "/trial-balance",
-          icon: <TbAlertCircle className="icons" />,
-        },
-        {
-          label: "Cash Flow",
-          path: "/cash-flow",
-          icon: <TbZoomMoney className="icons" />,
-        },
-        {
-          label: "Account Statement",
-          path: "/account-statement",
-          icon: <TbFileInfinity className="icons" />,
-        },
+        // {
+        //   label: "Trial Balance",
+        //   path: "/trial-balance",
+        //   icon: <TbAlertCircle className="icons" />,
+        // },
+        // {
+        //   label: "Cash Flow",
+        //   path: "/cash-flow",
+        //   icon: <TbZoomMoney className="icons" />,
+        // },
+        // {
+        //   label: "Account Statement",
+        //   path: "/account-statement",
+        //   icon: <TbFileInfinity className="icons" />,
+        // },
       ],
     },
 
