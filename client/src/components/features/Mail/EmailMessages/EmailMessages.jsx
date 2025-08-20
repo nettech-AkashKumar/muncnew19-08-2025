@@ -42,7 +42,7 @@ const EmailMessages = ({
 
 
   const fetchUsers = async () => {
-    console.log('ftchusr', fetchUsers)
+    console.log("fetchUsers called");
     try {
       const token = localStorage.getItem("token"); // ⬅️ Get token from localStorage
       console.log('trken', token)
@@ -52,21 +52,23 @@ const EmailMessages = ({
         },
       });
 
-      setUsers(res.data);
       console.log('usersss', res.data)
+      setUsers(res.data);
     } catch (err) {
       console.error(err);
       toast.error("Failed to fetch users");
     }
   };
 
-  useEffect(() => {
-    fetchUsers();
-  }, []);
+useEffect(() => {
+  console.log("EmailMessages mounted");
+  fetchUsers();
+}, []);
   
 
 
   useEffect(() => {
+    if (users.length === 0) return;
     const fetchEmail = async () => {
       try {
         const res = await axios.get(`${BASE_URL}/api/email/mail/receive`);
@@ -136,15 +138,8 @@ const EmailMessages = ({
         console.error("Failed to fetch emails", error);
       }
     };
-    if (users.length > 0) {
-      fetchEmail();
-      const interval = setInterval(fetchEmail, 1000);
-      return () => clearInterval(interval)
-    }
+   fetchEmail();
   }, [users]);
-
-  console.log("Email from backend:", emails.from);
-  console.log("User emails:", users.map(u => u.email));
 
 
   const handleDeleteSelected = async () => {
@@ -336,6 +331,7 @@ const EmailMessages = ({
         </div>
         {/* filter */}
       </div>
+      
       {/* email message div */}
       <div className="justinmaindivmap">
         {selectedEmail ? (

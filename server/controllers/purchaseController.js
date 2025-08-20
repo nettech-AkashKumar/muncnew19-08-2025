@@ -511,6 +511,84 @@ exports.deletePurchase = async (req, res) => {
     }
 };
 
+// Purchase Report API
+exports.getPurchaseReport = async (req, res) => {
+  try {
+    const { search = "", fromDate, toDate, page = 1, limit = 10 } = req.query;
+    const query = { $and: [] };
+
+    // Search by reference, supplier name, or product name
+    if (search) {
+      const matchingProductIds = await Product.find({
+        productName: { $regex: search, $options: "i" }
+      }).select("_id");
+      const matchingSupplierIds = await Supplier.find({
+        $or: [
+          { firstName: { $regex: search, $options: "i" } },
+          { lastName: { $regex: search, $options: "i" } },
+        ]
+      }).select("_id");
+      query.$and.push({
+        $or: [
+          { referenceNumber: { $regex: search, $options: "i" } },
+          { supplier: { $in: matchingSupplierIds.map(s => s._id) } },
+          { "products.product": { $in: matchingProductIds.map(p => p._id) } }
+        ]
+      });
+    }
+
+    // Date filter
+    if (fromDate || toDate) {
+      const dateQuery = {};
+      if (fromDate) dateQuery.$gte = new Date(fromDate);
+      if (toDate) dateQuery.$lte = new Date(toDate);
+      query.$and.push({ purchaseDate: dateQuery });
+    }
+    if (query.$and.length === 0) delete query.$and;
+
+    const pageNum = parseInt(page);
+    const limitNum = parseInt(limit);
+
+    const totalRecords = await Purchase.countDocuments(query);
+
+    const purchases = await Purchase.find(query)
+      .populate("supplier", "firstName lastName")
+      .populate("products.product", "productName")
+      .sort({ createdAt: -1 })
+      .skip((pageNum - 1) * limitNum)
+      .limit(limitNum);
+
+    // Totals
+    let totalPurchase = totalRecords;
+    let totalQuantity = 0;
+    let totalReturn = 0;
+    purchases.forEach(p => {
+      p.products.forEach(pr => {
+        totalQuantity += pr.quantity || 0;
+        totalReturn += pr.returnQty || 0;
+      });
+    });
+
+    res.status(200).json({
+      data: purchases,
+      totals: {
+        purchase: totalPurchase,
+        quantity: totalQuantity,
+        return: totalReturn,
+      },
+      pagination: {
+        totalRecords,
+        currentPage: pageNum,
+        totalPages: Math.ceil(totalRecords / limitNum),
+        pageSize: limitNum,
+      },
+    });
+  } catch (error) {
+    console.error("Purchase Report Error:", error);
+    res.status(500).json({ message: "Failed to fetch report", error: error.message });
+  }
+};
+
 
 
 exports.getNextReferenceNumber = async (req, res) => {

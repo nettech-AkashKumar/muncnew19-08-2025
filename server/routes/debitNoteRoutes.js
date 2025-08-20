@@ -13,3 +13,4 @@ router.put('/:id', controller.updateDebitNote);
 router.delete('/:id', controller.deleteDebitNote);
 
 module.exports = router;
+

@@ -194,11 +194,11 @@ const EmailModal = ({
   };
 
   return (
-    <div className="modal-overlay">
-      <div className={`email-modal ${isExpanded ? "expanded-modal" : ""}`}>
-        <div className="modal-header">
-          <span className="nwemsfg">New Message</span>
-          <div className="header-actions">
+    <div className="mailmdl-modal-overlay">
+      <div className={`mailmdl-email-modal ${isExpanded ? "expanded-modal" : ""}`}>
+        <div className="mailmdl-modal-header">
+          <span className="mailmdl-nwemsfg">New Message</span>
+          <div className="mailmdl-header-actions">
             <button style={{ color: 'black', border: 'none', backgroundColor: 'transparent' }} onClick={onClose}>
               <MdOutlineMinimize style={{ fontWeight: 300 }} />
             </button>
@@ -211,11 +211,12 @@ const EmailModal = ({
           </div>
         </div>
 
-        <div className="modal-body" style={{ margin: '10px' }}>
-          <div className="to-field"  style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+        <div className="mailmdl-modal-body" style={{ margin: '10px' }}>
+          <div className="mailmdl-to-field"  style={{ display: "flex", alignItems: "center", gap: "10px" }}>
             <label style={{ color: '#676767', fontWeight: 400, fontSize: '16px', lineHeight: '10px', letterSpacing: '0', marginTop:'10px' }}>To:</label>
             {/* <hr style={{width:'100%', height:'1px'}} /> */}
             <input
+            className="mailmdl"
               type="email"
               defaultValue="Angela Thomas"
               value={to}
@@ -244,9 +245,10 @@ const EmailModal = ({
           </div>
           {/* for cc */}
           {showCc && (
-            <div className="to-field">
+            <div className="mailmdl-to-field">
               <label style={{ color: '#676767', fontWeight: 400, fontSize: '16px', lineHeight: '10px', letterSpacing: '0' }} htmlFor="">Cc:</label>
               <input
+              className="mailmdl"
                 type="email"
                 // placeholder="Add Cc"
                 value={cc}
@@ -265,9 +267,10 @@ const EmailModal = ({
           )}
           {/* for Bcc */}
           {showBcc && (
-            <div className="to-field">
+            <div className="mailmdl-to-field">
               <label style={{ color: '#676767', fontWeight: 400, fontSize: '16px', lineHeight: '10px', letterSpacing: '0' }} htmlFor="">Bcc:</label>
               <input
+              className="mailmdl"
                 type="email"
                 // placeholder="Add Bcc"
                 value={bcc}
@@ -285,11 +288,11 @@ const EmailModal = ({
             </div>
           )}
           <div>
-            <div className="to-field">
+            <div className="mailmdl-to-field">
               <label style={{ color: '#676767', fontWeight: 400, fontSize: '16px', lineHeight: '10px', letterSpacing: '0', }} htmlFor="">Subject: </label>
               <input
                 type="text"
-                className="subject"
+                className="subject mailmdl"
                 // placeholder="Subject"
                 value={subject}
                 onChange={(e) => setSubject(e.target.value)}
@@ -305,14 +308,14 @@ const EmailModal = ({
               />
             </div>
             <textarea
-              className="email-body"
+              className="mailmdl-email-body"
               placeholder="Compose Email"
               value={body}
               onChange={(e) => setBody(e.target.value)}
             />
             {/* image preview */}
             {images.length > 0 && (
-              <div className="image-preview">
+              <div className="mailmdl-image-preview">
                 <h4>Images</h4>
                 {images.map((img, i) => (
                   <img
@@ -327,7 +330,7 @@ const EmailModal = ({
             )}
             {/* Attachment preview */}
             {attachments.length > 0 && (
-              <div className="attachment-preview">
+              <div className="mailmdl-attachment-preview">
                 <h4>Attachments:</h4>
                 {attachments.map((file, i) => (
                   <div key={i}>{file.name}</div>
@@ -336,17 +339,17 @@ const EmailModal = ({
             )}
           </div>
         </div>
-        <div className="modal-footer">
+        <div className="mailmdl-modal-footer">
           <div style={{ display: 'flex', gap: '10px' }}>
             <button
-              className="send-btn"
+              className="mailmdl-send-btn"
               onClick={handleSend}
               disabled={loading}
             >
               <img src={Ma} alt="mma" style={{ color: 'white', marginRight: '10px' }} />
               {loading ? "Sending" : "Send "}
             </button>
-            <div className="footer-icons" style={{ display: 'flex', gap: '10px', color: '#676767' }}>
+            <div className="mailmdl-footer-icons" style={{ display: 'flex', gap: '10px', color: '#676767' }}>
               <button onClick={handleAttachmentClick}>
                 <RiAttachment2 />
               </button>
@@ -362,6 +365,7 @@ const EmailModal = ({
 
               {/* for handle input */}
               <input
+              className="mailmdl"
                 type="file"
                 multiple
                 style={{ display: "none" }}
@@ -375,10 +379,11 @@ const EmailModal = ({
                 ref={imageInputRef}
                 style={{ display: "none" }}
                 onChange={handleImageChange}
+                className="mailmdl"
               />
 
               {showEmojiPicker && (
-                <div className="emoji-picker">
+                <div className="mailmdl-emoji-picker">
                   <EmojiPicker onEmojiClick={handleEmojiClick} />
                 </div>
               )}
@@ -391,20 +396,20 @@ const EmailModal = ({
             >
               <MdOutlineEditCalendar />
             </button> */}
-            <button onClick={handleDelete} className="btns">
+            <button onClick={handleDelete} className="mailmdl-btns">
               <RiDeleteBinLine />
             </button>
           </div>
         </div>
         {showCalendar && (
-          <div className="calendar-popup">
-            <input type="date" />
+          <div className="mailmdl-calendar-popup">
+            <input className="mailmdl" type="date" />
           </div>
         )}
 
         {showLinkInput && (
           <div
-            className="link-input-box"
+            className="mailmdl-link-input-box"
             style={{
               display: "flex",
               flexDirection: "column",
@@ -416,12 +421,14 @@ const EmailModal = ({
               placeholder="Text to display"
               value={linkText}
               onChange={(e) => setLinkText(e.target.value)}
+              className="mailmdl"
             />
             <input
               type="text"
               placeholder="URL"
               value={linkUrl}
               onChange={(e) => setLinkUrl(e.target.value)}
+              className="mailmdl"
             />
             <button onClick={handleInsertLink}>Insert</button>
           </div>
