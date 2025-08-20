@@ -8,19 +8,25 @@ const {
   updateProduct,
   deleteProduct,
   searchProductsByName,
-  importProducts, // ✅ Add import controller
-  scanProducts
+  importProducts,
+  getProductStock,
+
+  getPurchaseReturnStock,
 } = require("../controllers/productController");
+
 
 const upload = require("../middleware/Multer/multer"); // ✅ fix double slash
 const path = require("path");
+
+// Product stock API
+router.get("/stock", getProductStock);
+// Purchase return stock API (must be above /:id)
+
 
 router.post("/create", upload.array("images", 10), createProduct);
 
 // ✅ New route: import products from CSV/Excel
 router.post("/import", upload.single("file"), importProducts);
-// route scan product to add
-router.post("/scan", scanProducts)
 
 // ✅ Existing routes
 router.get("/search", searchProductsByName); // ✅ must come before /products/:id
