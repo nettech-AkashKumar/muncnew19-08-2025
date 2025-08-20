@@ -96,13 +96,8 @@ import { SiFuturelearn } from "react-icons/si";
 
 export const getMenuData = () => {
   const { t } = useTranslation();
-<<<<<<< HEAD
-    const { user } = useAuth();
-    const id = user?._id;
-=======
   const { user } = useAuth();
   const id = user?._id;
->>>>>>> d8cfeee30c1cb760e2462be5679a4f19d6f6145b
 
   return [
     // main dashboard

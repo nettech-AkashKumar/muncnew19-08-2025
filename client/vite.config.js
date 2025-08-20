@@ -8,7 +8,7 @@ export default defineConfig({
   plugins: [react(), tailwindcss()],
   server: {
     host: '0.0.0.0', // Allow LAN access
-    port: 3001,
+    port: 3000,
     proxy: {
       '/api': {
         target: 'http://localhost:5000',
