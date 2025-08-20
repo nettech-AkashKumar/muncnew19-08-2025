@@ -281,7 +281,7 @@ const Role = () => {
                     backgroundColor: "#ffffff",
                     color: "#676767",
                     fontWeight: 400,
-                    fontSize: "16px",
+                    fontSize: "14px",
                     lineHeight: "14px",
                     borderRadius: "4px",
                     border: "1px solid #E6E6E6",
@@ -292,7 +292,7 @@ const Role = () => {
                   All
                   <IoIosArrowDown style={{ marginLeft: "10px", fontSize: "20px" }} />
                 </button>
-                <ul className="dropdown-menu  dropdown-menu-end p-3" aria-labelledby="statusDropdown">
+                <ul className="dropdown-menu  dropdown-menu-end p-1" aria-labelledby="statusDropdown">
                   <li>
                     <button
                       onClick={() => setStatusFilter("All")}
@@ -333,7 +333,7 @@ const Role = () => {
                     backgroundColor: "#ffffff",
                     color: "#676767",
                     fontWeight: 400,
-                    fontSize: "16px",
+                    fontSize: "14px",
                     lineHeight: "14px",
                     borderRadius: "4px",
                     border: "1px solid #E6E6E6",
@@ -344,7 +344,7 @@ const Role = () => {
                   Latest{" "}
                   <img src={IConnie} alt="" style={{ marginLeft: "10px", fontSize: "20px" }} />
                 </button>
-                <ul className="dropdown-menu  dropdown-menu-end p-3" aria-labelledby="statusDropdown">
+                <ul className="dropdown-menu  dropdown-menu-end p-1" aria-labelledby="statusDropdown">
                   <li>
                     <button
                       onClick={() => setSortOrder("Latest")}

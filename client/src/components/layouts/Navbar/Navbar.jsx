@@ -289,7 +289,7 @@ function Navbar() {
           </li>
 
           {/* Store Dropdown */}
-          <li className="nav-item dropdown has-arrow main-drop select-store-dropdown">
+          {/* <li className="nav-item dropdown has-arrow main-drop select-store-dropdown">
             <a className="dropdown-toggle nav-link select-store" data-bs-toggle="dropdown" href="#">
               <span className="user-info">
                 <span className="user-letter">
@@ -304,10 +304,10 @@ function Navbar() {
               <Link className="dropdown-item" to="#"><img src="/assets/img/store/store-01.png" alt="Store" /> Freshmart</Link>
               <Link className="dropdown-item" to="#"><img src="/assets/img/store/store-02.png" alt="Store" /> Grocery Apex</Link>
             </div>
-          </li>
+          </li> */}
 
           {/* Add New Dropdown */}
-          <li className="nav-item dropdown link-nav">
+          {/* <li className="nav-item dropdown link-nav">
             <button className="btn btn-primary btn-md d-inline-flex align-items-center" data-bs-toggle="dropdown">
               <TbCirclePlus className="me-1" />
               {t("addNew")}
@@ -328,7 +328,7 @@ function Navbar() {
                 </div>
               </div>
             </div>
-          </li>
+          </li> */}
 
           {/* POS Button */}
           <li className="nav-item pos-nav">
@@ -510,18 +510,18 @@ function Navbar() {
                     )}
                   </span>
                   <div>
-                    <h6 className="fw-medium">
+                    <h6 className="fw-medium" style={{margin:'0px'}}>
                       {user.firstName} {user.lastName}
                     </h6>
-                    <p>{user.role?.roleName || 'User'}</p>
+                    <p style={{marginBottom:'0'}}>{user.role?.roleName || 'User'}</p>
                   </div>
                 </div>
-                <Link className="dropdown-item" to="/profile">
+                <Link className="dropdown-item" to={`/profile/${id}`}>
                   <TbUserCircle className="me-2" /> {t("myProfile")}
                 </Link>
-                <Link className="dropdown-item" to="/sales-report">
+                {/* <Link className="dropdown-item" to="/sales-report">
                   <TbFileText className=" me-2" /> {t("reports")}
-                </Link>
+                </Link> */}
                 {/* <Link className="dropdown-item" to="/general-settings">
                   <TbSettings className=" me-2" /> {t("settings")}
                 </Link> */}

@@ -395,7 +395,7 @@ const Users = () => {
                     backgroundColor: "#ffffff",
                     color: "#676767",
                     fontWeight: 400,
-                    fontSize: "16px",
+                    fontSize: "14px",
                     lineHeight: "14px",
                     borderRadius: "4px",
                     border: "1px solid #E6E6E6",
@@ -409,7 +409,7 @@ const Users = () => {
                   />
                 </button>
                 <ul
-                  className="dropdown-menu  dropdown-menu-end p-3" aria-labelledby="statusDropdown"
+                  className="dropdown-menu  dropdown-menu-end p-1" aria-labelledby="statusDropdown"
                   style={{ minWidth: "150px" }}
                 >
                   <li>
@@ -420,8 +420,8 @@ const Users = () => {
                       onMouseOut={(e) => { e.target.style.backgroundColor = 'white'; e.target.style.color = 'initial'; }}
                       style={{
                         color: "#676767",
-                        padding: "6px 10px",
-                        fontSize: "16px",
+                        // padding: "6px 6px",
+                        fontSize: "14px",
                         fontWeight: 400,
                         lineHeight: "14px",
                         backgroundColor:
@@ -437,14 +437,14 @@ const Users = () => {
                   </li>
                   <li>
                     <button
-                      className="dropdown-item rounded-1"
+                      className="dropdown-item"
                       onClick={() => setSelectedStatus("Active")}
                       onMouseOver={(e) => { e.target.style.backgroundColor = '#e3f3ff'; e.target.style.color = 'black'; }}
                       onMouseOut={(e) => { e.target.style.backgroundColor = 'white'; e.target.style.color = 'initial'; }}
                       style={{
                         color: "#676767",
-                        padding: "6px 10px",
-                        fontSize: "16px",
+                        // padding: "6px 6px",
+                        fontSize: "14px",
                         fontWeight: 400,
                         lineHeight: "14px",
                         backgroundColor:
@@ -460,14 +460,14 @@ const Users = () => {
                   </li>
                   <li>
                     <button
-                      className="dropdown-item rounded-1"
+                      className="dropdown-item"
                       onClick={() => setSelectedStatus("Inactive")}
                       onMouseOver={(e) => { e.target.style.backgroundColor = '#e3f3ff'; e.target.style.color = 'black'; }}
                       onMouseOut={(e) => { e.target.style.backgroundColor = 'white'; e.target.style.color = 'initial'; }}
                       style={{
                         color: "#676767",
-                        padding: "6px 10px",
-                        fontSize: "16px",
+                        // padding: "6px 6px",
+                        fontSize: "14px",
                         fontWeight: 400,
                         lineHeight: "14px",
                         backgroundColor:
@@ -828,17 +828,15 @@ const Users = () => {
         <div className="modal" id="add-user">
           <div
             className="modal-dialog modal-dialog-centered"
-            style={{ maxWidth: "970px", height: "540px" }}
+            style={{ maxWidth: "970px" }}
           >
             <div
               className="modal-content"
               style={{
-                height: "100%",
                 padding: "10px",
               }}
             >
-              <div className="page-wrapper-new p-0">
-                <div className="content">
+              <div className="page-wrapper-new p-0 pb-5">
                   <div className="">
                     <div className="page-title">
                       <h4
@@ -1352,7 +1350,7 @@ const Users = () => {
                               {status ? "Active" : "Inactive"}<BiChevronDown style={{ marginLeft: "10px", fontSize: "20px" }} />
                             </button>
                             <ul
-                              className="dropdown-menu dropdown-menu-end p-3" aria-labelledby="statusDropdown"
+                              className="dropdown-menu dropdown-menu-end p-1" aria-labelledby="statusDropdown" style={{marginLeft:'10px'}}
                             >
                               <li>
                                 <button
@@ -1429,7 +1427,7 @@ const Users = () => {
                       </button>
                     </div>
                   </form>
-                </div>
+                
               </div>
             </div>
           </div>
@@ -1445,11 +1443,10 @@ const Users = () => {
         {/* Edit User */}
         <div className="modal" id="edit-user">
           <div className="modal-dialog modal-dialog-centered"
-            style={{ maxWidth: "970px", height: "540px" }}
+            style={{ maxWidth: "970px", }}
           >
-            <div className="modal-content" style={{ height: "100%", padding: "10px" }}>
-              <div className="page-wrapper-new p-0">
-                <div className="content">
+            <div className="modal-content" style={{padding: "10px" }}>
+              <div className="page-wrapper-new p-0 pb-5">
                   <div className="">
                     <div className="page-title">
                       <h4
@@ -1953,7 +1950,7 @@ const Users = () => {
                           >
                             {editUserData.status ? "Active" : "Inactive"} <BiChevronDown style={{ marginLeft: "10px", fontSize: "20px" }} />
                           </button>
-                          <ul className="dropdown-menu dropdown-menu-end p-3" aria-labelledby="statusDropdown" >
+                          <ul className="dropdown-menu dropdown-menu-end p-1" aria-labelledby="statusDropdown" style={{marginLeft:'10px'}} >
                             <li>
                               <button
                                 className="dropdown-item"
@@ -2038,7 +2035,7 @@ const Users = () => {
                       </button>
                     </div>
                   </form>
-                </div>
+                
               </div>
             </div>
           </div>

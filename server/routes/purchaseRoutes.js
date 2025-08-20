@@ -10,6 +10,7 @@ router.get("/", purchaseController.getAllPurchases);
 router.put("/:id", upload.array('images'), purchaseController.updatePurchase);
 router.put("/:id/return", purchaseController.updatePurchaseOnReturn); // 🔥 This is new
 router.delete("/:id", purchaseController.deletePurchase);
+router.get("/report", purchaseController.getPurchaseReport);
 
 
 // 🔹 Purchase Return Routes

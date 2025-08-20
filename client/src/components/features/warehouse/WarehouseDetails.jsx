@@ -19,10 +19,14 @@ import { LuArrowUpDown } from "react-icons/lu";
 import BASE_URL from "../../../pages/config/config";
 import AddWarehouseModal from "../../../pages/Modal/warehouse/AddWarehouseModal";
 import axios from "axios";
+import { useParams } from "react-router-dom";
 
 // import { style } from './../../../node_modules/@mui/system/esm/Stack/createStack';
 
 function WarehouseDetails() {
+    const { id } = useParams(); 
+    // console.log("id ",id);
+    
   const [bgColor, setBgColor] = useState("");
    const [warehousesDetails, setWarehousesDetails] = useState([]);
 
@@ -159,10 +163,13 @@ function WarehouseDetails() {
     const detailsWarehouses = useCallback(async () => {
           setLoading(true);
           try {
-              const res = await axios.get(`${BASE_URL}/api/warehouse`); // <- endpoint
+              const res = await axios.get(`${BASE_URL}/api/warehouse/${id}`); // <- endpoint
+              console.log("diwakar",res.data);
               
               
-              setWarehousesDetails(res.data.data); // backend: { success, data }
+              
+              setWarehousesDetails(res.data.warehouse); // backend: { success, data }
+              
               
           } catch (err) {
               setError(err);
@@ -170,7 +177,7 @@ function WarehouseDetails() {
           } finally {
               setLoading(false);
           }
-      }, []);
+      }, [id]);
   
         useEffect(() => {
           detailsWarehouses();
@@ -224,7 +231,8 @@ function WarehouseDetails() {
               alignItems: "center",
             }}
           >
-            <MdArrowForwardIos style={{ color: "#676767" }} /> WH-001
+            <MdArrowForwardIos style={{ color: "#676767" }} />    {warehousesDetails?.warehouseName}
+
           </span>
         </div>
         <div>
@@ -332,6 +340,7 @@ function WarehouseDetails() {
 
       {/* basic detials of warehous */}
               {console.log("data of detailware ",warehousesDetails)}
+              {/* {console.log("new data of detailware ", warehousesDetails[0]?.warehouse) } */}
       <div
         style={{
           marginTop: "15px",
@@ -344,8 +353,8 @@ function WarehouseDetails() {
           <span>Warehouse Name</span>
           <br />
           <span>
-            Wh-001
-            {/* {warehousesDetails.warehouseName} */}
+            {/* Wh-001 */}
+            {warehousesDetails?.warehouseName}
 
             </span>
         </div>
@@ -360,7 +369,8 @@ function WarehouseDetails() {
             <span
               style={{ color: "#676767", fontWeight: "400", fontSize: "16px" }}
             >
-              Ajay Kumar
+              {/* Ajay Kumar */}
+              {warehousesDetails?.contactPerson?.firstName}    {warehousesDetails?.contactPerson?.lastName}
             </span>
           </div>
 
@@ -374,7 +384,8 @@ function WarehouseDetails() {
             <span
               style={{ color: "#676767", fontWeight: "400", fontSize: "16px" }}
             >
-              Pune
+              {/* Pune */}
+              {warehousesDetails?.city?.cityName}
             </span>
           </div>
 
@@ -382,13 +393,14 @@ function WarehouseDetails() {
             <span
               style={{ color: "#262626", fontWeight: "400", fontSize: "16px" }}
             >
-              Contact No.{" "}
+              Contact No
             </span>
             <br />
             <span
               style={{ color: "#676767", fontWeight: "400", fontSize: "16px" }}
             >
-              Ajay Kumar
+              {/* Ajay Kumar */}
+              {warehousesDetails?.phone}
             </span>
           </div>
 
@@ -402,7 +414,8 @@ function WarehouseDetails() {
             <span
               style={{ color: "#676767", fontWeight: "400", fontSize: "16px" }}
             >
-              86,477{" "}
+              {/* 86,477 */}
+              {warehousesDetails?.items}
             </span>
           </div>
         </div>
@@ -592,134 +605,7 @@ function WarehouseDetails() {
         </div>
       </div>
 
-      {/* Table */}
-
-      {/* <div
-        style={{
-          backgroundColor: "#fff",
-          marginTop: "20px",
-          borderRadius: "8px",
-          gap: "8px",
-        }}
-      >
-        <div
-          style={{
-            padding: "16px 24px",
-            borderBottom: "1px solid #e6e6e6",
-            font: "robot",
-            fontWeight: "500",
-            fontSize: "18px",
-            color: "#262626",
-          }}
-        >
-          <span>Top Selling Products</span>
-        </div>
-
-        <div style={{ padding: "8px 24px", gap: "18px" }}>
-          <span
-            style={{
-              font: "Robot",
-              fontWeight: "400",
-              fontSize: "16px",
-              color: "#262626",
-              padding: "8px",
-            }}
-          >
-            All
-          </span>
-          <span
-            style={{
-              font: "Robot",
-              fontWeight: "400",
-              fontSize: "16px",
-              color: "#262626",
-              padding: "8px",
-            }}
-          >
-            Stock In
-          </span>
-          <span
-            style={{
-              font: "Robot",
-              fontWeight: "400",
-              fontSize: "16px",
-              color: "#262626",
-              padding: "8px",
-            }}
-          >
-            Stock Out
-          </span>
-          <span
-            style={{
-              font: "Robot",
-              fontWeight: "400",
-              fontSize: "16px",
-              color: "#262626",
-              padding: "8px",
-            }}
-          >
-            Transfer
-          </span>
-          <span
-            style={{
-              font: "Robot",
-              fontWeight: "400",
-              fontSize: "16px",
-              color: "#262626",
-              padding: "8px",
-            }}
-          >
-            Processing{" "}
-          </span>
-        </div>
-
-       
-        <div>
-          <table className="customer-table">
-            <thead>
-              <tr style={{ backgroundColor: "#e6e6e6" }}>
-                <th>
-                  <input type="checkbox" />
-                </th>
-                <th>Product</th>
-                <th>SKU</th>
-                <th>MRP</th>
-                <th>Available QTY</th>
-                <th>Unit Sold</th>
-                <th>Revennue</th>
-              </tr>
-            </thead>
-            <tbody>
-              {sellingProducts.map((wholeseller, i) => (
-                <tr
-                  key={wholeseller.id}
-                  onClick={() => handleCustomerClick(wholeseller)}
-                  style={{ cursor: "pointer" }}
-                >
-                  <td>
-                    <input type="checkbox" />
-                  </td>
-                  <td>
-                    <div className="customer-info">
-                      <img
-                        src="https://via.placeholder.com/32"
-                        alt="avatar"
-                        className="avatar"
-                      />
-                      {wholeseller.product}
-                    </div>
-                  </td>
-                  <td>{wholeseller.sku}</td>
-                  <td>{wholeseller.mrp}</td>
-                  <td>{wholeseller.available}</td>
-                  <td>{wholeseller.unit}</td>
-                  <td>{wholeseller.revenue}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div> */}
+      
 
       <div
         style={{

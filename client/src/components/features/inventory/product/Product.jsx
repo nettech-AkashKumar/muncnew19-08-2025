@@ -2,23 +2,23 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { FaFileExcel, FaFilePdf, FaPencilAlt } from "react-icons/fa";
+import { useNavigate } from "react-router-dom";
 import { FaShoppingBag } from "react-icons/fa";
 import "../../../../styles/product/product-list.css";
 import BASE_URL from "../../../../pages/config/config";
 import { CiCirclePlus } from "react-icons/ci";
-import { Link } from 'react-router-dom'
 
 function ProductList() {
   const [products, setProducts] = useState([]);
-
+  console.log("Products:", products);
   const [activeTabs, setActiveTabs] = useState({});
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchProducts = async () => {
       try {
         const res = await axios.get(`${BASE_URL}/api/products`);
         setProducts(res.data);
-        console.log("Products right:", res.data);
         // Initialize all to "general"
         const initialTabs = res.data.reduce((acc, product) => {
           acc[product._id] = "general";
@@ -53,7 +53,7 @@ function ProductList() {
             <li><button type="button" className="icon-btn" title="Export Excel"><FaFileExcel /></button></li>
           </div>
           <div className="d-flex gap-2">
-            <Link to="/choose-adproduct" className="btn btn-primary" data-bs-toggle="modal" data-bs-target="#add-purchase"><CiCirclePlus className="me-1" />Add Products</Link>
+            <a className="btn btn-primary" data-bs-toggle="modal" data-bs-target="#add-purchase"><CiCirclePlus className="me-1" />Add Products</a>
             <a className="btn btn-secondary" data-bs-toggle="modal" data-bs-target="#view-notes"><i data-feather="download" className="me-2" />Import Purchase</a>
           </div>
         </div>
@@ -110,7 +110,7 @@ function ProductList() {
                             </p>
                           </div>
                         </div>
-                        <div className="edit-icon">
+                        <div className="edit-icon" style={{ cursor: "pointer" }} onClick={() => navigate(`/product/edit/${product._id}`)}>
                           <FaPencilAlt />
                         </div>
                       </div>
@@ -168,11 +168,15 @@ function ProductList() {
                           </div>
                         </div>
 
-                        {/* Supplier */}
+                        {/* Supplier & Warehouse */}
                         <div className="category">
                           <div className="category-item">
                             <p className="label">Supplier</p>
-                            <p className="value">{product.supplier}</p>
+                            <p className="value">{product.supplierName || '-'}</p>
+                          </div>
+                          <div className="category-item">
+                            <p className="label">Warehouse</p>
+                            <p className="value">{product.warehouseName || '-'}</p>
                           </div>
                           <div className="category-item">
                             <p className="label">Lead Time</p>
@@ -222,7 +226,7 @@ function ProductList() {
                           </div>
                           <div className="category-item">
                             <p className="label">HSN / SAC</p>
-                            <p className="value">16 days</p>
+                            <p className="value">{product.hsnCode || '-'}</p>
                           </div>
                         </div>
 

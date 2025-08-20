@@ -42,7 +42,8 @@ if (!senderId) {
   // fallback to a default system user ID
   const systemUser = await User.findOne({ email: process.env.EMAIL_USER }).select("_id");
   senderId = systemUser?._id;
-}
+};
+const sender = await User.findById(senderId).select("email")
     const email = new EmailModal({
       to,
       cc: validCC,
@@ -75,7 +76,7 @@ if (!senderId) {
     });
 
     const mailOptions = {
-      from: senderId,
+      from: sender?.email,
       to: Array.isArray(to) ? to.join(",") : to,
       cc: validCC.length > 0 ? validCC.join(",") : undefined,
       bcc: validBCC.length > 0 ? validBCC.join(",") : undefined,

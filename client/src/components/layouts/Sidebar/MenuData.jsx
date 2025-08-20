@@ -96,7 +96,7 @@ import { SiFuturelearn } from "react-icons/si";
 
 export const getMenuData = () => {
   const { t } = useTranslation();
-    const { user } = useAuth();
+  const { user } = useAuth();
   const id = user?._id;
 
   return [
@@ -201,18 +201,18 @@ export const getMenuData = () => {
           icon: <TbHomeBolt className="icons" />,
         },
         {
-          
+
           path: "/warehouse",
           icon: <TbBuildingWarehouse className="icons" />,
           title: t("Warehouse"),
-          subItems:[
+          subItems: [
             {
               label: t("All warehouse"),
-              path:"/warehouse",
+              path: "/warehouse",
             },
             {
-              label : t("Stock Movement Log"),
-              path:"/stock-movement-log"
+              label: t("Stock Movement Log"),
+              path: "/stock-movement-log"
             },
           ]
         },
@@ -239,11 +239,21 @@ export const getMenuData = () => {
         },
       ],
     },
-        
+
     {
       section: t("Stock"),
       key: "stock",
       items: [
+        {
+          label: t("Purchase Stocks"),
+          path: "/stock",
+          icon: <TbShoppingBag className="icons" />,
+        },
+        {
+          label: t("Purchase Return Stocks"),
+          path: "/return-stock",
+          icon: <TbShoppingBag className="icons" />,
+        },
         {
           label: t("Manage Stock"),
           path: "/manage-stocks",
@@ -261,6 +271,8 @@ export const getMenuData = () => {
         },
       ],
     },
+
+
 
 
     {
@@ -363,7 +375,7 @@ export const getMenuData = () => {
           subItems: [
             // { label: "Purchase", path: "/Purchase-settings" },
             // { label: "Warehouse", path: "/warehouse-settings" },
-            { label: "Profile",  path: `/profile/${id}` },
+            { label: "Profile", path: `/profile/${id}` },
             { label: "Security", path: "/security-settings" },
             // { label: "Notifications", path: "/notification" },
             // { label: "Connected Apps", path: "/connected-apps" },
@@ -526,7 +538,7 @@ export const getMenuData = () => {
         },
         {
           label: "Purchase Report",
-          path: "/reports/purchase",
+          path: "/purchase-report",
           icon: <FaRegFileAlt className="icons" />,
         },
         {
@@ -583,32 +595,32 @@ export const getMenuData = () => {
         {
           label: "Profit & Loss",
           path: "/profit&loss",
-          icon: <SiFuturelearn className="icons"/>,
+          icon: <SiFuturelearn className="icons" />,
         },
-         {
+        {
           label: "Overdue Report",
           path: "/overdue-report",
-          icon: <FaStackOverflow  className="icons"/>,
+          icon: <FaStackOverflow className="icons" />,
         },
-         {
+        {
           label: "Expense Report",
           path: "/expense-report",
-          icon: <GiExpense className="icons"/>,
+          icon: <GiExpense className="icons" />,
         },
-         {
+        {
           label: "B2B & B2C",
           path: "/bc",
-          icon: <IoLogoWebComponent className="icons"/>,
+          icon: <IoLogoWebComponent className="icons" />,
         },
-         {
+        {
           label: "Payment History",
           path: "/payment-history",
-          icon: <MdOutlinePayments className="icons"/>,
+          icon: <MdOutlinePayments className="icons" />,
         },
-         {
+        {
           label: "Credit & Debit Note",
           path: "/credit&debit-note",
-          icon: <MdOutlineSpeakerNotes className="icons"/>,
+          icon: <MdOutlineSpeakerNotes className="icons" />,
         },
         // {
         //   label: "Trial Balance",

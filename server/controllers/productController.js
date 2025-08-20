@@ -1,21 +1,17 @@
+
+
 const Product = require("../models/productModels");
 const cloudinary = require("../utils/cloudinary/cloudinary");
-const xlsx = require("xlsx");
-const Brand = require("../models/brandModels");
-const Category = require("../models/categoryModels");
-const SubCategory = require("../models/subCateoryModal");
-const slugify = require("../utils/slugify");
-const generateUniqueCategoryCode = require("../utils/generateCategoryCode");
+
 
 exports.createProduct = async (req, res) => {
   try {
     const {
       productName,
-      slug,
       sku,
       brand,
       category,
-      subcategory,
+      subCategory,
       supplier,
       itemBarcode,
       store,
@@ -34,7 +30,6 @@ exports.createProduct = async (req, res) => {
       description,
       seoTitle,
       seoDescription,
-      // Other
       itemType,
       isAdvanced,
       trackType,
@@ -46,6 +41,7 @@ exports.createProduct = async (req, res) => {
       batchNumber,
       returnable,
       expirationDate,
+      hsn,
     } = req.body;
 
     // Parse variants if provided
@@ -65,14 +61,30 @@ exports.createProduct = async (req, res) => {
       }));
     }
 
+    // Validate required ObjectId fields
+    if (!brand || brand === "undefined") {
+      return res.status(400).json({ message: "Brand is required and must be selected." });
+    }
+    if (!category || category === "undefined") {
+      return res.status(400).json({ message: "Category is required and must be selected." });
+    }
+    const subCatValue = subCategory || req.body.subcategory || req.body.subCatogery || req.body.subcatogery;
+    if (!subCatValue || subCatValue === "undefined") {
+      return res.status(400).json({ message: "Subcategory is required and must be selected." });
+    }
+    const hsnValue = hsn || req.body.hsnm;
+    if (!hsnValue || hsnValue === "undefined") {
+      return res.status(400).json({ message: "HSN is required and must be selected." });
+    }
+   
+    const supplierValue = (supplier && typeof supplier === 'string' && supplier.trim() !== '') ? supplier : undefined;
     const newProduct = new Product({
       productName,
-      slug,
       sku,
       brand,
       category,
-      subcategory,
-      supplier,
+      subcategory: subCatValue,
+      supplier: supplierValue,
       itemBarcode,
       store,
       warehouse,
@@ -103,6 +115,7 @@ exports.createProduct = async (req, res) => {
       batchNumber,
       returnable,
       expirationDate,
+      hsn: hsnValue,
     });
 
     const savedProduct = await newProduct.save();
@@ -118,8 +131,47 @@ exports.getAllProducts = async (req, res) => {
       .populate("brand")
       .populate("category")
       .populate("subcategory")
+      .populate("hsn")
+      .populate("supplier")
+      .populate("warehouse")
       .sort({ createdAt: -1 }); // Optional: latest first
-    res.status(200).json(products);
+
+    // Ensure hsnCode, supplierName, warehouseName are always present for frontend
+    const productsWithDetails = products.map(prod => {
+      let hsnCode = "";
+      if (prod.hsn) {
+        if (typeof prod.hsn === "object" && prod.hsn !== null) {
+          hsnCode = prod.hsn.code || prod.hsn.hsnCode || prod.hsn.name || prod.hsn._id || "";
+        } else {
+          hsnCode = prod.hsn;
+        }
+      } else if (prod.hsnCode) {
+        hsnCode = prod.hsnCode;
+      }
+
+      let supplierName = "";
+      if (prod.supplier) {
+        if (typeof prod.supplier === "object" && prod.supplier !== null) {
+          supplierName = prod.supplier.name || prod.supplier.supplierName || prod.supplier.companyName || prod.supplier.firstName || prod.supplier._id || "";
+        } else {
+          supplierName = prod.supplier;
+        }
+      }
+
+      let warehouseName = "";
+      if (prod.warehouse) {
+        if (typeof prod.warehouse === "object" && prod.warehouse !== null) {
+          warehouseName = prod.warehouse.name || prod.warehouse.warehouseName || prod.warehouse._id || "";
+        } else {
+          warehouseName = prod.warehouse;
+        }
+      }
+
+      // Remove full supplier and warehouse objects from response, only send names
+      const { supplier, warehouse, ...rest } = prod._doc;
+      return { ...rest, hsnCode, supplierName, warehouseName };
+    });
+    res.status(200).json(productsWithDetails);
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
@@ -139,14 +191,171 @@ exports.searchProductsByName = async (req, res) => {
       .populate("brand")
       .populate("category")
       .populate("subcategory")
+      .populate("hsn")
+        .populate("supplier")
+      .populate("warehouse")
       .sort({ createdAt: -1 });
 
-    res.status(200).json(products);
+    // Add hsnCode and availableQty logic for frontend
+    const productsWithDetails = products.map(prod => {
+      let hsnCode = "";
+      if (prod.hsn) {
+        if (typeof prod.hsn === "object" && prod.hsn !== null) {
+          hsnCode = prod.hsn.code || prod.hsn.hsnCode || prod.hsn.name || prod.hsn._id || "";
+        } else {
+          hsnCode = prod.hsn;
+        }
+      } else if (prod.hsnCode) {
+        hsnCode = prod.hsnCode;
+      }
+      // Calculate availableQty as quantity + sum(newQuantity array)
+      const qty = Number(prod.quantity) || 0;
+      let newQuantitySum = 0;
+      if (Array.isArray(prod.newQuantity)) {
+        newQuantitySum = prod.newQuantity.reduce((acc, n) => {
+          const num = Number(n);
+          return acc + (isNaN(num) ? 0 : num);
+        }, 0);
+      } else if (typeof prod.newQuantity === 'number') {
+        newQuantitySum = Number(prod.newQuantity);
+      }
+      // availableQty is always latest DB value after sale subtraction
+      const availableQty = qty + newQuantitySum;
+      // Add availableStock field for frontend
+      const availableStock = availableQty;
+      return { ...prod._doc, hsnCode, availableQty, availableStock };
+    });
+    res.status(200).json(productsWithDetails);
   } catch (err) {
     console.error("Search error:", err);
     res.status(500).json({ message: err.message });
   }
 };
+
+
+// GET /api/products/stock
+exports.getProductStock = async (req, res) => {
+  try {
+    const products = await Product.find()
+      .populate("brand")
+      .populate("category")
+      .populate("subcategory")
+      .populate("hsn")
+        .populate("supplier")
+      .populate("warehouse")
+      .sort({ createdAt: -1 });
+
+ 
+    const productsWithStock = products.map(prod => {
+      let hsnCode = "";
+      if (prod.hsn) {
+        if (typeof prod.hsn === "object" && prod.hsn !== null) {
+          hsnCode = prod.hsn.code || prod.hsn.hsnCode || prod.hsn.name || prod.hsn._id || "";
+        } else {
+          hsnCode = prod.hsn;
+        }
+      } else if (prod.hsnCode) {
+        hsnCode = prod.hsnCode;
+      }
+      const qty = Number(prod.quantity) || 0;
+      let newQuantitySum = 0;
+      if (Array.isArray(prod.newQuantity)) {
+        newQuantitySum = prod.newQuantity.reduce((acc, n) => {
+          const num = Number(n);
+          return acc + (isNaN(num) ? 0 : num);
+        }, 0);
+      } else if (typeof prod.newQuantity === 'number') {
+        newQuantitySum = Number(prod.newQuantity);
+      }
+      const availableStock = qty + newQuantitySum;
+           const purchasePrice = Number(prod.purchasePrice) || 0;
+           const stockValue = availableStock * purchasePrice;
+          let warehouseName = '';
+          if (prod.warehouse) {
+            if (typeof prod.warehouse === 'object' && prod.warehouse !== null) {
+              warehouseName = prod.warehouse.name || prod.warehouse.warehouseName || prod.warehouse._id || '';
+            } else {
+              warehouseName = prod.warehouse;
+            }
+          }
+          let supplierName = '';
+          if (prod.supplier) {
+            if (typeof prod.supplier === 'object' && prod.supplier !== null) {
+              supplierName = prod.supplier.name || prod.supplier.supplierName || prod.supplier.companyName || prod.supplier.firstName || prod.supplier._id || '';
+            } else {
+              supplierName = prod.supplier;
+            }
+          }
+          return {
+            _id: prod._id,
+            productName: prod.productName,
+            hsnCode,
+            availableStock,
+            unit: prod.unit,
+            purchasePrice,
+            stockValue,
+            warehouseName,
+            supplierName
+          };
+    });
+    res.status(200).json(productsWithStock);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+   // GET /api/products/purchase-return-stock
+    exports.getPurchaseReturnStock = async (req, res) => {
+      try {
+        const products = await Product.find()
+          .populate("brand")
+          .populate("category")
+          .populate("subcategory")
+          .populate("hsn")
+          .populate("supplier")
+          .populate("warehouse")
+          .sort({ createdAt: -1 });
+
+        const productsWithReturnStock = products.map(prod => {
+          let hsnCode = "";
+          if (prod.hsn) {
+            if (typeof prod.hsn === "object" && prod.hsn !== null) {
+              hsnCode = prod.hsn.code || prod.hsn.hsnCode || prod.hsn.name || prod.hsn._id || "";
+            } else {
+              hsnCode = prod.hsn;
+            }
+          } else if (prod.hsnCode) {
+            hsnCode = prod.hsnCode;
+          }
+          // Calculate availableReturnStock as purchaseReturnQuantity - sum(newPurchaseReturnQuantity)
+          const qty = Number(prod.purchaseReturnQuantity) || 0;
+          let newQuantitySum = 0;
+          if (Array.isArray(prod.newPurchaseReturnQuantity)) {
+            newQuantitySum = prod.newPurchaseReturnQuantity.reduce((acc, n) => {
+              const num = Number(n);
+              return acc + (isNaN(num) ? 0 : num);
+            }, 0);
+          } else if (typeof prod.newPurchaseReturnQuantity === 'number') {
+            newQuantitySum = Number(prod.newPurchaseReturnQuantity);
+          }
+          const availableReturnStock = qty - newQuantitySum;
+          const purchasePrice = Number(prod.purchasePrice) || 0;
+          const stockValue = availableReturnStock * purchasePrice;
+          return {
+            _id: prod._id,
+            productName: prod.productName,
+            hsnCode,
+            availableReturnStock,
+            unit: prod.unit,
+            purchasePrice,
+            stockValue
+          };
+        });
+        res.status(200).json(productsWithReturnStock);
+      } catch (err) {
+        res.status(500).json({ message: err.message });
+      }
+    };
 
 // Get Single Product
 exports.getProductById = async (req, res) => {
@@ -164,7 +373,6 @@ exports.updateProduct = async (req, res) => {
   try {
     const {
       productName,
-      slug,
       sku,
       brand,
       category,
@@ -195,7 +403,6 @@ exports.updateProduct = async (req, res) => {
       req.params.id,
       {
         productName,
-        slug,
         sku,
         brand,
         category,
@@ -252,103 +459,15 @@ exports.importProducts = async (req, res) => {
     const sheet = workbook.Sheets[workbook.SheetNames[0]];
     const data = xlsx.utils.sheet_to_json(sheet);
 
-    const requiredFields = [
-      "productName",
-      "slug",
-      "sku",
-      "brand", // Make sure this is an ObjectId if using ref
-      "category",
-      "subcategory",
-      "supplier",
-      "itemBarcode",
-      "store",
-      "warehouse",
-      "purchasePrice",
-      "sellingPrice",
-      "wholesalePrice",
-      "retailPrice",
-      "quantity",
-      "unit",
-      "taxType",
-      "tax",
-      "discountType",
-      "discountValue",
-      "quantityAlert",
-      "description",
-      "seoTitle",
-      "seoDescription",
-      // "variants",
-      "itemType",
-      // "isAdvanced",
-      "trackType",
-      "isReturnable",
-      "leadTime",
-      "reorderLevel",
-      "initialStock",
-      "serialNumber",
-      "batchNumber",
-      "returnable",
-      "expirationDate",
-    ];
-
     const importedProducts = [];
 
     for (const row of data) {
-      const missingFields = requiredFields.filter(
-        (field) => !row[field] && row[field] !== 0
-      );
-      if (missingFields.length > 0) {
-        return res.status(400).json({
-          message: `Missing required fields: ${missingFields.join(", ")}`, // ✅ fixed
-        });
-      }
-      let brandDoc = await Brand.findOne({ brandName: row.brand });
-      if (!brandDoc) {
-        brandDoc = await Brand.create({ brandName: row.brand });
-      }
-      let categoryDoc = await Category.findOne({ categoryName: row.category });
-
-      if (!categoryDoc) {
-        const code = await generateUniqueCategoryCode();
-        categoryDoc = await Category.create({
-          categoryName: row.category,
-          categorySlug: slugify(row.category),
-          categoryCode: code,
-        });
-      }
-      let subcategoryDoc = await SubCategory.findOne({
-        subCategoryName: row.subcategory,
-      });
-      if (!subcategoryDoc) {
-        if (!categoryDoc || !categoryDoc._id) {
-          return res.status(400).json({
-            message: "Import failed",
-            error: `Missing category for subcategory:${row.subcategory}`,
-          });
-        }
-        subcategoryDoc = await SubCategory.create({
-          subCategoryName: row.subcategory,
-          category: categoryDoc._id,
-        });
-      }
-
-      // If any are not found, return error
-      if (!brandDoc || !categoryDoc || !subcategoryDoc) {
-        return res.status(400).json({
-          message: "Import failed",
-          error: `Invalid brand/category/subcategory in row: ${row.productName}`,
-        });
-      }
-      const isValidDate = (date) => {
-        return date instanceof Date && !isNaN(date);
-      }
       const product = new Product({
         productName: row.productName,
-        slug: row.slug,
         sku: row.sku,
-        brand: brandDoc._id, // Make sure this is an ObjectId if using ref
-        category: categoryDoc._id,
-        subcategory: subcategoryDoc._id,
+        brand: row.brand, // Make sure this is an ObjectId if using ref
+        category: row.category,
+        subcategory: row.subcategory,
         supplier: row.supplier,
         itemBarcode: row.itemBarcode,
         store: row.store,
@@ -378,43 +497,17 @@ exports.importProducts = async (req, res) => {
         serialNumber: row.serialNumber,
         batchNumber: row.batchNumber,
         returnable: row.returnable,
-        expirationDate: isValidDate(new Date(row.expirationDate))
-          ? new Date(row.expirationDate)
-          : null,
+        expirationDate: row.expirationDate ? new Date(row.expirationDate) : null,
       });
       const saved = await product.save();
       importedProducts.push(saved);
     }
 
-    res
-      .status(201)
-      .json({ message: "Products imported", count: importedProducts.length });
+    res.status(201).json({ message: "Products imported", count: importedProducts.length });
   } catch (error) {
     res.status(500).json({ message: "Import failed", error: error.message });
   }
 };
-
-exports.scanProducts = async (req, res) => {
-  try {
-    const { code, name, price, category } = req.body;
-    let product = await Product.findOne({ productCode: code });
-    if (!product) {
-      // create new product
-      product = new Product({
-        productCode: code,
-        name: name || "Unnamed Product",
-        price: price || 0,
-        category: category || "Uncategorized"
-      });
-      await product.save();
-      return res.status(201).json({message:"Product created", product})
-    }
-    res.status(200).json({product})
-  } catch (error) {
-    console.error('Scan error', error);
-    res.status(500).json({message:'Server error'})
-  }
-}
 
 // optional
 // const Product = require("../models/productModels");
