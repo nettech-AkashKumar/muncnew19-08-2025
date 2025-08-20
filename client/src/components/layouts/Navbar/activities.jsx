@@ -7,6 +7,9 @@ import { io } from 'socket.io-client';
 
 import './activities.css'; // Import your CSS file for styles
 
+import BASE_URL from "../../../pages/config/config";
+import axios from "axios";
+
 const Activities = ({ onNotificationsRead }) => {
   const { t } = useTranslation();
   const [notifications, setNotifications] = useState([]);
@@ -14,7 +17,7 @@ const Activities = ({ onNotificationsRead }) => {
   const [loading, setLoading] = useState(true);
   
   const user = JSON.parse(localStorage.getItem('user'));
-  const backendurl = import.meta.env.BACKEND_URL || 'http://localhost:5000';
+  const backendurl = BASE_URL;
   const socket = useRef(null);
 
   // Fetch notifications
