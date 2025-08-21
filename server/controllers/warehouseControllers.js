@@ -24,9 +24,24 @@ const PDFDocument = require("pdfkit");
 //         res.status(500).json({ success: false, message: err.message });
 //     }
 // };
+// exports.createWarehouse = async (req, res) => {
+//     try {
+//         const warehouse = new Warehouse(req.body);
+//         await warehouse.save();
+//         res.status(201).json({ success: true, warehouse });
+//     } catch (err) {
+//         res.status(500).json({ success: false, message: err.message });
+//     }
+// };
+
 exports.createWarehouse = async (req, res) => {
     try {
-        const warehouse = new Warehouse(req.body);
+        const data = { 
+            ...req.body, 
+            contactPerson: req.body.warehouseManager  // map it
+        };
+        delete data.warehouseManager; // optional
+        const warehouse = new Warehouse(data);
         await warehouse.save();
         res.status(201).json({ success: true, warehouse });
     } catch (err) {

@@ -75,7 +75,7 @@ const UserProfile = () => {
         console.log("User ID from URL:", id);
         const userId = id;
         const res = await axios.get(`${BASE_URL}/api/user/${userId}`);
-        // console.log("Fetched user:", res.data);
+        console.log("Fetched user:", res.data);
         setUserData(res.data);
         if (res.data.profileImage?.url) {
           setPreviewUrl(res.data.profileImage.url);
@@ -108,7 +108,7 @@ const UserProfile = () => {
 
   return (
     <div>
-      <div className="profile-container pb-2">
+      <div className="profile-container">
         {userData ? (
           <div>
             <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
@@ -118,7 +118,7 @@ const UserProfile = () => {
                     Profile
                   </span>
                   <span className="pprreofile" style={{ backgroundColor: '#1368EC', borderRadius: '4px', padding: '8px', color: '#FFFFFF' }}>
-                    Sales Manager
+                    {userData.role?.roleName || ""}
                   </span>
                 </div>
                 <hr style={{ color: '#b9b9b9ff', height: '1px', }} />
@@ -349,10 +349,7 @@ const UserProfile = () => {
                             borderRadius: "5px",
                           }}
                         >
-                          <option value="">Select Country</option>
-                          <option value="">India</option>
-                          <option value="">Brazil</option>
-                          <option value="">Australia</option>
+                          <option value="">{userData.country || ""}</option>
                         </select>
                       </div>
                       <div
@@ -373,10 +370,7 @@ const UserProfile = () => {
                             borderRadius: "5px",
                           }}
                         >
-                          <option value="">Select State</option>
-                          <option value="">Bihar</option>
-                          <option value="">Assam</option>
-                          <option value="">Jharkhand</option>
+                          <option value="">{userData.state || ""}</option>
                         </select>
                       </div>
                       <div
@@ -397,10 +391,7 @@ const UserProfile = () => {
                             borderRadius: "5px",
                           }}
                         >
-                          <option value="">Select City</option>
-                          <option value="">Patna</option>
-                          <option value="">Purnia</option>
-                          <option value="">Vaishali</option>
+                          <option value="">{userData.city || ""}</option>
                         </select>
                       </div>
                       <div
@@ -421,6 +412,7 @@ const UserProfile = () => {
                             padding: "8px 5px",
                             borderRadius: "5px",
                           }}
+                          value={userData.postalcode || ""}
                         />
                       </div>
                     </div>

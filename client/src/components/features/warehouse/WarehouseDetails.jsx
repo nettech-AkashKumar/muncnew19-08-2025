@@ -339,8 +339,8 @@ function WarehouseDetails() {
       </div>
 
       {/* basic detials of warehous */}
-              {console.log("data of detailware ",warehousesDetails)}
-              {/* {console.log("new data of detailware ", warehousesDetails[0]?.warehouse) } */}
+              {/* {console.log("data of detailware ",warehousesDetails)} */}
+              {console.log("new data of detailware ", warehousesDetails) }
       <div
         style={{
           marginTop: "15px",
@@ -370,7 +370,8 @@ function WarehouseDetails() {
               style={{ color: "#676767", fontWeight: "400", fontSize: "16px" }}
             >
               {/* Ajay Kumar */}
-              {warehousesDetails?.contactPerson?.firstName}    {warehousesDetails?.contactPerson?.lastName}
+              {warehousesDetails?.warehouseOwner}  
+                {/* {warehousesDetails?.contactPerson?.lastName} */}
             </span>
           </div>
 
@@ -385,7 +386,7 @@ function WarehouseDetails() {
               style={{ color: "#676767", fontWeight: "400", fontSize: "16px" }}
             >
               {/* Pune */}
-              {warehousesDetails?.city?.cityName}
+              {warehousesDetails?.city}
             </span>
           </div>
 
