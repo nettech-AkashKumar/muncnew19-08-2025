@@ -40,3 +40,8 @@
    .sidebar.expanded + .right-section  {
     margin-left: 250px;
   }
+  @media (max-width:768px){
+    .right-section{
+      margin: 0 !important;
+    }
+  }
