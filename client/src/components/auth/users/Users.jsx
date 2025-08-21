@@ -50,6 +50,7 @@ const Users = () => {
   const [state, setState] = useState("");
   const [city, setCity] = useState("");
   const [zip, setZip] = useState("");
+  const [address, setAddress] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [status, setStatus] = useState(true);
   const [profileImage, setProfileImage] = useState(null);
@@ -78,6 +79,7 @@ const Users = () => {
     state: "",
     city: "",
     postalcode: "",
+    address:"",
   });
 
   // for country, state, city
@@ -193,6 +195,7 @@ const Users = () => {
     formData.append("state", selectedState);
     formData.append("city", selectedCity);
     formData.append("postalcode", zip);
+    formData.append("address", address);
 
     //  Append image if provided (multiple format, even if only one)
     if (selectedImages.length > 0) {
@@ -226,6 +229,7 @@ const Users = () => {
       setState("");
       setCity("");
       setZip("");
+      setAddress("");
       fetchUsers();
 
       window.$(`#add-user`).modal("hide");
@@ -289,6 +293,7 @@ const Users = () => {
       formData.append("state", editUserData.state);
       formData.append("city", editUserData.city);
       formData.append("postalcode", editUserData.postalcode);
+      formData.append("address", editUserData.address)
 
       if (
         editUserData.profileImage &&
@@ -320,17 +325,17 @@ const Users = () => {
         : user.role?._id || user.role?.value;
     const selectedRole = getMatchingRole(roleId);
 
-      // ✅ preload lists
-  const countries = Country.getAllCountries();
-  const states = user.country ? State.getStatesOfCountry(user.country) : [];
-  const cities =
-    user.country && user.state
-      ? City.getCitiesOfState(user.country, user.state)
-      : [];
+    // ✅ preload lists
+    const countries = Country.getAllCountries();
+    const states = user.country ? State.getStatesOfCountry(user.country) : [];
+    const cities =
+      user.country && user.state
+        ? City.getCitiesOfState(user.country, user.state)
+        : [];
 
-  setCountryList(countries);
-  setStateList(states);
-  setCityList(cities);
+    setCountryList(countries);
+    setStateList(states);
+    setCityList(cities);
 
     setEditUserdId(user._id);
 
@@ -353,6 +358,7 @@ const Users = () => {
       state: user.state || "",
       city: user.city || "",
       postalcode: user.postalcode || "",
+      address:user.address || "",
     });
   };
 
@@ -503,8 +509,8 @@ const Users = () => {
                           selectedStatus === "Active"
                             ? "#ffff"
                             : hovertw
-                            ? "#e3f3ff"
-                            : "transparent",
+                              ? "#e3f3ff"
+                              : "transparent",
                       }}
                     >
                       All
@@ -532,8 +538,8 @@ const Users = () => {
                           selectedStatus === "Active"
                             ? "#ffff"
                             : hover
-                            ? "#e3f3ff"
-                            : "transparent",
+                              ? "#e3f3ff"
+                              : "transparent",
                       }}
                     >
                       Active
@@ -561,8 +567,8 @@ const Users = () => {
                           selectedStatus === "Active"
                             ? "#ffff"
                             : hoveroe
-                            ? "#e3f3ff"
-                            : "transparent",
+                              ? "#e3f3ff"
+                              : "transparent",
                       }}
                     >
                       Inactive
@@ -775,21 +781,20 @@ const Users = () => {
                         >
                           {/*  */}
                           <span
-                            className={`badge table-badge fw-medium fs-10 ${
-                              user.status === "Active" ? "" : ""
-                            }`}
+                            className={`badge table-badge fw-medium fs-10 ${user.status === "Active" ? "" : ""
+                              }`}
                             style={
                               user.status === "Active"
                                 ? {
-                                    backgroundColor: "#DFFFE0",
-                                    color: "#0F5132",
-                                    padding: "6px 8px 6px 8px",
-                                  }
+                                  backgroundColor: "#DFFFE0",
+                                  color: "#0F5132",
+                                  padding: "6px 8px 6px 8px",
+                                }
                                 : {
-                                    backgroundColor: "#FCE4E6",
-                                    color: "#0F5132",
-                                    padding: "6px 8px 6px 8px",
-                                  }
+                                  backgroundColor: "#FCE4E6",
+                                  color: "#0F5132",
+                                  padding: "6px 8px 6px 8px",
+                                }
                             }
                           >
                             {user.status}
@@ -879,9 +884,9 @@ const Users = () => {
                   {filteredUsers.length === 0
                     ? "0 of 0"
                     : `${(currentPage - 1) * itemsPerPage + 1}-${Math.min(
-                        currentPage * itemsPerPage,
-                        filteredUsers.length
-                      )} of ${filteredUsers.length}`}
+                      currentPage * itemsPerPage,
+                      filteredUsers.length
+                    )} of ${filteredUsers.length}`}
                   <button
                     style={{
                       border: "none",
@@ -1486,6 +1491,38 @@ const Users = () => {
                       </div>
                     </div>
                     {/* country end */}
+                    {/* address start */}
+                    <div style={{ flex: 1, marginBottom: "20px", }}>
+                      <div
+                        style={{
+                          display: "flex",
+                          flexDirection: "column",
+                          width: "100%",
+                          gap: "5px",
+                        }}
+                      >
+                        <label
+                          className="ffrrstname"
+                          style={{
+                            fontWeight: "400",
+                            fontSize: "14px",
+                            lineHeight: "14px",
+                          }}
+                        >
+                          Address
+                        </label>
+                        <textarea
+                          type="text"
+                          className="ffrrstnameinput"
+                          name="address"
+                          value={address}
+                          onChange={(e) => setAddress(e.target.value)}
+                          placeholder="Address"
+                          required
+                        />
+                      </div>
+                    </div>
+                    {/* address end */}
                     <div
                       style={{
                         display: "flex",
@@ -2319,6 +2356,43 @@ const Users = () => {
                     </div>
                   </div>
                   {/* country end */}
+                  {/* address start */}
+                    <div style={{ flex: 1, marginBottom: "20px", }}>
+                      <div
+                        style={{
+                          display: "flex",
+                          flexDirection: "column",
+                          width: "100%",
+                          gap: "5px",
+                        }}
+                      >
+                        <label
+                          className="ffrrstname"
+                          style={{
+                            fontWeight: "400",
+                            fontSize: "14px",
+                            lineHeight: "14px",
+                          }}
+                        >
+                          Address
+                        </label>
+                        <textarea
+                          type="text"
+                          className="ffrrstnameinput"
+                          name="address"
+                          value={editUserData.address}
+                          onChange={(e) =>
+                              setEditUserData({
+                                ...editUserData,
+                                address: e.target.value,
+                              })
+                            }
+                          placeholder="Address"
+                          required
+                        />
+                      </div>
+                    </div>
+                    {/* address end */}
                   {/* Password */}
                   <div
                     style={{

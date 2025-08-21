@@ -31,8 +31,8 @@ function Navbar() {
   const fullscreenBtnRef = useRef(null);
   const toggleBtnRef = useRef(null);
   const { mobileOpen, handleMobileToggle } = useSidebar();
-   const { users } = useAuth();
-    const id = users?._id;
+  const { users } = useAuth();
+  const id = users?._id;
 
   // user profile
   const [user, setUser] = useState(null);

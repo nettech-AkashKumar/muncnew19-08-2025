@@ -9,7 +9,8 @@ const usersSchema = new mongoose.Schema(
     password: { type: String },
     country: { type: String},
     state: { type: String},
-    city: { type: String},
+    city: { type: String },
+    address:{type:String},
     postalcode: { type: Number},
     passwordChangedAt:{
       type:Date,
