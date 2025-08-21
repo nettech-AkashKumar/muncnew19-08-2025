@@ -1209,7 +1209,7 @@ const ProductForm = () => {
                     onChange={handleChange}
                   >
                     <option value="">{t("select")}</option>
-                    <option>{t("igst8")}</option>
+                    <option >{t("igst8")}</option>
                     <option>{t("gst5")}</option>
                     <option>{t("sgst4")}</option>
                     <option>{t("cgst16")}</option>
