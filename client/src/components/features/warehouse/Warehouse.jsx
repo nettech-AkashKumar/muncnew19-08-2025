@@ -1261,7 +1261,9 @@ function Warehouse() {
                   <div>
                     <p style={{ margin: "0", fontWeight: "500" }}>
                       {/* Delhi - Ram Prashad */}
-                      {item.city.cityName}&nbsp;-&nbsp;{item.contactPerson.firstName} {item.contactPerson.lastName}
+                      {item?.city}
+                      &nbsp;-&nbsp;{item?.warehouseOwner} 
+                      {/* {item?.contactPerson?.lastName} */}
                     </p>
                     <span style={{ color: "#1368EC" }}>$76,000</span>
                     <span style={{ marginLeft: "4px" }}>Stock Valuation</span>
