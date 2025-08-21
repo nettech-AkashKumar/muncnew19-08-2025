@@ -4,6 +4,10 @@ import { MdArrowForwardIos } from "react-icons/md";
 import { IoMdClose } from "react-icons/io";
 import { LuLayoutDashboard } from "react-icons/lu";
 import { Link, useNavigate } from "react-router-dom"; // Import useNavigate
+import { Country, State, City } from "country-state-city";
+import { toast } from "react-toastify";
+import BASE_URL from "../../../pages/config/config";
+import axios from "axios";
 
 function AddWarehouse() {
   // State for popup inputs
@@ -25,16 +29,45 @@ function AddWarehouse() {
   const [state, setState] = useState("");
   const [city, setCity] = useState("");
   const [pinCode, setPinCode] = useState("");
+
+   const [selectedCountry, setSelectedCountry] = useState('')
+    const [selectedState, setSelectedState] = useState('')
+    const [selectedCity, setSelectedCity] = useState('')
+  
+    const [countryList, setCountryList] = useState([])
+    const [stateList, setStateList] = useState([])
+    const [cityList, setCityList] = useState([])
+
+    const [loading, setLoading] = useState(false);
+    
+
+     useEffect(() => {
+        setCountryList(Country.getAllCountries())
+      }, []);
+    
+      useEffect(() => {
+        if (selectedCountry) {
+          setStateList(State.getStatesOfCountry(selectedCountry))
+        }
+      }, [selectedCountry]);
+    
+      useEffect(() => {
+        if (selectedState) {
+          setCityList(City.getCitiesOfState(selectedCountry, selectedState))
+        }
+      }, [selectedState]);
   // State for import status and message
   const [isImported, setIsImported] = useState(false);
   const [showMessage, setShowMessage] = useState(false);
+
+
   // Navigation hook
   const navigate = useNavigate();
 
   // Handler for importing layout and closing popup
   const handleImport = (close) => {
     // Validate inputs to ensure rows and columns are at least 1
-    const parsedRows = rows === "" ? 4 : Math.max(1, parseInt(rows));
+    const parsedRows = rows === "" ? 3 : Math.max(1, parseInt(rows));
     const parsedColumns = columns === "" ? 3 : Math.max(1, parseInt(columns));
     const parsedWidth = width === "" ? 1 : Math.max(1, parseInt(width));
     const parsedZones = zones === "" ? 1 : Math.max(1, parseInt(zones));
@@ -57,6 +90,8 @@ function AddWarehouse() {
 
     close(); // Close the popup after updating state
   };
+ 
+  
 
   // Handler for Draft button
   const handleDraft = () => {
@@ -79,17 +114,22 @@ function AddWarehouse() {
     console.log("Draft saved:", warehouseData);
     // TODO: Replace with API call or state persistence logic
   };
+   const [formData, setFormData] = useState(handleDraft);
 
   // Handler for Save button
-  const handleSave = () => {
+const handleSave = async () => {
     const warehouseData = {
       warehouseName,
       warehouseCode,
       warehouseOwner,
       address,
-      country,
-      state,
-      city,
+      country: selectedCountry
+        ? Country.getAllCountries().find((c) => c.isoCode === selectedCountry)?.name || ""
+        : "",
+      state: selectedState
+        ? State.getStatesOfCountry(selectedCountry).find((s) => s.isoCode === selectedState)?.name || ""
+        : "",
+      city: selectedCity,
       pinCode,
       layout: {
         rows: mainRows,
@@ -98,8 +138,15 @@ function AddWarehouse() {
         zones: mainZones,
       },
     };
-    console.log("Final save:", warehouseData);
-    // TODO: Replace with API call or state persistence logic
+    try {
+      await axios.post(`${BASE_URL}/api/warehouse`, warehouseData);
+      toast.success("Warehouse saved successfully");
+    } catch (error) {
+      console.error("Error saving warehouse:", error);
+      console.log("diwakar eror",error);
+      
+      toast.error(error.response?.status === 409 ? error.response.data.message : "Failed to save warehouse");
+    }
   };
 
   // Handler for Done button
@@ -132,12 +179,99 @@ function AddWarehouse() {
       return () => clearTimeout(timer);
     }
   }, [showMessage]);
+// const handleSubmit = async (e) => {
+//         e.preventDefault();
+//         setLoading(true);
 
+//         try {
+            
+
+//             await axios.post(`${BASE_URL}/api/warehouse`, {
+                
+//             });
+
+//             toast.success("Warehouse added successfully");
+
+            
+//             setForm(initialForm);
+//             window.$(`#add-warehouse`).modal("hide");
+
+//         } catch (error) {
+//             console.error(error);
+
+//             // 409 (Conflict) = duplicate warehouse
+//             if (error.response?.status === 409) {
+//                 toast.error(error.response.data.message);
+//             } else {
+//                 toast.error("Failed to add warehouse");
+//             }
+//         } finally {
+//             setLoading(false);
+//         }
+//     };
   // Component for rendering a single grid
+  
+const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+
+    try {
+      const warehouseData = {
+        warehouseName,
+        warehouseCode,
+        warehouseOwner,
+        address,
+        country: selectedCountry
+          ? Country.getAllCountries().find((c) => c.isoCode === selectedCountry)?.name || ""
+          : "",
+        state: selectedState
+          ? State.getStatesOfCountry(selectedCountry).find((s) => s.isoCode === selectedState)?.name || ""
+          : "",
+        city: selectedCity,
+        pinCode,
+        layout: {
+          rows: mainRows,
+          columns: mainColumns,
+          width: mainWidth,
+          zones: mainZones,
+        },
+      };
+
+      await axios.post(`${BASE_URL}/api/warehouse`, warehouseData);
+      toast.success("Warehouse added successfully");
+
+      // Reset form
+      setWarehouseName("");
+      setWarehouseCode("");
+      setWarehouseOwner("");
+      setAddress("");
+      setSelectedCountry("");
+      setSelectedState("");
+      setSelectedCity("");
+      setPinCode("");
+      setMainRows(3);
+      setMainColumns(3);
+      setMainWidth(1);
+      setMainZones(1);
+      setIsImported(false);
+      setShowMessage(false);
+
+      navigate("/AllWarehouse");
+    } catch (error) {
+      console.error("Error adding warehouse:", error);
+      toast.error(error.response?.status === 409 ? error.response.data.message : "Failed to add warehouse");
+    } finally {
+      setLoading(false);
+    }
+  };
+  
   const renderGrid = (gridRows, gridColumns, gridWidth, zoneIndex) => {
     const cellWidthPx = 50; // Equal width for all cells
     const totalGridContentWidth = (gridColumns || 3) * (cellWidthPx + 8) - 8;
 
+    
+
+   
     return (
       <div
         key={zoneIndex}
@@ -180,13 +314,13 @@ function AddWarehouse() {
             style={{
               display: "grid",
               gridTemplateColumns: `repeat(${gridColumns || 3}, ${cellWidthPx}px)`,
-              gridTemplateRows: `repeat(${gridRows || 4}, ${cellWidthPx}px)`,
+              gridTemplateRows: `repeat(${gridRows || 3}, ${cellWidthPx}px)`,
               gap: "8px",
               width: `${totalGridContentWidth}px`,
               borderRadius: "8px",
             }}
           >
-            {Array.from({ length: (gridRows || 4) * (gridColumns || 3) }).map(
+            {Array.from({ length: (gridRows || 3) * (gridColumns || 3) }).map(
               (_, index) => (
                 <div
                   key={index}
@@ -260,6 +394,7 @@ function AddWarehouse() {
       </div>
 
       {/* Warehouse Details Form */}
+      <form onSubmit={handleSubmit}>
       <div
         style={{
           margin: "0 auto",
@@ -283,24 +418,21 @@ function AddWarehouse() {
           >
             Warehouse Name
           </label>
-          <select
-            name="selectCustomer"
-            value={warehouseName}
-            onChange={(e) => setWarehouseName(e.target.value)}
-            style={{
-              width: "100%",
-              padding: "12px",
-              borderRadius: "8px",
-              border: "1px solid #D1D5DB",
-              backgroundColor: "#F9FAFB",
-              color: "#6B7280",
-              fontSize: "14px",
-            }}
-          >
-            <option value="">Select Customer</option>
-            <option value="Customer1">Customer 1</option>
-            <option value="Customer2">Customer 2</option>
-          </select>
+          <input type="text"
+          value={warehouseName}
+           onChange={(e) => setWarehouseName(e.target.value)} 
+          style={{
+                width: "100%",
+                padding: "12px",
+                borderRadius: "8px",
+                border: "1px solid #D1D5DB",
+                backgroundColor: "#F9FAFB",
+                color: "#6B7280",
+                fontSize: "14px",
+                outline:"none",
+              }} 
+              placeholder="Enter Warehouse Name"/>
+          
         </div>
 
         <div style={{ display: "flex", gap: "16px", marginBottom: "20px" }}>
@@ -312,6 +444,7 @@ function AddWarehouse() {
                 fontSize: "18px",
                 marginBottom: "8px",
                 display: "block",
+                
               }}
             >
               Warehouse Code
@@ -328,6 +461,7 @@ function AddWarehouse() {
                 backgroundColor: "#F9FAFB",
                 color: "#6B7280",
                 fontSize: "14px",
+                outline:"none",
               }}
             />
           </div>
@@ -355,6 +489,7 @@ function AddWarehouse() {
                 backgroundColor: "#F9FAFB",
                 color: "#6B7280",
                 fontSize: "14px",
+                outline:"none",
               }}
             />
           </div>
@@ -385,6 +520,7 @@ function AddWarehouse() {
               fontSize: "14px",
               minHeight: "100px",
               resize: "vertical",
+              outline:"none",
             }}
           ></textarea>
         </div>
@@ -403,8 +539,23 @@ function AddWarehouse() {
               Country
             </label>
             <select
-              value={country}
-              onChange={(e) => setCountry(e.target.value)}
+              value={selectedCountry}
+              onChange={(e) => {
+                // setCountry(e.target.value)
+                const value = e.target.value;
+                 setSelectedCountry(value)
+                 setFormData((prev) => ({
+                          ...prev,
+                          companycountry: value,
+                          companystate: '',
+                          companycity: ''
+                        }))
+
+                          setSelectedState(''),
+                          setSelectedCity('')
+              
+              }}
+              // 
               style={{
                 width: "100%",
                 padding: "12px",
@@ -416,10 +567,15 @@ function AddWarehouse() {
               }}
             >
               <option value="">Select Country</option>
-              <option value="USA">USA</option>
-              <option value="India">India</option>
+              {countryList.map((country) => (
+                        <option key={country.isoCode} value={country.isoCode}>
+                          {country.name}
+                        </option>
+                      ))}
+              
             </select>
           </div>
+          {/* {console.log("statelist",stateList)} */}
           <div style={{ flex: 1 }}>
             <label
               style={{
@@ -433,8 +589,18 @@ function AddWarehouse() {
               State
             </label>
             <select
-              value={state}
-              onChange={(e) => setState(e.target.value)}
+              value={selectedState}
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        setSelectedState(value);
+                        setFormData((prev) => ({
+                          ...prev,
+                          companystate: value,
+                          companycity: ''
+                        }))
+                        setSelectedCity('')
+                      }}
+                      disabled={!selectedCountry}
               style={{
                 width: "100%",
                 padding: "12px",
@@ -446,8 +612,14 @@ function AddWarehouse() {
               }}
             >
               <option value="">Select State</option>
-              <option value="California">California</option>
-              <option value="Maharashtra">Maharashtra</option>
+              
+               {stateList.map((state) => (
+                        <option key={state.isoCode} value={state.isoCode}>
+                          {state.name}
+                        </option>
+                      ))}
+              {/* <option value="California">California</option>
+              <option value="Maharashtra">Maharashtra</option> */}
             </select>
           </div>
           <div style={{ flex: 1 }}>
@@ -476,8 +648,13 @@ function AddWarehouse() {
               }}
             >
               <option value="">Select City</option>
-              <option value="Los Angeles">Los Angeles</option>
-              <option value="Mumbai">Mumbai</option>
+              {/* <option value="Los Angeles">Los Angeles</option>
+              <option value="Mumbai">Mumbai</option> */}
+              {cityList.map((city) => (
+                        <option key={city.name} value={city.name}>
+                          {city.name}
+                        </option>
+                      ))}
             </select>
           </div>
           <div style={{ flex: 1 }}>
@@ -492,7 +669,7 @@ function AddWarehouse() {
             >
               Pin Code
             </label>
-            <select
+            {/* <select
               value={pinCode}
               onChange={(e) => setPinCode(e.target.value)}
               style={{
@@ -508,7 +685,17 @@ function AddWarehouse() {
               <option value="">Select Pin Code</option>
               <option value="90001">90001</option>
               <option value="400001">400001</option>
-            </select>
+            </select> */}
+            <input type="number" style={{
+                width: "100%",
+                padding: "12px",
+                borderRadius: "8px",
+                border: "1px solid #D1D5DB",
+                backgroundColor: "#F9FAFB",
+                color: "#6B7280",
+                fontSize: "14px",
+                outline:"none",
+              }} />
           </div>
         </div>
       </div>
@@ -955,6 +1142,7 @@ function AddWarehouse() {
             >
               Draft
             </button>
+            
             <button
               type="button"
               onClick={handleSave}
@@ -979,7 +1167,7 @@ function AddWarehouse() {
         ) : (
           <button
             type="button"
-            onClick={handleDone}
+            onClick={handleSubmit}
             style={{
               backgroundColor: "#3B82F6",
               color: "#FFFFFF",
@@ -999,8 +1187,9 @@ function AddWarehouse() {
           </button>
         )}
       </div>
+</form>
     </div>
   );
 }
 
-export default AddWarehouse;
+export default AddWarehouse; 

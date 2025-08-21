@@ -6,7 +6,9 @@ import { FaTrash } from 'react-icons/fa';
 import { io } from 'socket.io-client';
 
 import './activities.css'; // Import your CSS file for styles
-import BASE_URL from '../../../pages/config/config';
+
+import BASE_URL from "../../../pages/config/config";
+import axios from "axios";
 
 const Activities = ({ onNotificationsRead }) => {
   const { t } = useTranslation();
@@ -15,6 +17,7 @@ const Activities = ({ onNotificationsRead }) => {
   const [loading, setLoading] = useState(true);
 
   const user = JSON.parse(localStorage.getItem('user'));
+  const backendurl = BASE_URL;
   const socket = useRef(null);
 
   // Fetch notifications
