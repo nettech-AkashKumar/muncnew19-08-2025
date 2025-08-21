@@ -39,6 +39,7 @@ import p_2 from "../../assets/img/p-2.png"
 import p_3 from "../../assets/img/p-3.png"
 import p_4 from "../../assets/img/p-4.png"
 import p_5 from "../../assets/img/p-5.png"
+import './Dashboards.css'
 
 
 const styles = {
@@ -501,7 +502,7 @@ const Dashboards = () => {
         style={{ paddingRight: "20px", paddingLeft: "20px" }}
       >
         <div className="dashbaord-card-container d-flex flex-column gap-4">
-          <div className="d-flex justify-content-between">
+          <div className="d-flex justify-content-between dashboard-card-content">
             <div
               className="dhasboard-card"
               style={{
@@ -643,7 +644,7 @@ const Dashboards = () => {
               />
             </div>
           </div>
-          <div className="d-flex justify-content-between">
+          <div className="d-flex justify-content-between dashboard-card-content">
             <div
               className="dhasboard-card"
               style={{
@@ -787,9 +788,9 @@ const Dashboards = () => {
           </div>
         </div>
         <div className="graph-container d-flex flex-column gap-3">
-          <div className="d-flex justify-content-between">
+          <div className="d-flex justify-content-between dashboard-graph-container-1">
             <div className="graph-1-dash" style={{width:"100%",maxWidth:"525px",}}>
-            <div style={styles.card}>
+            <div style={styles.card} className="graph-card-1">
                <div style={{borderBottom:"1px solid #C2C9D1"}}>
                  <div style={styles.header}>
                 <span style={styles.title}>Retail vs Wholesale Sales <img src={i_icon} alt="i_icon"/></span>
@@ -870,11 +871,11 @@ const Dashboards = () => {
               </div>
             </div>
           </div>
-           <div className="image-graph-dash"  style={{width:"100%",maxWidth:"525px",}}>
-               <img style={{width:"100%",height:"451px"}}  src={advertisment_dash} alt="advertisment_dash" />
+           <div className="image-graph-dash"  >
+               <img style={{width:"100%",maxWidth:"525px",height:"100%", maxHeight:"451px"}} src={advertisment_dash} alt="advertisment_dash" />
            </div>
           </div>
-           <div className="d-flex justify-content-between">
+           <div className="d-flex justify-content-between dashboard-graph-container-2">
              <div className="graph-3-dash" style={{width:"100%",maxWidth:"525px",}}>
             <div style={styles.card}>
                <div style={{borderBottom:"1px solid #C2C9D1"}}>

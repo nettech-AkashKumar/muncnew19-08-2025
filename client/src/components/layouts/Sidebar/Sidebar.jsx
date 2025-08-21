@@ -123,6 +123,8 @@ const Sidebar = () => {
               ))}
             </ul>
           </div>
+    
+
         </div>
         <div class="sidebar-bottom">
           <Link to="/"> <img src={companyImages.companyIcon} class="compact-logo" alt="Compact Footer Logo" /></Link>

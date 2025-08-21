@@ -155,13 +155,20 @@ function Pos() {
 
   //fetch products
   const [products, setProducts] = useState([]);
+  const [allProducts, setAllProducts] = useState([]); // Store all products for filtering
   const [activeTabs, setActiveTabs] = useState({});
     useEffect(() => {
       const fetchProducts = async () => {
         try {
           const res = await axios.get(`${BASE_URL}/api/products`);
           setProducts(res.data);
+          setAllProducts(res.data); // Store all products
           console.log("Products right:", res.data);
+          // Log first product to see image structure
+          if (res.data.length > 0) {
+            console.log("First product structure:", res.data[0]);
+            console.log("First product images:", res.data[0].images);
+          }
           // Initialize all to "general"
           const initialTabs = res.data.reduce((acc, product) => {
             acc[product._id] = "general";
@@ -190,6 +197,84 @@ function Pos() {
     fetchCategories();
   }, []);
 
+  // Category filtering functionality
+  const [selectedCategory, setSelectedCategory] = useState(null);
+
+  const handleCategoryClick = (category) => {
+    if (selectedCategory && selectedCategory._id === category._id) {
+      // If same category is clicked again, show all products
+      setSelectedCategory(null);
+      setProducts(allProducts);
+    } else {
+      // Filter products by selected category
+      setSelectedCategory(category);
+      const filteredProducts = allProducts.filter(product => 
+        product.category && product.category._id === category._id
+      );
+      setProducts(filteredProducts);
+    }
+  };
+
+  const handleAllItemsClick = () => {
+    setSelectedCategory(null);
+    setProducts(allProducts);
+  };
+
+  // Product selection and cart functionality
+  const [selectedItems, setSelectedItems] = useState([]);
+  const [totalAmount, setTotalAmount] = useState(0);
+  const [totalItems, setTotalItems] = useState(0);
+  const [totalQuantity, setTotalQuantity] = useState(0);
+
+  const handleProductClick = (product) => {
+    const existingItemIndex = selectedItems.findIndex(item => item._id === product._id);
+    
+    if (existingItemIndex !== -1) {
+      // Product already exists, increment quantity
+      const updatedItems = [...selectedItems];
+      updatedItems[existingItemIndex].quantity += 1;
+      updatedItems[existingItemIndex].totalPrice = updatedItems[existingItemIndex].quantity * updatedItems[existingItemIndex].sellingPrice;
+      setSelectedItems(updatedItems);
+    } else {
+      // Add new product to cart
+      const newItem = {
+        ...product,
+        quantity: 1,
+        totalPrice: product.sellingPrice
+      };
+      setSelectedItems([...selectedItems, newItem]);
+    }
+  };
+
+  const updateItemQuantity = (itemId, newQuantity) => {
+    if (newQuantity <= 0) {
+      // Remove item if quantity is 0 or negative
+      setSelectedItems(selectedItems.filter(item => item._id !== itemId));
+    } else {
+      const updatedItems = selectedItems.map(item => 
+        item._id === itemId 
+          ? { ...item, quantity: newQuantity, totalPrice: newQuantity * item.sellingPrice }
+          : item
+      );
+      setSelectedItems(updatedItems);
+    }
+  };
+
+  const removeItem = (itemId) => {
+    setSelectedItems(selectedItems.filter(item => item._id !== itemId));
+  };
+
+  // Calculate totals whenever selectedItems changes
+  useEffect(() => {
+    const total = selectedItems.reduce((sum, item) => sum + item.totalPrice, 0);
+    const items = selectedItems.length;
+    const quantity = selectedItems.reduce((sum, item) => sum + item.quantity, 0);
+    
+    setTotalAmount(total);
+    setTotalItems(items);
+    setTotalQuantity(quantity);
+  }, [selectedItems]);
+
   //bill details up down arrow
   const [updown, setUpdown] = useState(false);
   const handleUpDown = (value) => {
@@ -210,6 +295,66 @@ function Pos() {
       }
 
     }
+  };
+
+  //customers
+  const [customers, setCustomers] = useState([]);
+  const [selectedCustomer, setSelectedCustomer] = useState(null);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState([]);
+  const [showDropdown, setShowDropdown] = useState(false);
+
+const fetchCustomers = async () => {
+  
+  try {
+    const res = await axios.get(`${BASE_URL}/api/customers`);
+    setCustomers(res.data);
+  } catch (err) {
+    setCustomers([]);
+  }
+};
+
+  useEffect(() => {
+    fetchCustomers();
+  }, []);
+
+  // Customer search functionality
+  const handleSearchChange = (e) => {
+    const query = e.target.value;
+    setSearchQuery(query);
+    
+    if (query.trim() === '') {
+      setSearchResults([]);
+      setShowDropdown(false);
+      return;
+    }
+
+    // Filter customers based on search query
+    const filtered = customers.filter(customer => {
+      const searchTerm = query.toLowerCase();
+      return (
+        customer.customerName?.toLowerCase().includes(searchTerm) ||
+        customer.email?.toLowerCase().includes(searchTerm) ||
+        customer.phoneNumber?.toLowerCase().includes(searchTerm)
+      );
+    });
+
+    setSearchResults(filtered);
+    setShowDropdown(filtered.length > 0);
+  };
+
+  const handleCustomerSelect = (customer) => {
+    setSelectedCustomer(customer);
+    setSearchQuery(customer.customerName || '');
+    setShowDropdown(false);
+    setPopup(false); // Close popup after selection
+  };
+
+  const handleClearCustomer = () => {
+    setSelectedCustomer(null);
+    setSearchQuery('');
+    setSearchResults([]);
+    setShowDropdown(false);
   };
 
   return (
@@ -248,7 +393,7 @@ function Pos() {
               <GoPersonAdd/> 
               <span style={{fontSize:'10px'}} >Customer</span>
             </div>
-            <div style={{display:'flex',flexDirection:'column',alignItems:'center',cursor:'pointer'}}>
+            <div style={{display:'flex',flexDirection:'column',alignItems:'center',cursor:'pointer'}} onClick={() => setSelectedItems([])}>
               <RiDeleteBinLine/>
               <span style={{fontSize:'10px'}}>Remove All</span>
             </div>
@@ -269,7 +414,20 @@ function Pos() {
               {/* all items*/}
               <div style={{lineHeight:'30px'}}>
                 <span style={{color:'#676767'}}><b>All Items</b></span>
-                <div style={{display:'flex',flexDirection:'column',marginLeft:'10px',borderLeft:'1px solid #0051CF',backgroundColor:'#F7F7F7',borderRadius:'8px',padding:'2px 5px',fontWeight:'600',cursor:'pointer'}}>
+                <div 
+                  style={{
+                    display:'flex',
+                    flexDirection:'column',
+                    marginLeft:'10px',
+                    borderLeft:'1px solid #0051CF',
+                    backgroundColor: selectedCategory === null ? '#F7F7F7' : 'transparent',
+                    borderRadius:'8px',
+                    padding:'2px 5px',
+                    fontWeight:'600',
+                    cursor:'pointer'
+                  }}
+                  onClick={handleAllItemsClick}
+                >
                   All Items
                 </div>
               </div>
@@ -281,8 +439,20 @@ function Pos() {
                 {categories.length === 0 ? (
                 <span>No Category Available</span>
                 ) : (
-                  categories.map((categories) => (
-                  <span style={{cursor:'pointer'}}>{categories.categoryName}</span>
+                  categories.map((category) => (
+                  <span 
+                    key={category._id}
+                    style={{
+                      cursor:'pointer',
+                      padding:'2px 5px',
+                      borderRadius:'8px',
+                      backgroundColor: selectedCategory && selectedCategory._id === category._id ? '#F7F7F7' : 'transparent',
+                      fontWeight: selectedCategory && selectedCategory._id === category._id ? '600' : 'normal'
+                    }}
+                    onClick={() => handleCategoryClick(category)}
+                  >
+                    {category.categoryName}
+                  </span>
                   )))}
                 </div>
               </div>
@@ -297,17 +467,70 @@ function Pos() {
               {products.length === 0 ? (
                 <span>No Product Available</span>
               ) : (
-              products.map((product) => (
-                <div className='col-2' style={{border:'2px solid #E6E6E6',backgroundColor:'white',borderRadius:'16px',padding:'10px',cursor:'pointer'}}>
+              products.map((product) => {
+                // Check if this product is in cart and get its quantity
+                const cartItem = selectedItems.find(item => item._id === product._id);
+                const cartQuantity = cartItem ? cartItem.quantity : 0;
+                
+                return (
+                <div 
+                  key={product._id}
+                  className='col-2' 
+                  style={{border:'2px solid #E6E6E6',backgroundColor:'white',borderRadius:'16px',padding:'10px',cursor:'pointer',position:'relative'}}
+                  onClick={() => handleProductClick(product)}
+                >
+                  {/* Quantity Badge */}
+                  {cartQuantity > 0 && (
+                    <div style={{
+                      position:'absolute',
+                      top:'5px',
+                      right:'5px',
+                      backgroundColor:'#1368EC',
+                      color:'white',
+                      borderRadius:'50%',
+                      width:'24px',
+                      height:'24px',
+                      display:'flex',
+                      alignItems:'center',
+                      justifyContent:'center',
+                      fontSize:'12px',
+                      fontWeight:'bold',
+                      zIndex:1
+                    }}>
+                      {cartQuantity}
+                    </div>
+                  )}
 
-                  <div style={{display:'flex',justifyContent:'center',backgroundColor:'white',width:'100%',height:'100px',alignItems:'center'}}>
-                    {product.images?.[0] && (
+                  <div style={{display:'flex',justifyContent:'center',backgroundColor:'white',width:'100%',height:'100px',alignItems:'center',borderRadius:'8px',overflow:'hidden'}}>
+                    {product.images && product.images.length > 0 && product.images[0] ? (
                       <img
-                        src={product.images[0].url}
+                        src={product.images[0].url || product.images[0]}
                         alt={product.productName}
-                        style={{ height: "100%", width: "100%",objectFit:'contain' }}
+                        style={{ 
+                          height: "100%", 
+                          width: "100%",
+                          objectFit:'contain',
+                          maxWidth:'100%',
+                          maxHeight:'100%'
+                        }}
+                        onError={(e) => {
+                          e.target.style.display = 'none';
+                          e.target.nextSibling.style.display = 'flex';
+                        }}
                       />
-                    )}
+                    ) : null}
+                    {/* Fallback icon when no image */}
+                    <div style={{
+                      display: product.images && product.images.length > 0 && product.images[0] ? 'none' : 'flex',
+                      flexDirection:'column',
+                      alignItems:'center',
+                      justifyContent:'center',
+                      color:'#ccc',
+                      fontSize:'24px'
+                    }}>
+                      <SlHandbag style={{fontSize:'40px',marginBottom:'5px'}}/>
+                      <span style={{fontSize:'10px'}}>No Image</span>
+                    </div>
                   </div>
 
                   <div>
@@ -328,7 +551,7 @@ function Pos() {
                   </div>
 
                 </div>
-              )))}
+              )}))}
               </div>
               </div>
 
@@ -366,11 +589,145 @@ function Pos() {
             <div>
             <BsPersonSquare style={{fontSize:'50px'}}/>
             </div>
-            <div>
-              <span>Name : </span>
-              <br/>
-              <span>Number : </span>
+            <div style={{flex:1}}>
+              {selectedCustomer ? (
+                <>
+                  <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'5px'}}>
+                    <span style={{fontWeight:'600',color:'#333'}}>{selectedCustomer.name}</span>
+                    <button 
+                      onClick={handleClearCustomer}
+                      style={{
+                        background:'none',
+                        border:'none',
+                        color:'#dc3545',
+                        cursor:'pointer',
+                        fontSize:'12px',
+                        padding:'2px 6px',
+                        borderRadius:'4px'
+                      }}
+                      title="Clear customer"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                  <span style={{fontSize:'12px',color:'#666'}}>
+                    {selectedCustomer.email && `${selectedCustomer.email} • `}
+                    {selectedCustomer.phone || 'No Phone'}
+                  </span>
+                </>
+              ) : (
+                <>
+                  
+                  <span style={{color:'#666'}}>Not Selected</span>
+                  
+                </>
+              )}
             </div>
+          </div>
+
+          {/* selected items details */}
+          <div style={{flex:1,overflowY:'auto',padding:'10px',borderBottom:'1px solid #ccc'}}>
+            <div style={{fontWeight:'600',color:'#333',marginBottom:'10px',fontSize:'16px'}}>
+              Selected Items ({selectedItems.length})
+            </div>
+            
+            {selectedItems.length === 0 ? (
+              <div style={{textAlign:'center',color:'#999',padding:'20px'}}>
+                No items selected
+              </div>
+            ) : (
+              <div style={{display:'flex',flexDirection:'column',gap:'8px',overflowY:'auto',maxHeight:'45vh'}}>
+                {selectedItems.map((item) => (
+                  <div 
+                    key={item._id}
+                    style={{
+                      border:'1px solid #E6E6E6',
+                      borderRadius:'8px',
+                      padding:'10px',
+                      backgroundColor:'white'
+                    }}
+                  >
+                    <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'8px'}}>
+                      
+                    <div>
+                      <img src={item.images[0].url || item.images[0]} alt="product image" style={{width:'40px',height:'40px'}} />
+                    </div>
+
+                      <div style={{flex:1}}>
+                        <div style={{fontWeight:'600',fontSize:'14px',color:'#333'}}>
+                          {item.productName}
+                        </div>
+                        <div style={{fontSize:'12px',color:'#666'}}>
+                          ₹{item.sellingPrice} per {item.unit}
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => removeItem(item._id)}
+                        style={{
+                          background:'none',
+                          border:'none',
+                          color:'#dc3545',
+                          cursor:'pointer',
+                          fontSize:'16px',
+                          padding:'2px 6px',
+                          borderRadius:'4px'
+                        }}
+                        title="Remove item"
+                      >
+                        ✕
+                      </button>
+                    </div>
+                    
+                    <div style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+                      <div style={{display:'flex',alignItems:'center',gap:'8px'}}>
+                        <button
+                          onClick={() => updateItemQuantity(item._id, item.quantity - 1)}
+                          style={{
+                            background:'#f8f9fa',
+                            border:'1px solid #dee2e6',
+                            borderRadius:'4px',
+                            width:'24px',
+                            height:'24px',
+                            display:'flex',
+                            alignItems:'center',
+                            justifyContent:'center',
+                            cursor:'pointer',
+                            fontSize:'16px',
+                            fontWeight:'bold'
+                          }}
+                        >
+                          -
+                        </button>
+                        <span style={{fontWeight:'600',minWidth:'30px',textAlign:'center'}}>
+                          {item.quantity}
+                        </span>
+                        <button
+                          onClick={() => updateItemQuantity(item._id, item.quantity + 1)}
+                          style={{
+                            background:'#f8f9fa',
+                            border:'1px solid #dee2e6',
+                            borderRadius:'4px',
+                            width:'24px',
+                            height:'24px',
+                            display:'flex',
+                            alignItems:'center',
+                            justifyContent:'center',
+                            cursor:'pointer',
+                            fontSize:'16px',
+                            fontWeight:'bold'
+                          }}
+                        >
+                          +
+                        </button>
+                      </div>
+                      <div style={{fontWeight:'600',color:'#1368EC'}}>
+                        ₹{item.totalPrice.toFixed(2)}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* price */}
@@ -388,7 +745,7 @@ function Pos() {
             </div>
             <div style={{display:'flex',justifyContent:'space-between',color:'#676767'}}>
               <span>Sub Total</span>
-              <span>₹00.00</span>
+              <span>₹{totalAmount.toFixed(2)}</span>
             </div>
             <div style={{display:'flex',justifyContent:'space-between',color:'#676767'}}>
               <span>Tax</span>
@@ -420,9 +777,9 @@ function Pos() {
             <div style={{display:'flex',justifyContent:'space-between',color:'#676767',marginTop:'10px',marginBottom:'10px'}}>
               <div style={{display:'flex',justifyContent:'space-around',gap:'5px',alignItems:'center'}}>
                 <span style={{color:'#1368EC',fontSize:'20px',fontWeight:'600'}}>Total</span>
-                <span style={{fontSize:'15px',fontWeight:'500'}}>(items - 2, Qty - 2)</span>
+                <span style={{fontSize:'15px',fontWeight:'500'}}>(items - {totalItems}, Qty - {totalQuantity})</span>
               </div>
-              <span style={{color:'#1368EC',fontSize:'20px',fontWeight:'600'}}>₹00.00</span>
+              <span style={{color:'#1368EC',fontSize:'20px',fontWeight:'600'}}>₹{totalAmount.toFixed(2)}</span>
             </div>
 
             <div style={{display:'flex',justifyContent:'space-between',padding:'10px 15px',backgroundColor:'#1368EC',borderRadius:'8px',color:'white',marginTop:'5px',cursor:'pointer'}} onClick={handleCashPopupChange}>
@@ -462,17 +819,115 @@ function Pos() {
             overflowY: 'auto',
           }}
           >
-          <div ref={formRef} style={{width:'760px',height:'500px',margin:'auto',marginTop:'80px',marginBottom:'80px',padding:'10px 16px',overflowY:'auto'}}>
-            <div style={{display:'flex',alignItems:'center',border:'1px solid #E1E1E1',borderRadius:'8px',backgroundColor:'#fff',marginTop:'50px'}}>
-              <IoSearch style={{fontSize:'24px',marginLeft:'10px',color:'#C2C2C2'}} />
-              <input type="text" placeholder="Search by its name, email, phone number..." style={{width:'90%',padding:'8px',fontSize:'16px',border:'none',outline:'none',color:'#C2C2C2'}} />
+          <div ref={formRef} style={{width:'760px',height:'500px',margin:'auto',marginTop:'80px',marginBottom:'80px',padding:'10px 16px',overflowY:'auto',backgroundColor:'#fff',borderRadius:'8px'}}>
+            
+            {/* Header */}
+            <div style={{borderBottom:'1px solid #E1E1E1',padding:'15px 0px',marginBottom:'20px'}}>
+              <h3 style={{margin:0,color:'#333'}}>Select Customer</h3>
             </div>
-            <div style={{display:'flex',alignItems:'center',border:'1px solid #E1E1E1',borderRadius:'8px',backgroundColor:'#fff',marginTop:'10px',padding:'0px 10px',cursor:'pointer'}}>
-              <GoPersonAdd style={{fontSize:'24px',marginLeft:'10px',color:'#1368EC'}} />
-              <div style={{width:'90%',padding:'8px',fontSize:'16px',border:'none',outline:'none',color:'#1368EC'}}>
+
+            {/* Search Box */}
+            <div style={{position:'relative',marginBottom:'20px'}}>
+              <div style={{display:'flex',alignItems:'center',border:'1px solid #E1E1E1',borderRadius:'8px',backgroundColor:'#fff',padding:'8px 12px'}}>
+                <IoSearch style={{fontSize:'20px',marginRight:'10px',color:'#C2C2C2'}} />
+                <input 
+                  type="text" 
+                  placeholder="Search by name, email, or phone number..." 
+                  value={searchQuery}
+                  onChange={handleSearchChange}
+                  style={{width:'100%',padding:'8px',fontSize:'16px',border:'none',outline:'none',color:'#333'}} 
+                />
+              </div>
+
+              {/* Search Results Dropdown */}
+              {showDropdown && searchResults.length > 0 && (
+                <div style={{
+                  position:'absolute',
+                  top:'100%',
+                  left:0,
+                  right:0,
+                  backgroundColor:'white',
+                  border:'1px solid #E1E1E1',
+                  borderRadius:'8px',
+                  boxShadow:'0 4px 12px rgba(0,0,0,0.1)',
+                  maxHeight:'200px',
+                  overflowY:'auto',
+                  zIndex:1000
+                }}>
+                  {searchResults.map((customer) => (
+                    <div 
+                      key={customer._id}
+                      onClick={() => handleCustomerSelect(customer)}
+                      style={{
+                        padding:'12px 16px',
+                        borderBottom:'1px solid #f0f0f0',
+                        cursor:'pointer',
+                        display:'flex',
+                        flexDirection:'column',
+                        gap:'4px'
+                      }}
+                      onMouseEnter={(e) => e.target.style.backgroundColor='#f8f9fa'}
+                      onMouseLeave={(e) => e.target.style.backgroundColor='white'}
+                    >
+                      <div style={{fontWeight:'600',color:'#333'}}>
+                        {customer.name || 'No Name'}
+                      </div>
+                      <div style={{fontSize:'14px',color:'#666'}}>
+                        {customer.email && `${customer.email} • `}
+                        {customer.phone || 'No Phone'}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* No Results Message */}
+              {showDropdown && searchResults.length === 0 && searchQuery.trim() !== '' && (
+                <div style={{
+                  position:'absolute',
+                  top:'100%',
+                  left:0,
+                  right:0,
+                  backgroundColor:'white',
+                  border:'1px solid #E1E1E1',
+                  borderRadius:'8px',
+                  padding:'16px',
+                  textAlign:'center',
+                  color:'#666',
+                  zIndex:1000
+                }}>
+                  No customers found matching "{searchQuery}"
+                </div>
+              )}
+            </div>
+
+            {/* Add New Customer Button */}
+            <div style={{display:'flex',alignItems:'center',border:'1px solid #1368EC',borderRadius:'8px',backgroundColor:'#f8f9ff',padding:'12px 16px',cursor:'pointer',marginTop:'20px'}}>
+              <GoPersonAdd style={{fontSize:'24px',marginRight:'10px',color:'#1368EC'}} />
+              <div style={{fontSize:'16px',color:'#1368EC',fontWeight:'500'}}>
                 Add New Customer
               </div>
             </div>
+
+            {/* Selected Customer Info (if any) */}
+            {selectedCustomer && (
+              <div style={{
+                marginTop:'20px',
+                padding:'16px',
+                backgroundColor:'#e8f5e8',
+                border:'1px solid #4caf50',
+                borderRadius:'8px'
+              }}>
+                <div style={{fontWeight:'600',color:'#2e7d32',marginBottom:'8px'}}>
+                  Selected Customer:
+                </div>
+                <div style={{color:'#333'}}>
+                  <strong>{selectedCustomer.name}</strong>
+                  {selectedCustomer.email && <div>Email: {selectedCustomer.email}</div>}
+                  {selectedCustomer.phoneNumber && <div>Phone: {selectedCustomer.phone}</div>}
+                </div>
+              </div>
+            )}
           </div>
         </div>
       )}
@@ -499,20 +954,20 @@ function Pos() {
             
             <div style={{display:'flex',justifyContent:'space-between',borderBottom:'1px solid #E1E1E1',padding:'10px 0px'}}>
               <span>Cash details</span>
-              <span>₹300.00</span>
+              <span>₹00.00</span>
             </div>
 
             <div style={{display:'flex',justifyContent:'space-between',padding:'10px 0px',width:'100%',gap:'15px',marginTop:'5px',}}>
               <div style={{width:'100%'}}>
                 <span>Amount Received</span>
                 <div style={{display:'flex',justifyContent:'space-between',padding:'10px 15px',backgroundColor:'white',borderRadius:'10px',border:'1px solid #E6E6E6',width:'100%',marginTop:'5px'}}>
-                  <span>₹500.00</span>
+                  <span>₹00.00</span>
                 </div>
               </div>
               <div style={{width:'100%'}}>
                 <span>Change to return</span>
                 <div style={{display:'flex',justifyContent:'space-between',padding:'10px 15px',backgroundColor:'white',borderRadius:'10px',border:'1px solid #E6E6E6',width:'100%',marginTop:'5px'}}>
-                  <span>₹200.00</span>
+                  <span>₹00.00</span>
                 </div>
               </div>
             </div>

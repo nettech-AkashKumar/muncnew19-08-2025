@@ -23,13 +23,16 @@
         display: none;
         
     }
-    .dahsbaord-head-title{
-        justify-content: center;
-    }
+   
 }
 @media (max-width:326px){
     .dashboard-select-user-box{
      padding-right: 5px !important;
     padding-left: 5px !important;
+    }
+}
+@media (max-width:1440px){
+   .dahsbaord-head-title{
+        justify-content: center;
     }
 }
