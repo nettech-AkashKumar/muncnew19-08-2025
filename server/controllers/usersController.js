@@ -5,6 +5,7 @@ const bcrypt = require("bcryptjs");
 
 // CREATE USER
 exports.createUser = async (req, res) => {
+  console.log("Incoming User Data:", req.body);
   try {
     const {
       firstName,
@@ -12,6 +13,10 @@ exports.createUser = async (req, res) => {
       email,
       phone,
       password,
+      country,
+      state,
+      city,
+      postalcode,
       passwordChangedAt,
       confirmPassword,
       role,
@@ -47,6 +52,10 @@ exports.createUser = async (req, res) => {
       lastName,
       email: email.toLowerCase(),
       phone,
+      country,
+      state,
+      city,
+      postalcode,
       password: hashedPassword,
       passwordChangedAt:new Date(),
       profileImage,
@@ -119,6 +128,10 @@ exports.updateUser = async (req, res) => {
       lastName,
       email,
       phone,
+      country,
+      state,
+      city,
+      postalcode,
       currentpassword,
       newpassword,
       confirmpassword,
@@ -164,6 +177,10 @@ exports.updateUser = async (req, res) => {
     if (lastName) user.lastName = lastName;
     if (email) user.email = email.toLowerCase();
     if (phone) user.phone = phone;
+    if (country) user.country = country;
+    if (state) user.state = state;
+    if (city) user.city = city;
+    if(postalcode) user.postalcode = postalcode;
     if (role) user.role = role;
     if (typeof status !== "undefined") user.status = status;
 
