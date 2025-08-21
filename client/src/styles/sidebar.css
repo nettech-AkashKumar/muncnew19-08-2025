@@ -140,6 +140,9 @@
   height: calc(90vh - 25px);
   list-style: none;
 }
+.sidebar-inner::-webkit-scrollbar-thumb{
+     background-color: #007bff;
+}
 
 .sidebar-menu ul {
   list-style: none;
@@ -165,15 +168,18 @@
 .sidebar-menu li a:hover,
 .sidebar-menu li > div:hover {
   background-color: #f5f5f5;
-  color: #fe9f43;
+  color: #007bff;
 }
+
 
 /* Active item */
 .sidebar-menu li > div.active,
 .sidebar-menu li > a.active {
-  background-color: #fe9f43;
-  color: white;
+  background-color: #007bff;
+  color: rgb(255, 255, 255);
 }
+
+
 
 .sidebar-menu a {
   text-decoration: none;
@@ -225,7 +231,7 @@
   color: black;
 }
 .sidebar-menu li > div:hover .menu-arrow::before {
-  border-color:#fe9f43;
+  border-color:#007bff;
 }
 .icons{
   font-size: 15px;
@@ -281,7 +287,7 @@
 
 .submenu ul li a:hover {
   background-color: #f0f0f0;
-  color: #092c4c;
+  color: #007bff;
 }
 
 
@@ -298,13 +304,16 @@
   -ms-flex-pack: center;
   position: absolute;
   opacity: 1;
-  background: #FE9F43;
+  background: #007bff;
   right: -13px;
   border-radius: 50%;
   width: 25px;
   height: 25px;
   /* color: #ffffff; */
   cursor: pointer;
+  color: white;
+  border: none;
+  font-size: 20px;
 }
 
 
