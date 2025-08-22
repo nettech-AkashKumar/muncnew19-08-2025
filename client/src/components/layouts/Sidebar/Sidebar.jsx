@@ -44,8 +44,8 @@ const Sidebar = () => {
         {companyImages ? (
           <>
         <div className="sidebar-logo">
-          <Link to="/home"><img src={IconLogo} className="compact-logo" alt="Logo" /></Link>
-          <Link to="/home"><img src={Logo} className="full-logo" alt="Full Logo" /></Link>
+          <Link to="/home"><img src={isDarkMode ? companyImages.companyDarkLogo : companyImages.companyLogo} className="compact-logo" alt="Logo" /></Link>
+          <Link to="/home"><img src={isDarkMode ? companyImages.companyDarkLogo : companyImages.companyLogo} className="full-logo" alt="Full Logo" /></Link>
           <button className="mobile-toggle-btn" onClick={handleMobileToggle}>
             {mobileOpen ? <AiOutlineMenuFold /> : <AiOutlineMenuUnfold />}
           </button>

@@ -31,8 +31,8 @@ function Navbar() {
   const fullscreenBtnRef = useRef(null);
   const toggleBtnRef = useRef(null);
   const { mobileOpen, handleMobileToggle } = useSidebar();
-   const { users } = useAuth();
-    const id = users?._id;
+  const { users } = useAuth();
+  const id = users?._id;
 
   // user profile
   const [user, setUser] = useState(null);
@@ -254,6 +254,7 @@ function Navbar() {
         <div className="header-left active">
           <Link to="/home" className="logo logo-normal">
            <img style={{ height: "35px", width: "35px" }} src={isDarkMode ? companyImages.companyDarkLogo : companyImages.companyLogo} alt="company logo" />
+           {console.log('cmpylogo', companyImages.companyLogo)}
           </Link>
           <Link to="/home" className="logo logo-white">
             <img src="/assets/img/logo-white.svg" alt="Logo" />

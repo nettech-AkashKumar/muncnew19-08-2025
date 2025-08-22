@@ -199,13 +199,13 @@ const EmailModal = ({
         <div className="mailmdl-modal-header">
           <span className="mailmdl-nwemsfg">New Message</span>
           <div className="mailmdl-header-actions">
-            <button style={{ color: 'black', border: 'none', backgroundColor: 'transparent' }} onClick={onClose}>
+            <button className="mailmdlbutton" style={{ color: 'black', border: 'none', backgroundColor: 'transparent' }} onClick={onClose}>
               <MdOutlineMinimize style={{ fontWeight: 300 }} />
             </button>
-            <button style={{ color: 'black', border: 'none', backgroundColor: 'transparent' }} onClick={toggleExpanded}>
+            <button className="mailmdlbutton" style={{ color: 'black', border: 'none', backgroundColor: 'transparent' }} onClick={toggleExpanded}>
               <GoScreenFull style={{ fontWeight: 300 }} />
             </button>
-            <button style={{ color: 'black', border: 'none', backgroundColor: 'transparent' }} onClick={handleDraftDelete}>
+            <button className="mailmdlbutton" style={{ color: 'black', border: 'none', backgroundColor: 'transparent' }} onClick={handleDraftDelete}>
               ✕
             </button>
           </div>
@@ -232,7 +232,7 @@ const EmailModal = ({
                 width: '100%',
               }}
             />
-            <span style={{ color: '#676767', fontWeight: 400, fontSize: '16px', lineHeight: '10px', letterSpacing: '0' }} className="cc-bcc" onClick={() => setShowCc(!showCc)}>
+            <span style={{ color: '#676767', fontWeight: 400, fontSize: '16px', lineHeight: '10px', letterSpacing: '0', cursor: 'pointer' }} className="cc-bcc" onClick={() => setShowCc(!showCc)}>
               Cc
             </span>
             <span
@@ -350,16 +350,16 @@ const EmailModal = ({
               {loading ? "Sending" : "Send "}
             </button>
             <div className="mailmdl-footer-icons" style={{ display: 'flex', gap: '10px', color: '#676767' }}>
-              <button onClick={handleAttachmentClick}>
+              <button className="mailmdlbutton" mailmdlbutton onClick={handleAttachmentClick}>
                 <RiAttachment2 />
               </button>
-              <button onClick={() => imageInputRef.current.click()}>
+              <button className="mailmdlbutton" mailmdlbutton onClick={() => imageInputRef.current.click()}>
                 <HiOutlinePhotograph />
               </button>
-              <button onClick={() => setShowLinkInput((prev) => !prev)}>
+              <button className="mailmdlbutton" onClick={() => setShowLinkInput((prev) => !prev)}>
                 <AiOutlineLink />
               </button>
-              <button onClick={() => setShowEmojiPicker(!showEmojiPicker)}>
+              <button className="mailmdlbutton" onClick={() => setShowEmojiPicker(!showEmojiPicker)}>
                 <CiFaceSmile />
               </button>
 
@@ -430,7 +430,7 @@ const EmailModal = ({
               onChange={(e) => setLinkUrl(e.target.value)}
               className="mailmdl"
             />
-            <button onClick={handleInsertLink}>Insert</button>
+            <button className="mailmdlbutton" onClick={handleInsertLink}>Insert</button>
           </div>
         )}
       </div>

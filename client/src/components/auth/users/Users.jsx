@@ -13,7 +13,7 @@ import { BiChevronDown } from "react-icons/bi";
 import { GrFormPrevious } from "react-icons/gr";
 import { MdNavigateNext } from "react-icons/md";
 import Iconss from "../../../assets/images/Iconss.png";
-
+import { Country, State, City } from "country-state-city";
 
 const Users = () => {
   const [activeRoles, setActiveRoles] = useState([]);
@@ -22,6 +22,7 @@ const Users = () => {
   const [selectedStatus, setSelectedStatus] = useState(""); //for active , inactive
   const addFileInputRef = useRef(null);
   const editFileInputRef = useRef(null);
+
   // items page
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
@@ -45,6 +46,11 @@ const Users = () => {
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
+  const [country, setCountry] = useState("");
+  const [state, setState] = useState("");
+  const [city, setCity] = useState("");
+  const [zip, setZip] = useState("");
+  const [address, setAddress] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [status, setStatus] = useState(true);
   const [profileImage, setProfileImage] = useState(null);
@@ -69,7 +75,41 @@ const Users = () => {
     confirmPassword: "",
     status: true,
     profileImage: null,
+    country: "",
+    state: "",
+    city: "",
+    postalcode: "",
+    address:"",
   });
+
+  // for country, state, city
+  const [selectedCountry, setSelectedCountry] = useState("");
+  const [selectedState, setSelectedState] = useState("");
+  const [selectedCity, setSelectedCity] = useState("");
+
+  const [countryList, setCountryList] = useState([]);
+  const [stateList, setStateList] = useState([]);
+  const [cityList, setCityList] = useState([]);
+
+  useEffect(() => {
+    setCountryList(Country.getAllCountries());
+  }, []);
+
+  useEffect(() => {
+    if (selectedCountry) {
+      setStateList(State.getStatesOfCountry(selectedCountry));
+      setSelectedState(""); // reset when country changes
+      setCityList([]);
+      setSelectedCity("");
+    }
+  }, [selectedCountry]);
+
+  useEffect(() => {
+    if (selectedState) {
+      setCityList(City.getCitiesOfState(selectedCountry, selectedState));
+      setSelectedCity("");
+    }
+  }, [selectedState]);
 
   const fetchUsers = async () => {
     try {
@@ -151,6 +191,11 @@ const Users = () => {
     formData.append("confirmPassword", confirmPassword);
     formData.append("role", selectedRole.value); // Role ID
     formData.append("status", status ? "Active" : "Inactive");
+    formData.append("country", selectedCountry);
+    formData.append("state", selectedState);
+    formData.append("city", selectedCity);
+    formData.append("postalcode", zip);
+    formData.append("address", address);
 
     //  Append image if provided (multiple format, even if only one)
     if (selectedImages.length > 0) {
@@ -180,6 +225,11 @@ const Users = () => {
       setSelectedRole(null);
       setStatus(true);
       setSelectedImages([]);
+      setCountry("");
+      setState("");
+      setCity("");
+      setZip("");
+      setAddress("");
       fetchUsers();
 
       window.$(`#add-user`).modal("hide");
@@ -238,6 +288,13 @@ const Users = () => {
 
       formData.append("status", editUserData.status ? "Active" : "Inactive");
 
+      // ✅ Add location fields
+      formData.append("country", editUserData.country);
+      formData.append("state", editUserData.state);
+      formData.append("city", editUserData.city);
+      formData.append("postalcode", editUserData.postalcode);
+      formData.append("address", editUserData.address)
+
       if (
         editUserData.profileImage &&
         typeof editUserData.profileImage !== "string"
@@ -268,6 +325,18 @@ const Users = () => {
         : user.role?._id || user.role?.value;
     const selectedRole = getMatchingRole(roleId);
 
+    // ✅ preload lists
+    const countries = Country.getAllCountries();
+    const states = user.country ? State.getStatesOfCountry(user.country) : [];
+    const cities =
+      user.country && user.state
+        ? City.getCitiesOfState(user.country, user.state)
+        : [];
+
+    setCountryList(countries);
+    setStateList(states);
+    setCityList(cities);
+
     setEditUserdId(user._id);
 
     // // Find the selected role from activeRoles
@@ -285,6 +354,11 @@ const Users = () => {
         typeof user.profileImage === "string"
           ? user.profileImage
           : user.profileImage?.url || null,
+      country: user.country || "",
+      state: user.state || "",
+      city: user.city || "",
+      postalcode: user.postalcode || "",
+      address:user.address || "",
     });
   };
 
@@ -409,15 +483,22 @@ const Users = () => {
                   />
                 </button>
                 <ul
-                  className="dropdown-menu  dropdown-menu-end p-1" aria-labelledby="statusDropdown"
+                  className="dropdown-menu  dropdown-menu-end p-1"
+                  aria-labelledby="statusDropdown"
                   style={{ minWidth: "150px" }}
                 >
                   <li>
                     <button
                       className="dropdown-item rounded-1"
                       onClick={() => setSelectedStatus("")}
-                      onMouseOver={(e) => { e.target.style.backgroundColor = '#e3f3ff'; e.target.style.color = 'black'; }}
-                      onMouseOut={(e) => { e.target.style.backgroundColor = 'white'; e.target.style.color = 'initial'; }}
+                      onMouseOver={(e) => {
+                        e.target.style.backgroundColor = "#e3f3ff";
+                        e.target.style.color = "black";
+                      }}
+                      onMouseOut={(e) => {
+                        e.target.style.backgroundColor = "white";
+                        e.target.style.color = "initial";
+                      }}
                       style={{
                         color: "#676767",
                         // padding: "6px 6px",
@@ -439,8 +520,14 @@ const Users = () => {
                     <button
                       className="dropdown-item"
                       onClick={() => setSelectedStatus("Active")}
-                      onMouseOver={(e) => { e.target.style.backgroundColor = '#e3f3ff'; e.target.style.color = 'black'; }}
-                      onMouseOut={(e) => { e.target.style.backgroundColor = 'white'; e.target.style.color = 'initial'; }}
+                      onMouseOver={(e) => {
+                        e.target.style.backgroundColor = "#e3f3ff";
+                        e.target.style.color = "black";
+                      }}
+                      onMouseOut={(e) => {
+                        e.target.style.backgroundColor = "white";
+                        e.target.style.color = "initial";
+                      }}
                       style={{
                         color: "#676767",
                         // padding: "6px 6px",
@@ -462,8 +549,14 @@ const Users = () => {
                     <button
                       className="dropdown-item"
                       onClick={() => setSelectedStatus("Inactive")}
-                      onMouseOver={(e) => { e.target.style.backgroundColor = '#e3f3ff'; e.target.style.color = 'black'; }}
-                      onMouseOut={(e) => { e.target.style.backgroundColor = 'white'; e.target.style.color = 'initial'; }}
+                      onMouseOver={(e) => {
+                        e.target.style.backgroundColor = "#e3f3ff";
+                        e.target.style.color = "black";
+                      }}
+                      onMouseOut={(e) => {
+                        e.target.style.backgroundColor = "white";
+                        e.target.style.color = "initial";
+                      }}
                       style={{
                         color: "#676767",
                         // padding: "6px 6px",
@@ -718,7 +811,7 @@ const Users = () => {
                             fontFamily: 'Roboto", sans-serif',
                           }}
                         >
-                          <div className="d-flex" style={{ cursor: 'pointer' }}>
+                          <div className="d-flex" style={{ cursor: "pointer" }}>
                             {/* <a className="me-2 p-2">
                               <TbEye />
                             </a> */}
@@ -837,27 +930,24 @@ const Users = () => {
               }}
             >
               <div className="page-wrapper-new p-0 pb-5">
-                  <div className="">
-                    <div className="page-title">
-                      <h4
-                        style={{
-                          color: "#262626",
-                          fontSize: "14px",
-                          fontWeight: 400,
-                          lineHeight: "14px",
-                        }}
-                      >
-                        Add User
-                      </h4>
-                    </div>
-                    <hr style={{ height: "1px", color: "#bbbbbb" }} />
+                <div className="">
+                  <div className="page-title">
+                    <h4
+                      style={{
+                        color: "#262626",
+                        fontSize: "14px",
+                        fontWeight: 400,
+                        lineHeight: "14px",
+                      }}
+                    >
+                      Add User
+                    </h4>
                   </div>
-                  <form
-                    onSubmit={handleAddUser}
-                    style={{ padding: "0px 20px" }}
-                  >
-                    {/* immg */}
-                    {/* <div className="profile-pic-upload mb-2">
+                  <hr style={{ height: "1px", color: "#bbbbbb" }} />
+                </div>
+                <form onSubmit={handleAddUser} style={{ padding: "0px 20px" }}>
+                  {/* immg */}
+                  {/* <div className="profile-pic-upload mb-2">
                               <div className="profile-pic">
                                 <span>
                                   {selectedImages.length > 0 ? (
@@ -908,416 +998,143 @@ const Users = () => {
                                 </p>
                               </div>
                             </div> */}
-                    {/* immg closed */}
-                    {/*  */}
+                  {/* immg closed */}
+                  {/*  */}
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "space-between",
+                      border: "2px dashed #dadadaff",
+                      padding: "10px",
+                      borderRadius: "8px",
+                      marginBottom: "20px",
+                    }}
+                  >
+                    <div
+                      className="add-image-circle"
+                      style={{
+                        display: "flex",
+                        border: "2px dashed #dadadaff",
+                        width: "100px",
+                        height: "100px",
+                        display: "flex",
+                        justifyContent: "center",
+                        alignItems: "center",
+                        color: "grey",
+                        cursor: "pointer",
+                        borderRadius: "50%",
+                        overflow: "hidden",
+                      }}
+                    >
+                      {selectedImages.length > 0 ? (
+                        <img
+                          src={URL.createObjectURL(selectedImages[0])}
+                          alt="Preview"
+                          style={{
+                            width: "100%",
+                            height: "100%",
+                            objectFit: "cover",
+                            pointerEvents: "none",
+                            borderRadius: "50%",
+                          }}
+                        />
+                      ) : (
+                        <>
+                          <span
+                            style={{
+                              color: "#676767",
+                              fontSize: "32px",
+                              fontWeight: 400,
+                              lineHeight: "18px",
+                            }}
+                          >
+                            +
+                          </span>
+                        </>
+                      )}
+                    </div>
+
+                    <input
+                      type="file"
+                      accept="image/*"
+                      ref={addFileInputRef}
+                      style={{ display: "none" }}
+                      onChange={(e) =>
+                        setSelectedImages(Array.from(e.target.files))
+                      }
+                    />
+
                     <div
                       style={{
                         display: "flex",
+                        flexDirection: "column",
                         alignItems: "center",
-                        justifyContent: "space-between",
-                        border: "2px dashed #dadadaff",
-                        padding: "10px",
-                        borderRadius: "8px",
-                        marginBottom: "20px",
                       }}
                     >
                       <div
-                        className="add-image-circle"
                         style={{
                           display: "flex",
-                          border: "2px dashed #dadadaff",
-                          width: "100px",
-                          height: "100px",
-                          display: "flex",
+                          alignItems: "center",
                           justifyContent: "center",
-                          alignItems: "center",
-                          color: "grey",
+                          gap: "5px",
+                          textAlign: "center",
+                          backgroundColor: " #E3F3FF",
+                          color: "#1368EC",
+                          border: "1px solid #BBE1FF",
+                          borderRadius: "15px",
+                          width: "150px",
+                          height: "45px",
                           cursor: "pointer",
-                          borderRadius: "50%",
-                          overflow: "hidden",
                         }}
                       >
-                        {selectedImages.length > 0 ? (
-                          <img
-                            src={URL.createObjectURL(selectedImages[0])}
-                            alt="Preview"
-                            style={{
-                              width: "100%",
-                              height: "100%",
-                              objectFit: "cover",
-                              pointerEvents: "none",
-                              borderRadius: "50%",
-                            }}
-                          />
-                        ) : (
-                          <>
-                            <span
-                              style={{
-                                color: "#676767",
-                                fontSize: "32px",
-                                fontWeight: 400,
-                                lineHeight: "18px",
-                              }}
-                            >
-                              +
-                            </span>
-                          </>
-                        )}
+                        <img
+                          src={Iconss}
+                          alt=""
+                          style={{ width: "20px", height: "20px" }}
+                        />
+                        <span
+                          onClick={addHandleIconClick}
+                          className="setting-imgupload-btn"
+                        >
+                          Upload Image
+                        </span>
                       </div>
-
-                      <input
-                        type="file"
-                        accept="image/*"
-                        ref={addFileInputRef}
-                        style={{ display: "none" }}
-                        onChange={(e) =>
-                          setSelectedImages(Array.from(e.target.files))
-                        }
-                      />
-
-                      <div
+                      <p
                         style={{
-                          display: "flex",
-                          flexDirection: "column",
-                          alignItems: "center",
+                          color: "#888888",
+                          fontFamily: '"Roboto", sans-serif',
+                          fontWeight: 400,
+                          fontSize: "12px",
+                          marginTop: "10px",
                         }}
                       >
-                        <div
-                          style={{
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                            gap: "5px",
-                            textAlign: "center",
-                            backgroundColor: " #E3F3FF",
-                            color: "#1368EC",
-                            border: "1px solid #BBE1FF",
-                            borderRadius: "15px",
-                            width: "150px",
-                            height: "45px",
-                            cursor: "pointer",
-                          }}
-                        >
-                          <img
-                            src={Iconss}
-                            alt=""
-                            style={{ width: "20px", height: "20px" }}
-                          />
-                          <span
-                            onClick={addHandleIconClick}
-                            className="setting-imgupload-btn"
-                          >
-                            Upload Image
-                          </span>
-                        </div>
-                        <p
-                          style={{
-                            color: "#888888",
-                            fontFamily: '"Roboto", sans-serif',
-                            fontWeight: 400,
-                            fontSize: "12px",
-                            marginTop: "10px",
-                          }}
-                        >
-                          Upload an image below 2MB, Accepted File format JPG,
-                          PNG
-                        </p>
-                      </div>
-
-                      <div className="invisible">;lpk</div>
+                        Upload an image below 2MB, Accepted File format JPG, PNG
+                      </p>
                     </div>
-                    {/*  */}
 
-                    <div>
-                      {/* fname lname */}
-                      <div
-                        style={{
-                          display: "flex",
-                          gap: "20px",
-                          marginBottom: "20px",
-                        }}
-                      >
-                        <div style={{ flex: 1 }}>
-                          <div
-                            style={{
-                              display: "flex",
-                              flexDirection: "column",
-                              width: "100%",
-                              gap: "5px",
-                            }}
-                          >
-                            <label
-                              className="ffrrstname"
-                              style={{
-                                fontWeight: "400",
-                                fontSize: "14px",
-                                lineHeight: "14px",
-                              }}
-                            >
-                              First Name
-                            </label>
-                            <input
-                              type="text"
-                              className="ffrrstnameinput"
-                              name="firstName"
-                              value={firstName}
-                              onChange={(e) => setFirstName(e.target.value)}
-                              placeholder="Akash"
-                              required
-                            />
-                          </div>
-                        </div>
-                        <div style={{ flex: 1 }}>
-                          <div
-                            style={{
-                              display: "flex",
-                              flexDirection: "column",
-                              width: "100%",
-                              gap: "5px",
-                            }}
-                          >
-                            <label
-                              className="ffrrstname"
-                              style={{
-                                fontWeight: "400",
-                                fontSize: "14px",
-                                lineHeight: "14px",
-                              }}
-                            >
-                              Last Name
-                            </label>
-                            <input
-                              type="text"
-                              className="ffrrstnameinput"
-                              name="lastName"
-                              value={lastName}
-                              onChange={(e) => setLastName(e.target.value)}
-                              placeholder="Kumar"
-                              required
-                            />
-                          </div>
-                        </div>
-                      </div>
-                      {/* fname lname end*/}
+                    <div className="invisible">;lpk</div>
+                  </div>
+                  {/*  */}
 
-                      <div
-                        style={{
-                          display: "flex",
-                          gap: "20px",
-                          marginBottom: "20px",
-                        }}
-                      >
+                  <div>
+                    {/* fname lname */}
+                    <div
+                      style={{
+                        display: "flex",
+                        gap: "20px",
+                        marginBottom: "20px",
+                      }}
+                    >
+                      <div style={{ flex: 1 }}>
                         <div
                           style={{
-                            flex: "0 0 50%",
                             display: "flex",
-                            gap: "20px",
+                            flexDirection: "column",
+                            width: "100%",
+                            gap: "5px",
                           }}
                         >
-                          <div
-                            style={{
-                              display: "flex",
-                              flexDirection: "column",
-                              width: "100%",
-                              gap: "5px",
-                            }}
-                          >
-                            <label
-                              className="ffrrstname"
-                              style={{
-                                fontWeight: "400",
-                                fontSize: "14px",
-                                lineHeight: "14px",
-                              }}
-                            >
-                              Role
-                            </label>
-
-                            <Select
-                              options={activeRoles}
-                              value={selectedRole}
-                              onChange={setSelectedRole}
-                              placeholder="select a role..."
-                              isSearchable
-                              required
-                              // style={{
-                              //   backgroundColor: "#FBFBFB",
-                              //   color: "#676767",
-                              //   fontSize: "14px",
-                              //   fontWeight: 400,
-                              //   lineHeight: "18px"
-                              // }}
-                              styles={{
-                                control: (base) => ({
-                                  ...base,
-                                  backgroundColor: "#FBFBFB",
-                                  border: "1px solid #C2C2C2",
-                                  borderRadius: "8px",
-                                  fontSize: "14px",
-                                  fontWeight: 400,
-                                  color: "#676767",
-                                  outline: 'none'
-                                }),
-                              }}
-                            />
-                          </div>
-                        </div>
-                        <div
-                          style={{
-                            flex: "0 0 48%",
-                            display: "flex",
-                            gap: "20px",
-                          }}
-                        >
-                          <div style={{ flex: 1 }}>
-                            <div
-                              style={{
-                                display: "flex",
-                                flexDirection: "column",
-                                width: "100%",
-                                gap: "5px",
-                              }}
-                            >
-                              <label
-                                className="ffrrstname"
-                                style={{
-                                  fontWeight: "400",
-                                  fontSize: "14px",
-                                  lineHeight: "14px",
-                                }}
-                              >
-                                Email
-                              </label>
-                              <input
-                                type="email"
-                                className="ffrrstnameinput"
-                                name="email"
-                                value={email}
-                                onChange={(e) => setEmail(e.target.value)}
-                                placeholder="akash@gmail.com"
-                                required
-                              />
-                            </div>
-                          </div>
-                          <div style={{ flex: 1 }}>
-                            <div
-                              style={{
-                                display: "flex",
-                                flexDirection: "column",
-                                width: "100%",
-                                gap: "5px",
-                              }}
-                            >
-                              <label
-                                className="ffrrstname"
-                                style={{
-                                  fontWeight: "400",
-                                  fontSize: "14px",
-                                  lineHeight: "14px",
-                                }}
-                              >
-                                Phone
-                              </label>
-                              <input
-                                type="tel"
-                                className="ffrrstnameinput"
-                                name="phone"
-                                value={phone}
-                                onChange={(e) => setPhone(e.target.value)}
-                                placeholder="9876543210"
-                                required
-                              />
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                      <div
-                        style={{
-                          display: "flex",
-                          gap: "20px",
-                          marginBottom: "20px",
-                        }}
-                      >
-                        <div
-                          style={{
-                            flex: "0 0 50%",
-                            display: "flex",
-                            gap: "20px",
-                          }}
-                        >
-                          <div style={{ flex: "1" }}>
-                            <div
-                              style={{
-                                display: "flex",
-                                flexDirection: "column",
-                                width: "100%",
-                                gap: "5px",
-                              }}
-                            >
-                              <label
-                                className="ffrrstname"
-                                style={{
-                                  fontWeight: "400",
-                                  fontSize: "14px",
-                                  lineHeight: "14px",
-                                }}
-                              >
-                                Password
-                              </label>
-                              <input
-                                type="password"
-                                className="ffrrstnameinput"
-                                name="password"
-                                value={password}
-                                onChange={(e) => setPassword(e.target.value)}
-                                placeholder="Password@123"
-                                required
-                              />
-                            </div>
-                          </div>
-                          <div style={{ flex: "1" }}>
-                            <div
-                              style={{
-                                display: "flex",
-                                flexDirection: "column",
-                                width: "100%",
-                                gap: "5px",
-                              }}
-                            >
-                              <label
-                                className="ffrrstname"
-                                style={{
-                                  fontWeight: "400",
-                                  fontSize: "14px",
-                                  lineHeight: "14px",
-                                }}
-                              >
-                                Confirm Password
-                              </label>
-                              <input
-                                type="password"
-                                className="ffrrstnameinput"
-                                name="confirmPassword"
-                                value={confirmPassword}
-                                onChange={(e) =>
-                                  setConfirmPassword(e.target.value)
-                                }
-                                placeholder="Password@123"
-                                required
-                              />
-                              <i className="ti ti-eye-off toggle-password" />
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                      <div
-                        style={{
-                          flex: "0 0 50%",
-                          display: "flex",
-                          gap: "20px",
-                        }}
-                      >
-                        <div style={{ flex: "1" }}>
                           <label
                             className="ffrrstname"
                             style={{
@@ -1326,55 +1143,550 @@ const Users = () => {
                               lineHeight: "14px",
                             }}
                           >
-                            Status
+                            First Name
                           </label>
-                          <div className="dropdown" style={{ boxShadow: "rgba(0, 0, 0, 0.25)" }}>
-                            <button
-                              className="dropdown-toggle btn-md d-inline-flex align-items-center"
-                              type="button"
-                              id="roleStatus"
-                              data-bs-toggle="dropdown"
-                              aria-expanded="false"
-                              style={{
-                                backgroundColor: "#ffffff",
-                                color: "#676767",
+                          <input
+                            type="text"
+                            className="ffrrstnameinput"
+                            name="firstName"
+                            value={firstName}
+                            onChange={(e) => setFirstName(e.target.value)}
+                            placeholder="Akash"
+                            required
+                          />
+                        </div>
+                      </div>
+                      <div style={{ flex: 1 }}>
+                        <div
+                          style={{
+                            display: "flex",
+                            flexDirection: "column",
+                            width: "100%",
+                            gap: "5px",
+                          }}
+                        >
+                          <label
+                            className="ffrrstname"
+                            style={{
+                              fontWeight: "400",
+                              fontSize: "14px",
+                              lineHeight: "14px",
+                            }}
+                          >
+                            Last Name
+                          </label>
+                          <input
+                            type="text"
+                            className="ffrrstnameinput"
+                            name="lastName"
+                            value={lastName}
+                            onChange={(e) => setLastName(e.target.value)}
+                            placeholder="Kumar"
+                            required
+                          />
+                        </div>
+                      </div>
+                    </div>
+                    {/* fname lname end*/}
+
+                    <div
+                      style={{
+                        display: "flex",
+                        gap: "20px",
+                        marginBottom: "20px",
+                      }}
+                    >
+                      <div
+                        style={{
+                          flex: "0 0 50%",
+                          display: "flex",
+                          gap: "20px",
+                        }}
+                      >
+                        <div
+                          style={{
+                            display: "flex",
+                            flexDirection: "column",
+                            width: "100%",
+                            gap: "5px",
+                          }}
+                        >
+                          <label
+                            className="ffrrstname"
+                            style={{
+                              fontWeight: "400",
+                              fontSize: "14px",
+                              lineHeight: "14px",
+                            }}
+                          >
+                            Role
+                          </label>
+
+                          <Select
+                            options={activeRoles}
+                            value={selectedRole}
+                            onChange={setSelectedRole}
+                            placeholder="select a role..."
+                            isSearchable
+                            required
+                            // style={{
+                            //   backgroundColor: "#FBFBFB",
+                            //   color: "#676767",
+                            //   fontSize: "14px",
+                            //   fontWeight: 400,
+                            //   lineHeight: "18px"
+                            // }}
+                            styles={{
+                              control: (base) => ({
+                                ...base,
+                                backgroundColor: "#FBFBFB",
+                                border: "1px solid #C2C2C2",
+                                borderRadius: "8px",
+                                fontSize: "14px",
                                 fontWeight: 400,
-                                fontSize: "16px",
+                                color: "#676767",
+                                outline: "none",
+                              }),
+                            }}
+                          />
+                        </div>
+                      </div>
+                      <div
+                        style={{
+                          flex: "0 0 48%",
+                          display: "flex",
+                          gap: "20px",
+                        }}
+                      >
+                        <div style={{ flex: 1 }}>
+                          <div
+                            style={{
+                              display: "flex",
+                              flexDirection: "column",
+                              width: "100%",
+                              gap: "5px",
+                            }}
+                          >
+                            <label
+                              className="ffrrstname"
+                              style={{
+                                fontWeight: "400",
+                                fontSize: "14px",
                                 lineHeight: "14px",
-                                borderRadius: "4px",
-                                border: "1px solid #E6E6E6",
-                                boxShadow: "rgba(0, 0, 0, 0.25)",
-                                padding: "10px",
                               }}
                             >
-                              {status ? "Active" : "Inactive"}<BiChevronDown style={{ marginLeft: "10px", fontSize: "20px" }} />
-                            </button>
-                            <ul
-                              className="dropdown-menu dropdown-menu-end p-1" aria-labelledby="statusDropdown" style={{marginLeft:'10px'}}
-                            >
-                              <li>
-                                <button
-                                  className="dropdown-item"
-                                  onClick={() => setStatus(true)}
-                                  onMouseOver={(e) => { e.target.style.backgroundColor = '#e3f3ff'; e.target.style.color = 'black'; }}
-                                  onMouseOut={(e) => { e.target.style.backgroundColor = 'white'; e.target.style.color = 'initial'; }}
-                                >
-                                  Active
-                                </button>
-                              </li>
-                              <li>
-                                <button
-                                  className="dropdown-item"
-                                  onClick={() => setStatus(false)}
-                                  onMouseOver={(e) => { e.target.style.backgroundColor = '#e3f3ff'; e.target.style.color = 'black'; }}
-                                  onMouseOut={(e) => { e.target.style.backgroundColor = 'white'; e.target.style.color = 'initial'; }}
-                                >
-                                  Inactive
-                                </button>
-                              </li>
-                            </ul>
+                              Email
+                            </label>
+                            <input
+                              type="email"
+                              className="ffrrstnameinput"
+                              name="email"
+                              value={email}
+                              onChange={(e) => setEmail(e.target.value)}
+                              placeholder="akash@gmail.com"
+                              required
+                            />
                           </div>
-                          {/* <input
+                        </div>
+                        <div style={{ flex: 1 }}>
+                          <div
+                            style={{
+                              display: "flex",
+                              flexDirection: "column",
+                              width: "100%",
+                              gap: "5px",
+                            }}
+                          >
+                            <label
+                              className="ffrrstname"
+                              style={{
+                                fontWeight: "400",
+                                fontSize: "14px",
+                                lineHeight: "14px",
+                              }}
+                            >
+                              Phone
+                            </label>
+                            <input
+                              type="tel"
+                              className="ffrrstnameinput"
+                              name="phone"
+                              value={phone}
+                              onChange={(e) => setPhone(e.target.value)}
+                              placeholder="9876543210"
+                              required
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    {/* country start */}
+                    <div
+                      style={{
+                        display: "flex",
+                        gap: "20px",
+                        marginBottom: "20px",
+                        width: "100%",
+                      }}
+                    >
+                      <div
+                        style={{
+                          display: "flex",
+                          flexDirection: "column",
+                          gap: "5px",
+                          width: "25%",
+                        }}
+                      >
+                        <label
+                          className="ffrrstname"
+                          style={{
+                            fontWeight: "400",
+                            fontSize: "14px",
+                            lineHeight: "14px",
+                          }}
+                        >
+                          Country
+                        </label>
+                        <select
+                          className="ffrrstnameinput"
+                          value={selectedCountry}
+                          onChange={(e) => setSelectedCountry(e.target.value)}
+                          style={{
+                            backgroundColor: "#FBFBFB",
+                            border: "1px solid #C2C2C2",
+                            borderRadius: "8px",
+                            fontSize: "14px",
+                            fontWeight: 400,
+                            color: "#676767",
+                            outline: "none",
+                          }}
+                        >
+                          <option value="">Select Country</option>
+                          {countryList.map((country) => (
+                            <option
+                              key={country.isoCode}
+                              value={country.isoCode}
+                            >
+                              {country.name}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                      <div
+                        style={{
+                          display: "flex",
+                          flexDirection: "column",
+                          gap: "5px",
+                          width: "25%",
+                        }}
+                      >
+                        <label
+                          className="ffrrstname"
+                          style={{
+                            fontWeight: "400",
+                            fontSize: "14px",
+                            lineHeight: "14px",
+                          }}
+                        >
+                          State
+                        </label>
+                        <select
+                          className="ffrrstnameinput"
+                          value={selectedState}
+                          onChange={(e) => setSelectedState(e.target.value)}
+                          disabled={!selectedCountry}
+                          style={{
+                            backgroundColor: "#FBFBFB",
+                            border: "1px solid #C2C2C2",
+                            borderRadius: "8px",
+                            fontSize: "14px",
+                            fontWeight: 400,
+                            color: "#676767",
+                            outline: "none",
+                          }}
+                        >
+                          <option value="">Select State</option>
+                          {stateList.map((state) => (
+                            <option key={state.isoCode} value={state.isoCode}>
+                              {state.name}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+
+                      <div
+                        style={{
+                          display: "flex",
+                          flexDirection: "column",
+                          gap: "5px",
+                          width: "25%",
+                        }}
+                      >
+                        <label
+                          className="ffrrstname"
+                          style={{
+                            fontWeight: "400",
+                            fontSize: "14px",
+                            lineHeight: "14px",
+                          }}
+                        >
+                          City
+                        </label>
+                        <select
+                          value={selectedCity}
+                          onChange={(e) => setSelectedCity(e.target.value)}
+                          className="ffrrstnameinput"
+                          style={{
+                            backgroundColor: "#FBFBFB",
+                            border: "1px solid #C2C2C2",
+                            borderRadius: "8px",
+                            fontSize: "14px",
+                            fontWeight: 400,
+                            color: "#676767",
+                            outline: "none",
+                          }}
+                        >
+                          <option value="">Selected City</option>
+                          {cityList.map((city) => (
+                            <option key={city.name} value={city.name}>
+                              {city.name}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                      <div
+                        style={{
+                          display: "flex",
+                          flexDirection: "column",
+                          gap: "5px",
+                          width: "25%",
+                        }}
+                      >
+                        <label
+                          className="ffrrstname"
+                          style={{
+                            fontWeight: "400",
+                            fontSize: "14px",
+                            lineHeight: "14px",
+                          }}
+                        >
+                          Postal Code
+                        </label>
+                        <input
+                          value={zip}
+                          onChange={(e) => setZip(e.target.value)}
+                          className="ffrrstnameinput"
+                          placeholder="800007"
+                          type="number"
+                          style={{
+                            backgroundColor: "#FBFBFB",
+                            border: "1px solid #C2C2C2",
+                            borderRadius: "8px",
+                            fontSize: "14px",
+                            fontWeight: 400,
+                            color: "#676767",
+                            outline: "none",
+                          }}
+                        />
+                      </div>
+                    </div>
+                    {/* country end */}
+                    {/* address start */}
+                    <div style={{ flex: 1, marginBottom: "20px", }}>
+                      <div
+                        style={{
+                          display: "flex",
+                          flexDirection: "column",
+                          width: "100%",
+                          gap: "5px",
+                        }}
+                      >
+                        <label
+                          className="ffrrstname"
+                          style={{
+                            fontWeight: "400",
+                            fontSize: "14px",
+                            lineHeight: "14px",
+                          }}
+                        >
+                          Address
+                        </label>
+                        <textarea
+                          type="text"
+                          className="ffrrstnameinput"
+                          name="address"
+                          value={address}
+                          onChange={(e) => setAddress(e.target.value)}
+                          placeholder="Address"
+                          required
+                        />
+                      </div>
+                    </div>
+                    {/* address end */}
+                    <div
+                      style={{
+                        display: "flex",
+                        gap: "20px",
+                        marginBottom: "20px",
+                      }}
+                    >
+                      <div
+                        style={{
+                          flex: "0 0 50%",
+                          display: "flex",
+                          gap: "20px",
+                        }}
+                      >
+                        <div style={{ flex: "1" }}>
+                          <div
+                            style={{
+                              display: "flex",
+                              flexDirection: "column",
+                              width: "100%",
+                              gap: "5px",
+                            }}
+                          >
+                            <label
+                              className="ffrrstname"
+                              style={{
+                                fontWeight: "400",
+                                fontSize: "14px",
+                                lineHeight: "14px",
+                              }}
+                            >
+                              Password
+                            </label>
+                            <input
+                              type="password"
+                              className="ffrrstnameinput"
+                              name="password"
+                              value={password}
+                              onChange={(e) => setPassword(e.target.value)}
+                              placeholder="Password@123"
+                              required
+                            />
+                          </div>
+                        </div>
+                        <div style={{ flex: "1" }}>
+                          <div
+                            style={{
+                              display: "flex",
+                              flexDirection: "column",
+                              width: "100%",
+                              gap: "5px",
+                            }}
+                          >
+                            <label
+                              className="ffrrstname"
+                              style={{
+                                fontWeight: "400",
+                                fontSize: "14px",
+                                lineHeight: "14px",
+                              }}
+                            >
+                              Confirm Password
+                            </label>
+                            <input
+                              type="password"
+                              className="ffrrstnameinput"
+                              name="confirmPassword"
+                              value={confirmPassword}
+                              onChange={(e) =>
+                                setConfirmPassword(e.target.value)
+                              }
+                              placeholder="Password@123"
+                              required
+                            />
+                            <i className="ti ti-eye-off toggle-password" />
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <div
+                      style={{
+                        flex: "0 0 50%",
+                        display: "flex",
+                        gap: "20px",
+                      }}
+                    >
+                      <div style={{ flex: "1" }}>
+                        <label
+                          className="ffrrstname"
+                          style={{
+                            fontWeight: "400",
+                            fontSize: "14px",
+                            lineHeight: "14px",
+                          }}
+                        >
+                          Status
+                        </label>
+                        <div
+                          className="dropdown"
+                          style={{ boxShadow: "rgba(0, 0, 0, 0.25)" }}
+                        >
+                          <button
+                            className="dropdown-toggle btn-md d-inline-flex align-items-center"
+                            type="button"
+                            id="roleStatus"
+                            data-bs-toggle="dropdown"
+                            aria-expanded="false"
+                            style={{
+                              backgroundColor: "#ffffff",
+                              color: "#676767",
+                              fontWeight: 400,
+                              fontSize: "16px",
+                              lineHeight: "14px",
+                              borderRadius: "4px",
+                              border: "1px solid #E6E6E6",
+                              boxShadow: "rgba(0, 0, 0, 0.25)",
+                              padding: "10px",
+                            }}
+                          >
+                            {status ? "Active" : "Inactive"}
+                            <BiChevronDown
+                              style={{ marginLeft: "10px", fontSize: "20px" }}
+                            />
+                          </button>
+                          <ul
+                            className="dropdown-menu dropdown-menu-end p-1"
+                            aria-labelledby="statusDropdown"
+                            style={{ marginLeft: "10px" }}
+                          >
+                            <li>
+                              <button
+                                className="dropdown-item"
+                                onClick={() => setStatus(true)}
+                                onMouseOver={(e) => {
+                                  e.target.style.backgroundColor = "#e3f3ff";
+                                  e.target.style.color = "black";
+                                }}
+                                onMouseOut={(e) => {
+                                  e.target.style.backgroundColor = "white";
+                                  e.target.style.color = "initial";
+                                }}
+                              >
+                                Active
+                              </button>
+                            </li>
+                            <li>
+                              <button
+                                className="dropdown-item"
+                                onClick={() => setStatus(false)}
+                                onMouseOver={(e) => {
+                                  e.target.style.backgroundColor = "#e3f3ff";
+                                  e.target.style.color = "black";
+                                }}
+                                onMouseOut={(e) => {
+                                  e.target.style.backgroundColor = "white";
+                                  e.target.style.color = "initial";
+                                }}
+                              >
+                                Inactive
+                              </button>
+                            </li>
+                          </ul>
+                        </div>
+                        {/* <input
                             type="checkbox"
                             id="user1"
                             className="check"
@@ -1384,50 +1696,49 @@ const Users = () => {
                           <label htmlFor="user1" className="checktoggle">
                             {" "}
                           </label> */}
-                        </div>
                       </div>
                     </div>
-                    <div
+                  </div>
+                  <div
+                    style={{
+                      display: "flex",
+                      justifyContent: "end",
+                      gap: "10px",
+                      fontFamily: "Roboto, sans-serif",
+                      fontWeight: 400,
+                      fontSize: "16px",
+                      lineHeight: "14px",
+                    }}
+                  >
+                    <button
+                      // className="settingbtn"
+                      data-bs-dismiss="modal"
                       style={{
-                        display: "flex",
-                        justifyContent: "end",
-                        gap: "10px",
-                        fontFamily: "Roboto, sans-serif",
-                        fontWeight: 400,
-                        fontSize: "16px",
-                        lineHeight: "14px",
+                        border: "1px solid #E6E6E6",
+                        borderRadius: "4px",
+                        padding: "8px",
+                        backgroundColor: "#FFFFFF",
+                        color: "#676767",
+                        borderRadius: "5px",
                       }}
                     >
-                      <button
-                        // className="settingbtn"
-                        data-bs-dismiss="modal"
-                        style={{
-                          border: "1px solid #E6E6E6",
-                          borderRadius: "4px",
-                          padding: "8px",
-                          backgroundColor: "#FFFFFF",
-                          color: "#676767",
-                          borderRadius: "5px",
-                        }}
-                      >
-                        Cancel
-                      </button>
-                      <button
-                        // className="settingbtn"
-                        style={{
-                          border: "1px solid #676767",
-                          borderRadius: "4px",
-                          padding: "8px",
-                          backgroundColor: "#262626",
-                          color: "#FFFFFF",
-                          borderRadius: "5px",
-                        }}
-                      >
-                        Add User
-                      </button>
-                    </div>
-                  </form>
-                
+                      Cancel
+                    </button>
+                    <button
+                      // className="settingbtn"
+                      style={{
+                        border: "1px solid #676767",
+                        borderRadius: "4px",
+                        padding: "8px",
+                        backgroundColor: "#262626",
+                        color: "#FFFFFF",
+                        borderRadius: "5px",
+                      }}
+                    >
+                      Add User
+                    </button>
+                  </div>
+                </form>
               </div>
             </div>
           </div>
@@ -1442,148 +1753,153 @@ const Users = () => {
 
         {/* Edit User */}
         <div className="modal" id="edit-user">
-          <div className="modal-dialog modal-dialog-centered"
-            style={{ maxWidth: "970px", }}
+          <div
+            className="modal-dialog modal-dialog-centered"
+            style={{ maxWidth: "970px" }}
           >
-            <div className="modal-content" style={{padding: "10px" }}>
+            <div className="modal-content" style={{ padding: "10px" }}>
               <div className="page-wrapper-new p-0 pb-5">
-                  <div className="">
-                    <div className="page-title">
-                      <h4
-                        style={{
-                          color: "#262626",
-                          fontSize: "14px",
-                          fontWeight: 400,
-                          lineHeight: "14px",
-                        }}
-                      >Edit User</h4>
-                    </div>
-                    <hr style={{ height: "1px", color: "#bbbbbb" }} />
+                <div className="">
+                  <div className="page-title">
+                    <h4
+                      style={{
+                        color: "#262626",
+                        fontSize: "14px",
+                        fontWeight: 400,
+                        lineHeight: "14px",
+                      }}
+                    >
+                      Edit User
+                    </h4>
                   </div>
-                  <form onSubmit={handleUpdate} style={{ padding: "0px 20px" }}>
+                  <hr style={{ height: "1px", color: "#bbbbbb" }} />
+                </div>
+                <form onSubmit={handleUpdate} style={{ padding: "0px 20px" }}>
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "space-between",
+                      border: "2px dashed #dadadaff",
+                      padding: "10px",
+                      borderRadius: "8px",
+                      marginBottom: "20px",
+                    }}
+                  >
+                    {/* Circle Image Preview */}
+                    <div
+                      className="add-image-circle"
+                      style={{
+                        border: "2px solid #007bff",
+                        width: "100px",
+                        height: "100px",
+                        display: "flex",
+                        justifyContent: "center",
+                        alignItems: "center",
+                        color: "grey",
+                        cursor: "pointer",
+                        borderRadius: "50%",
+                        overflow: "hidden",
+                      }}
+                      onClick={() => editFileInputRef.current.click()} // clicking circle opens file picker
+                    >
+                      {editUserData.profileImage ? (
+                        <img
+                          src={
+                            typeof editUserData.profileImage === "string"
+                              ? editUserData.profileImage
+                              : URL.createObjectURL(editUserData.profileImage)
+                          }
+                          alt="Preview"
+                          style={{
+                            width: "100%",
+                            height: "100%",
+                            objectFit: "cover",
+                            pointerEvents: "none",
+                            borderRadius: "50%",
+                          }}
+                        />
+                      ) : (
+                        <span
+                          style={{
+                            color: "#676767",
+                            fontSize: "32px",
+                            fontWeight: 400,
+                            lineHeight: "18px",
+                          }}
+                        >
+                          +
+                        </span>
+                      )}
+                    </div>
+
+                    {/* Hidden file input */}
+                    <input
+                      type="file"
+                      accept="image/*"
+                      ref={editFileInputRef}
+                      style={{ display: "none" }}
+                      onChange={(e) =>
+                        setEditUserData({
+                          ...editUserData,
+                          profileImage: e.target.files[0],
+                        })
+                      }
+                    />
+
+                    {/* Upload button + hint */}
                     <div
                       style={{
                         display: "flex",
+                        flexDirection: "column",
                         alignItems: "center",
-                        justifyContent: "space-between",
-                        border: "2px dashed #dadadaff",
-                        padding: "10px",
-                        borderRadius: "8px",
-                        marginBottom: "20px",
                       }}
                     >
-                      {/* Circle Image Preview */}
                       <div
-                        className="add-image-circle"
                         style={{
-                          border: "2px dashed #dadadaff",
-                          width: "100px",
-                          height: "100px",
                           display: "flex",
+                          alignItems: "center",
                           justifyContent: "center",
-                          alignItems: "center",
-                          color: "grey",
+                          gap: "5px",
+                          textAlign: "center",
+                          backgroundColor: "#E3F3FF",
+                          color: "#1368EC",
+                          border: "1px solid #BBE1FF",
+                          borderRadius: "15px",
+                          width: "150px",
+                          height: "45px",
                           cursor: "pointer",
-                          borderRadius: "50%",
-                          overflow: "hidden",
                         }}
-                        onClick={() => editFileInputRef.current.click()} // clicking circle opens file picker
+                        onClick={() => editFileInputRef.current.click()}
                       >
-                        {editUserData.profileImage ? (
-                          <img
-                            src={
-                              typeof editUserData.profileImage === "string"
-                                ? editUserData.profileImage
-                                : URL.createObjectURL(editUserData.profileImage)
-                            }
-                            alt="Preview"
-                            style={{
-                              width: "100%",
-                              height: "100%",
-                              objectFit: "cover",
-                              pointerEvents: "none",
-                              borderRadius: "50%",
-                            }}
-                          />
-                        ) : (
-                          <span
-                            style={{
-                              color: "#676767",
-                              fontSize: "32px",
-                              fontWeight: 400,
-                              lineHeight: "18px",
-                            }}
-                          >
-                            +
-                          </span>
-                        )}
+                        <img
+                          src={Iconss} // your upload icon
+                          alt=""
+                          style={{ width: "20px", height: "20px" }}
+                        />
+                        <span className="setting-imgupload-btn">
+                          Upload Image
+                        </span>
                       </div>
 
-                      {/* Hidden file input */}
-                      <input
-                        type="file"
-                        accept="image/*"
-                        ref={editFileInputRef}
-                        style={{ display: "none" }}
-                        onChange={(e) =>
-                          setEditUserData({
-                            ...editUserData,
-                            profileImage: e.target.files[0],
-                          })
-                        }
-                      />
-
-                      {/* Upload button + hint */}
-                      <div
+                      <p
                         style={{
-                          display: "flex",
-                          flexDirection: "column",
-                          alignItems: "center",
+                          color: "#888888",
+                          fontFamily: '"Roboto", sans-serif',
+                          fontWeight: 400,
+                          fontSize: "12px",
+                          marginTop: "10px",
                         }}
                       >
-                        <div
-                          style={{
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                            gap: "5px",
-                            textAlign: "center",
-                            backgroundColor: "#E3F3FF",
-                            color: "#1368EC",
-                            border: "1px solid #BBE1FF",
-                            borderRadius: "15px",
-                            width: "150px",
-                            height: "45px",
-                            cursor: "pointer",
-                          }}
-                          onClick={() => editFileInputRef.current.click()}
-                        >
-                          <img
-                            src={Iconss} // your upload icon
-                            alt=""
-                            style={{ width: "20px", height: "20px" }}
-                          />
-                          <span className="setting-imgupload-btn">Upload Image</span>
-                        </div>
-
-                        <p
-                          style={{
-                            color: "#888888",
-                            fontFamily: '"Roboto", sans-serif',
-                            fontWeight: 400,
-                            fontSize: "12px",
-                            marginTop: "10px",
-                          }}
-                        >
-                          Upload an image below 2MB, Accepted File format JPG, PNG
-                        </p>
-                      </div>
-
-                      {/* filler to balance flex (like your invisible div) */}
-                      <div className="invisible">.</div>
+                        Upload an image below 2MB, Accepted File format JPG, PNG
+                      </p>
                     </div>
 
-                    {/* <img
+                    {/* filler to balance flex (like your invisible div) */}
+                    <div className="invisible">.</div>
+                  </div>
+
+                  {/* <img
                             src={
                               typeof editUserData.profileImage ===
                                 "string"
@@ -1628,301 +1944,23 @@ const Users = () => {
                           <p className="mt-2">JPEG, PNG up to 2 MB</p>
                         </div> */}
 
-
-
-
-                    {/* First Name */}
-                    <div
-                      style={{
-                        display: "flex",
-                        gap: "20px",
-                        marginBottom: "20px",
-                      }}
-                    >
-                      <div style={{ flex: 1 }}>
-                        <div
-                          style={{
-                            display: "flex",
-                            flexDirection: "column",
-                            width: "100%",
-                            gap: "5px",
-                          }}
-                        >
-                          <label className="ffrrstname"
-                            style={{
-                              fontWeight: "400",
-                              fontSize: "14px",
-                              lineHeight: "14px",
-                            }}
-                          >First Name </label>
-                          <input
-                            type="text"
-                            className="ffrrstnameinput"
-                            value={editUserData.firstName}
-                            onChange={(e) =>
-                              setEditUserData({
-                                ...editUserData,
-                                firstName: e.target.value,
-                              })
-                            }
-                          />
-                        </div>
-                      </div>
-
-                      {/* Last Name */}
-                      <div style={{ flex: 1 }}>
-                        <div
-                          style={{
-                            display: "flex",
-                            flexDirection: "column",
-                            width: "100%",
-                            gap: "5px",
-                          }}
-                        >
-                          <label className="ffrrstname"
-                            style={{
-                              fontWeight: "400",
-                              fontSize: "14px",
-                              lineHeight: "14px",
-                            }}
-                          >Last Name </label>
-                          <input
-                            type="text"
-                            className="ffrrstnameinput"
-                            value={editUserData.lastName}
-                            onChange={(e) =>
-                              setEditUserData({
-                                ...editUserData,
-                                lastName: e.target.value,
-                              })
-                            }
-                          />
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Role */}
-                    <div
-                      style={{
-                        display: "flex",
-                        gap: "20px",
-                        marginBottom: "20px",
-                      }}
-                    >
+                  {/* First Name */}
+                  <div
+                    style={{
+                      display: "flex",
+                      gap: "20px",
+                      marginBottom: "20px",
+                    }}
+                  >
+                    <div style={{ flex: 1 }}>
                       <div
                         style={{
-                          flex: "0 0 50%",
                           display: "flex",
-                          gap: "20px",
+                          flexDirection: "column",
+                          width: "100%",
+                          gap: "5px",
                         }}
                       >
-                        <div
-                          style={{
-                            display: "flex",
-                            flexDirection: "column",
-                            width: "100%",
-                            gap: "5px",
-                          }}
-                        >
-                          <label className="ffrrstname"
-                            style={{
-                              fontWeight: "400",
-                              fontSize: "14px",
-                              lineHeight: "14px",
-                            }}
-                          >
-                            Role
-                          </label>
-                          <Select
-                            options={activeRoles}
-                            value={editUserData.role}
-                            isDisabled={
-                              editUserData.role.label === "Unknown Role"
-                            }
-                            onChange={(selectedOption) => {
-                              setEditUserData({
-                                ...editUserData,
-                                role: selectedOption,
-                              });
-                            }}
-                            placeholder="Search or select a role..."
-                            isSearchable
-                            styles={{
-                              control: (base) => ({
-                                ...base,
-                                backgroundColor: "#FBFBFB",
-                                border: "1px solid #C2C2C2",
-                                borderRadius: "8px",
-                                fontSize: "14px",
-                                fontWeight: 400,
-                                color: "#676767",
-                                outline: 'none'
-                              }),
-                            }}
-                          />
-                        </div>
-                      </div>
-
-                      {/* Email */}
-                      <div
-                        style={{
-                          flex: "0 0 48%",
-                          display: "flex",
-                          gap: "20px",
-                        }}
-                      >
-                        <div style={{ flex: 1 }}>
-                          <div
-                            style={{
-                              display: "flex",
-                              flexDirection: "column",
-                              width: "100%",
-                              gap: "5px",
-                            }}
-                          >
-                            <label className="ffrrstname"
-                              style={{
-                                fontWeight: "400",
-                                fontSize: "14px",
-                                lineHeight: "14px",
-                              }}
-                            >Email </label>
-                            <input
-                              type="email"
-                              className="ffrrstnameinput"
-                              value={editUserData.email}
-                              onChange={(e) =>
-                                setEditUserData({
-                                  ...editUserData,
-                                  email: e.target.value,
-                                })
-                              }
-                            />
-                          </div>
-                        </div>
-
-                        {/* Phone */}
-                        <div style={{ flex: 1 }}>
-                          <div
-                            style={{
-                              display: "flex",
-                              flexDirection: "column",
-                              width: "100%",
-                              gap: "5px",
-                            }}
-                          >
-                            <label className="ffrrstname"
-                              style={{
-                                fontWeight: "400",
-                                fontSize: "14px",
-                                lineHeight: "14px",
-                              }}
-                            >Phone </label>
-                            <input
-                              type="tel"
-                              className="ffrrstnameinput"
-                              value={editUserData.phone}
-                              onChange={(e) =>
-                                setEditUserData({
-                                  ...editUserData,
-                                  phone: e.target.value,
-                                })
-                              }
-                            />
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Password */}
-                    <div
-                      style={{
-                        display: "flex",
-                        gap: "20px",
-                        marginBottom: "20px",
-                      }}
-                    >
-                      <div
-                        style={{
-                          flex: "0 0 50%",
-                          display: "flex",
-                          gap: "20px",
-                        }}
-                      >
-                        <div style={{ flex: "1" }}>
-                          <div
-                            style={{
-                              display: "flex",
-                              flexDirection: "column",
-                              width: "100%",
-                              gap: "5px",
-                            }}
-                          >
-                            <label className="ffrrstname"
-                              style={{
-                                fontWeight: "400",
-                                fontSize: "14px",
-                                lineHeight: "14px",
-                              }}
-                            >Password </label>
-                            <input
-                              type="password"
-                              className="ffrrstnameinput"
-                              value={editUserData.password}
-                              onChange={(e) =>
-                                setEditUserData({
-                                  ...editUserData,
-                                  password: e.target.value,
-                                })
-                              }
-                            />
-                          </div>
-                        </div>
-
-                        {/* Confirm Password */}
-                        <div style={{ flex: "1" }}>
-                          <div
-                            style={{
-                              display: "flex",
-                              flexDirection: "column",
-                              width: "100%",
-                              gap: "5px",
-                            }}
-                          >
-                            <label className="ffrrstname"
-                              style={{
-                                fontWeight: "400",
-                                fontSize: "14px",
-                                lineHeight: "14px",
-                              }}
-                            >
-                              Confirm Password
-                            </label>
-                            <input
-                              type="password"
-                              className="ffrrstnameinput"
-                              value={editUserData.confirmPassword}
-                              onChange={(e) =>
-                                setEditUserData({
-                                  ...editUserData,
-                                  confirmPassword: e.target.value,
-                                })
-                              }
-                            />
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Status */}
-                    <div
-                      style={{
-                        flex: "0 0 50%",
-                        display: "flex",
-                        gap: "20px",
-                      }}
-                    >
-                      <div style={{ flex: "1" }}>
                         <label
                           className="ffrrstname"
                           style={{
@@ -1931,55 +1969,610 @@ const Users = () => {
                             lineHeight: "14px",
                           }}
                         >
-                          Status
+                          First Name{" "}
                         </label>
-                        <div className="dropdown" style={{ boxShadow: "rgba(0, 0, 0, 0.25)" }}>
-                          <button
-                            className="dropdown-toggle btn-md d-inline-flex align-items-center" type="button" id="statusDropdown" data-bs-toggle="dropdown" aria-expanded="false"
-                            style={{
-                              backgroundColor: "#ffffff",
-                              color: "#676767",
+                        <input
+                          type="text"
+                          className="ffrrstnameinput"
+                          value={editUserData.firstName}
+                          onChange={(e) =>
+                            setEditUserData({
+                              ...editUserData,
+                              firstName: e.target.value,
+                            })
+                          }
+                        />
+                      </div>
+                    </div>
+
+                    {/* Last Name */}
+                    <div style={{ flex: 1 }}>
+                      <div
+                        style={{
+                          display: "flex",
+                          flexDirection: "column",
+                          width: "100%",
+                          gap: "5px",
+                        }}
+                      >
+                        <label
+                          className="ffrrstname"
+                          style={{
+                            fontWeight: "400",
+                            fontSize: "14px",
+                            lineHeight: "14px",
+                          }}
+                        >
+                          Last Name{" "}
+                        </label>
+                        <input
+                          type="text"
+                          className="ffrrstnameinput"
+                          value={editUserData.lastName}
+                          onChange={(e) =>
+                            setEditUserData({
+                              ...editUserData,
+                              lastName: e.target.value,
+                            })
+                          }
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Role */}
+                  <div
+                    style={{
+                      display: "flex",
+                      gap: "20px",
+                      marginBottom: "20px",
+                    }}
+                  >
+                    <div
+                      style={{
+                        flex: "0 0 50%",
+                        display: "flex",
+                        gap: "20px",
+                      }}
+                    >
+                      <div
+                        style={{
+                          display: "flex",
+                          flexDirection: "column",
+                          width: "100%",
+                          gap: "5px",
+                        }}
+                      >
+                        <label
+                          className="ffrrstname"
+                          style={{
+                            fontWeight: "400",
+                            fontSize: "14px",
+                            lineHeight: "14px",
+                          }}
+                        >
+                          Role
+                        </label>
+                        <Select
+                          options={activeRoles}
+                          value={editUserData.role}
+                          isDisabled={
+                            editUserData.role.label === "Unknown Role"
+                          }
+                          onChange={(selectedOption) => {
+                            setEditUserData({
+                              ...editUserData,
+                              role: selectedOption,
+                            });
+                          }}
+                          placeholder="Search or select a role..."
+                          isSearchable
+                          styles={{
+                            control: (base) => ({
+                              ...base,
+                              backgroundColor: "#FBFBFB",
+                              border: "1px solid #C2C2C2",
+                              borderRadius: "8px",
+                              fontSize: "14px",
                               fontWeight: 400,
-                              fontSize: "16px",
+                              color: "#676767",
+                              outline: "none",
+                            }),
+                          }}
+                        />
+                      </div>
+                    </div>
+
+                    {/* Email */}
+                    <div
+                      style={{
+                        flex: "0 0 48%",
+                        display: "flex",
+                        gap: "20px",
+                      }}
+                    >
+                      <div style={{ flex: 1 }}>
+                        <div
+                          style={{
+                            display: "flex",
+                            flexDirection: "column",
+                            width: "100%",
+                            gap: "5px",
+                          }}
+                        >
+                          <label
+                            className="ffrrstname"
+                            style={{
+                              fontWeight: "400",
+                              fontSize: "14px",
                               lineHeight: "14px",
-                              borderRadius: "4px",
-                              border: "1px solid #E6E6E6",
-                              boxShadow: "rgba(0, 0, 0, 0.25)",
-                              padding: "10px",
                             }}
                           >
-                            {editUserData.status ? "Active" : "Inactive"} <BiChevronDown style={{ marginLeft: "10px", fontSize: "20px" }} />
-                          </button>
-                          <ul className="dropdown-menu dropdown-menu-end p-1" aria-labelledby="statusDropdown" style={{marginLeft:'10px'}} >
-                            <li>
-                              <button
-                                className="dropdown-item"
-                                onClick={() => setEditUserData({
+                            Email{" "}
+                          </label>
+                          <input
+                            type="email"
+                            className="ffrrstnameinput"
+                            value={editUserData.email}
+                            onChange={(e) =>
+                              setEditUserData({
+                                ...editUserData,
+                                email: e.target.value,
+                              })
+                            }
+                          />
+                        </div>
+                      </div>
+
+                      {/* Phone */}
+                      <div style={{ flex: 1 }}>
+                        <div
+                          style={{
+                            display: "flex",
+                            flexDirection: "column",
+                            width: "100%",
+                            gap: "5px",
+                          }}
+                        >
+                          <label
+                            className="ffrrstname"
+                            style={{
+                              fontWeight: "400",
+                              fontSize: "14px",
+                              lineHeight: "14px",
+                            }}
+                          >
+                            Phone{" "}
+                          </label>
+                          <input
+                            type="tel"
+                            className="ffrrstnameinput"
+                            value={editUserData.phone}
+                            onChange={(e) =>
+                              setEditUserData({
+                                ...editUserData,
+                                phone: e.target.value,
+                              })
+                            }
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  {/* country start */}
+                  <div
+                    style={{
+                      display: "flex",
+                      gap: "20px",
+                      marginBottom: "20px",
+                      width: "100%",
+                    }}
+                  >
+                    <div
+                      style={{
+                        display: "flex",
+                        flexDirection: "column",
+                        gap: "5px",
+                        width: "25%",
+                      }}
+                    >
+                      <label
+                        className="ffrrstname"
+                        style={{
+                          fontWeight: "400",
+                          fontSize: "14px",
+                          lineHeight: "14px",
+                        }}
+                      >
+                        Country
+                      </label>
+                      <select
+                        className="ffrrstnameinput"
+                        value={editUserData.country}
+                        onChange={(e) => {
+                          const countryCode = e.target.value;
+                          setEditUserData({
+                            ...editUserData,
+                            country: countryCode,
+                            state: "", // reset when country changes
+                            city: "",
+                          });
+                          setStateList(State.getStatesOfCountry(countryCode));
+                          setCityList([]);
+                        }}
+                        style={{
+                          backgroundColor: "#FBFBFB",
+                          border: "1px solid #C2C2C2",
+                          borderRadius: "8px",
+                          fontSize: "14px",
+                          fontWeight: 400,
+                          color: "#676767",
+                          outline: "none",
+                        }}
+                      >
+                        <option value="">Select Country</option>
+                        {countryList.map((country) => (
+                          <option key={country.isoCode} value={country.isoCode}>
+                            {country.name}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    <div
+                      style={{
+                        display: "flex",
+                        flexDirection: "column",
+                        gap: "5px",
+                        width: "25%",
+                      }}
+                    >
+                      <label
+                        className="ffrrstname"
+                        style={{
+                          fontWeight: "400",
+                          fontSize: "14px",
+                          lineHeight: "14px",
+                        }}
+                      >
+                        State
+                      </label>
+                      <select
+                        className="ffrrstnameinput"
+                        value={editUserData.state}
+                        onChange={(e) => {
+                          const stateCode = e.target.value;
+                          setEditUserData({
+                            ...editUserData,
+                            state: stateCode,
+                            city: "",
+                          });
+                          setCityList(
+                            City.getCitiesOfState(
+                              editUserData.country,
+                              stateCode
+                            )
+                          );
+                        }}
+                        disabled={!editUserData.country}
+                        style={{
+                          backgroundColor: "#FBFBFB",
+                          border: "1px solid #C2C2C2",
+                          borderRadius: "8px",
+                          fontSize: "14px",
+                          fontWeight: 400,
+                          color: "#676767",
+                          outline: "none",
+                        }}
+                      >
+                        <option value="">Select State</option>
+                        {stateList.map((state) => (
+                          <option key={state.isoCode} value={state.isoCode}>
+                            {state.name}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div
+                      style={{
+                        display: "flex",
+                        flexDirection: "column",
+                        gap: "5px",
+                        width: "25%",
+                      }}
+                    >
+                      <label
+                        className="ffrrstname"
+                        style={{
+                          fontWeight: "400",
+                          fontSize: "14px",
+                          lineHeight: "14px",
+                        }}
+                      >
+                        City
+                      </label>
+                      <select
+                        value={editUserData.city}
+                        onChange={(e) => setEditUserData({ ...editUserData, city: e.target.value })}
+
+                        className="ffrrstnameinput"
+                        style={{
+                          backgroundColor: "#FBFBFB",
+                          border: "1px solid #C2C2C2",
+                          borderRadius: "8px",
+                          fontSize: "14px",
+                          fontWeight: 400,
+                          color: "#676767",
+                          outline: "none",
+                        }}
+                      >
+                        <option value="">Selected City</option>
+                        {cityList.map((city) => (
+                          <option key={city.name} value={city.name}>
+                            {city.name}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    <div
+                      style={{
+                        display: "flex",
+                        flexDirection: "column",
+                        gap: "5px",
+                        width: "25%",
+                      }}
+                    >
+                      <label
+                        className="ffrrstname"
+                        style={{
+                          fontWeight: "400",
+                          fontSize: "14px",
+                          lineHeight: "14px",
+                        }}
+                      >
+                        Postal Code
+                      </label>
+                      <input
+                        value={editUserData.postalcode}
+                        onChange={(e) =>
+                          setEditUserData({
+                            ...editUserData,
+                            postalcode: e.target.value,
+                          })
+                        }
+                        className="ffrrstnameinput"
+                        placeholder="800007"
+                        type="number"
+                        style={{
+                          backgroundColor: "#FBFBFB",
+                          border: "1px solid #C2C2C2",
+                          borderRadius: "8px",
+                          fontSize: "14px",
+                          fontWeight: 400,
+                          color: "#676767",
+                          outline: "none",
+                        }}
+                      />
+                    </div>
+                  </div>
+                  {/* country end */}
+                  {/* address start */}
+                    <div style={{ flex: 1, marginBottom: "20px", }}>
+                      <div
+                        style={{
+                          display: "flex",
+                          flexDirection: "column",
+                          width: "100%",
+                          gap: "5px",
+                        }}
+                      >
+                        <label
+                          className="ffrrstname"
+                          style={{
+                            fontWeight: "400",
+                            fontSize: "14px",
+                            lineHeight: "14px",
+                          }}
+                        >
+                          Address
+                        </label>
+                        <textarea
+                          type="text"
+                          className="ffrrstnameinput"
+                          name="address"
+                          value={editUserData.address}
+                          onChange={(e) =>
+                              setEditUserData({
+                                ...editUserData,
+                                address: e.target.value,
+                              })
+                            }
+                          placeholder="Address"
+                          required
+                        />
+                      </div>
+                    </div>
+                    {/* address end */}
+                  {/* Password */}
+                  <div
+                    style={{
+                      display: "flex",
+                      gap: "20px",
+                      marginBottom: "20px",
+                    }}
+                  >
+                    <div
+                      style={{
+                        flex: "0 0 50%",
+                        display: "flex",
+                        gap: "20px",
+                      }}
+                    >
+                      <div style={{ flex: "1" }}>
+                        <div
+                          style={{
+                            display: "flex",
+                            flexDirection: "column",
+                            width: "100%",
+                            gap: "5px",
+                          }}
+                        >
+                          <label
+                            className="ffrrstname"
+                            style={{
+                              fontWeight: "400",
+                              fontSize: "14px",
+                              lineHeight: "14px",
+                            }}
+                          >
+                            Password{" "}
+                          </label>
+                          <input
+                            type="password"
+                            className="ffrrstnameinput"
+                            value={editUserData.password}
+                            onChange={(e) =>
+                              setEditUserData({
+                                ...editUserData,
+                                password: e.target.value,
+                              })
+                            }
+                          />
+                        </div>
+                      </div>
+
+                      {/* Confirm Password */}
+                      <div style={{ flex: "1" }}>
+                        <div
+                          style={{
+                            display: "flex",
+                            flexDirection: "column",
+                            width: "100%",
+                            gap: "5px",
+                          }}
+                        >
+                          <label
+                            className="ffrrstname"
+                            style={{
+                              fontWeight: "400",
+                              fontSize: "14px",
+                              lineHeight: "14px",
+                            }}
+                          >
+                            Confirm Password
+                          </label>
+                          <input
+                            type="password"
+                            className="ffrrstnameinput"
+                            value={editUserData.confirmPassword}
+                            onChange={(e) =>
+                              setEditUserData({
+                                ...editUserData,
+                                confirmPassword: e.target.value,
+                              })
+                            }
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Status */}
+                  <div
+                    style={{
+                      flex: "0 0 50%",
+                      display: "flex",
+                      gap: "20px",
+                    }}
+                  >
+                    <div style={{ flex: "1" }}>
+                      <label
+                        className="ffrrstname"
+                        style={{
+                          fontWeight: "400",
+                          fontSize: "14px",
+                          lineHeight: "14px",
+                        }}
+                      >
+                        Status
+                      </label>
+                      <div
+                        className="dropdown"
+                        style={{ boxShadow: "rgba(0, 0, 0, 0.25)" }}
+                      >
+                        <button
+                          className="dropdown-toggle btn-md d-inline-flex align-items-center"
+                          type="button"
+                          id="statusDropdown"
+                          data-bs-toggle="dropdown"
+                          aria-expanded="false"
+                          style={{
+                            backgroundColor: "#ffffff",
+                            color: "#676767",
+                            fontWeight: 400,
+                            fontSize: "16px",
+                            lineHeight: "14px",
+                            borderRadius: "4px",
+                            border: "1px solid #E6E6E6",
+                            boxShadow: "rgba(0, 0, 0, 0.25)",
+                            padding: "10px",
+                          }}
+                        >
+                          {editUserData.status ? "Active" : "Inactive"}{" "}
+                          <BiChevronDown
+                            style={{ marginLeft: "10px", fontSize: "20px" }}
+                          />
+                        </button>
+                        <ul
+                          className="dropdown-menu dropdown-menu-end p-1"
+                          aria-labelledby="statusDropdown"
+                          style={{ marginLeft: "10px" }}
+                        >
+                          <li>
+                            <button
+                              className="dropdown-item"
+                              onClick={() =>
+                                setEditUserData({
                                   ...editUserData,
                                   status: true,
-                                })}
-                                onMouseOver={(e) => { e.target.style.backgroundColor = '#e3f3ff'; e.target.style.color = 'black'; }}
-                                onMouseOut={(e) => { e.target.style.backgroundColor = 'white'; e.target.style.color = 'initial'; }}
-                              >
-                                Active
-                              </button>
-                            </li>
-                            <li>
-                              <button
-                                className="dropdown-item"
-                                onClick={() => setEditUserData({
+                                })
+                              }
+                              onMouseOver={(e) => {
+                                e.target.style.backgroundColor = "#e3f3ff";
+                                e.target.style.color = "black";
+                              }}
+                              onMouseOut={(e) => {
+                                e.target.style.backgroundColor = "white";
+                                e.target.style.color = "initial";
+                              }}
+                            >
+                              Active
+                            </button>
+                          </li>
+                          <li>
+                            <button
+                              className="dropdown-item"
+                              onClick={() =>
+                                setEditUserData({
                                   ...editUserData,
                                   status: false,
-                                })}
-                                onMouseOver={(e) => { e.target.style.backgroundColor = '#e3f3ff'; e.target.style.color = 'black'; }}
-                                onMouseOut={(e) => { e.target.style.backgroundColor = 'white'; e.target.style.color = 'initial'; }}
-                              >
-                                Inactive
-                              </button>
-                            </li>
-                          </ul>
-                        </div>
-                        {/* <input
+                                })
+                              }
+                              onMouseOver={(e) => {
+                                e.target.style.backgroundColor = "#e3f3ff";
+                                e.target.style.color = "black";
+                              }}
+                              onMouseOut={(e) => {
+                                e.target.style.backgroundColor = "white";
+                                e.target.style.color = "initial";
+                              }}
+                            >
+                              Inactive
+                            </button>
+                          </li>
+                        </ul>
+                      </div>
+                      {/* <input
                               type="checkbox"
                               id="user-status"
                               className="check"
@@ -1995,34 +2588,36 @@ const Users = () => {
                               htmlFor="user-status"
                               className="checktoggle"
                             /> */}
-                      </div>
                     </div>
-                    <div
+                  </div>
+                  <div
+                    style={{
+                      display: "flex",
+                      justifyContent: "end",
+                      gap: "10px",
+                      fontFamily: "Roboto, sans-serif",
+                      fontWeight: 400,
+                      fontSize: "16px",
+                      lineHeight: "14px",
+                    }}
+                  >
+                    <button
+                      type="button"
+                      data-bs-dismiss="modal"
                       style={{
-                        display: "flex",
-                        justifyContent: "end",
-                        gap: "10px",
-                        fontFamily: "Roboto, sans-serif",
-                        fontWeight: 400,
-                        fontSize: "16px",
-                        lineHeight: "14px",
+                        border: "1px solid #E6E6E6",
+                        borderRadius: "4px",
+                        padding: "8px",
+                        backgroundColor: "#FFFFFF",
+                        color: "#676767",
+                        borderRadius: "5px",
                       }}
                     >
-                      <button
-                        type="button"
-                        data-bs-dismiss="modal"
-                        style={{
-                          border: "1px solid #E6E6E6",
-                          borderRadius: "4px",
-                          padding: "8px",
-                          backgroundColor: "#FFFFFF",
-                          color: "#676767",
-                          borderRadius: "5px",
-                        }}
-                      >
-                        Cancel
-                      </button>
-                      <button type="submit" style={{
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      style={{
                         border: "1px solid #676767",
                         borderRadius: "4px",
                         padding: "8px",
@@ -2030,12 +2625,11 @@ const Users = () => {
                         color: "#FFFFFF",
                         borderRadius: "5px",
                       }}
-                      >
-                        Save Changes
-                      </button>
-                    </div>
-                  </form>
-                
+                    >
+                      Save Changes
+                    </button>
+                  </div>
+                </form>
               </div>
             </div>
           </div>
