@@ -51,8 +51,8 @@ function ChooseToAddProduct() {
   return (
     <div style={{ marginTop: '200px', width: '100%' }}>
       <h2 style={{ textAlign: 'center' }}>How you want to add product?</h2>
-      <div className='row' style={{ padding: '0px 250px', marginTop: '24px' }}>
-        <div className='col'>
+      <div className='' style={{display:'flex', alignItems:'center', justifyContent:'center', gap:'30px', padding: '0px 25px', marginTop: '24px' }}>
+        <div className=''>
           <div
             style={{
               border: selectedOption === 'manual' ? '2px solid #007bff' : '2px solid #E6E6E6',
@@ -69,7 +69,7 @@ function ChooseToAddProduct() {
             </div>
           </div>
         </div>
-        <div className='col'>
+        <div className=''>
           <div
             style={{
               border: selectedOption === 'bulk' ? '2px solid #007bff' : '2px solid #E6E6E6',

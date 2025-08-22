@@ -550,7 +550,7 @@ const ProductForm = () => {
           </div>
 
           <div className="page-btn mt-0">
-            <button className="btn btn-secondary">
+            <button className="btn" style={{color:'#fff', outline:'none', border:'none', cursor:'pointer'}}>
               <Link to="back"></Link>{t("backToProduct")}
             </button>
           </div>
