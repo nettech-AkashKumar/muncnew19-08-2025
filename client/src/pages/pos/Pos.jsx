@@ -95,9 +95,20 @@ function Pos() {
         closeCash();
       }
     };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
+    
+  const handleKeyDown = (event) => {
+    if (event.key === "F1") {
+      event.preventDefault();
+      setCashPopup((prev) => !prev);
+    }
+  };
+
+  document.addEventListener("mousedown", handleClickOutside);
+  document.addEventListener("keydown", handleKeyDown);
+
+  return () => {
+    document.removeEventListener("mousedown", handleClickOutside);
+    document.removeEventListener("keydown", handleKeyDown);
     };
   }, []);
 
@@ -116,9 +127,20 @@ function Pos() {
         closeCard();
       }
     };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
+    
+  const handleKeyDown = (event) => {
+    if (event.key === "F2") {
+      event.preventDefault();
+      setCardPopup((prev) => !prev);
+    }
+  };
+
+  document.addEventListener("mousedown", handleClickOutside);
+  document.addEventListener("keydown", handleKeyDown);
+
+  return () => {
+    document.removeEventListener("mousedown", handleClickOutside);
+    document.removeEventListener("keydown", handleKeyDown);
     };
   }, []);
 
@@ -137,9 +159,20 @@ function Pos() {
         closeUpi();
       }
     };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
+    
+  const handleKeyDown = (event) => {
+    if (event.key === "F3") {
+      event.preventDefault();
+      setUpiPopup((prev) => !prev);
+    }
+  };
+
+  document.addEventListener("mousedown", handleClickOutside);
+  document.addEventListener("keydown", handleKeyDown);
+
+  return () => {
+    document.removeEventListener("mousedown", handleClickOutside);
+    document.removeEventListener("keydown", handleKeyDown);
     };
   }, []);
 
@@ -320,6 +353,7 @@ function Pos() {
   const [totalTax, setTotalTax] = useState('');
   const [totalItems, setTotalItems] = useState(0);
   const [totalQuantity, setTotalQuantity] = useState(0);
+  const [discount, setDiscount] = useState(0);
 
   const handleProductClick = (product) => {
     const existingItemIndex = selectedItems.findIndex(item => item._id === product._id);
@@ -329,6 +363,7 @@ function Pos() {
       const updatedItems = [...selectedItems];
       updatedItems[existingItemIndex].quantity += 1;
       updatedItems[existingItemIndex].totalPrice = updatedItems[existingItemIndex].quantity * updatedItems[existingItemIndex].sellingPrice;
+      updatedItems[existingItemIndex].totalDiscount = updatedItems[existingItemIndex].quantity * updatedItems[existingItemIndex].discountValue;
       updatedItems[existingItemIndex].totalTax = (updatedItems[existingItemIndex].sellingPrice * updatedItems[existingItemIndex].tax * updatedItems[existingItemIndex].quantity) / 100;
       setSelectedItems(updatedItems);
     } else {
@@ -337,6 +372,7 @@ function Pos() {
         ...product,
         quantity: 1,
         totalPrice: product.sellingPrice,
+        totalDiscount: product.discountValue,
         totalTax: (product.sellingPrice * product.tax) / 100,
       };
       setSelectedItems([...selectedItems, newItem]);
@@ -350,7 +386,7 @@ function Pos() {
     } else {
       const updatedItems = selectedItems.map(item => 
         item._id === itemId 
-          ? { ...item, quantity: newQuantity, totalPrice: newQuantity * item.sellingPrice, totalTax: (item.tax * newQuantity * item.sellingPrice)/100  }
+          ? { ...item, quantity: newQuantity, totalPrice: newQuantity * item.sellingPrice, totalTax: (item.tax * newQuantity * item.sellingPrice)/100, totalDiscount: newQuantity * item.discountValue }
           : item
       );
       setSelectedItems(updatedItems);
@@ -364,15 +400,17 @@ function Pos() {
   // Calculate totals whenever selectedItems changes
   useEffect(() => {
     const subtotal = selectedItems.reduce((sum, item) => sum + item.totalPrice, 0);
+    const discount = selectedItems.reduce((sum, item) => sum + item.totalDiscount, 0);
     const tax = selectedItems.reduce((sum, item) => sum + item.totalTax, 0);
     const items = selectedItems.length;
     const quantity = selectedItems.reduce((sum, item) => sum + item.quantity, 0);
     
     setSubTotal(subtotal)
-    setTotalAmount(subtotal + tax);
+    setDiscount(discount)
     setTotalTax(tax);
     setTotalItems(items);
     setTotalQuantity(quantity);
+    setTotalAmount((subtotal - discount) + tax);
   }, [selectedItems]);
 
 const [amountReceived, setAmountReceived] = useState("");
@@ -696,10 +734,10 @@ const fetchCustomers = async () => {
               {/* footer */}
               <div style={{position:'absolute',bottom:'0px',backgroundColor:'#F1F1F1',padding:'10px',width:'80%',display:'flex',justifyContent:'space-around'}}>
                 
-                  <div style={{border:'1px solid #ccc',backgroundColor:'white',padding:'2px 10px',borderRadius:'8px',display:'flex',gap:'5px',alignItems:'center',cursor:'pointer'}}>
+                  <a href='/pos' target='_blank' style={{border:'1px solid #ccc',backgroundColor:'white',padding:'2px 10px',borderRadius:'8px',display:'flex',gap:'5px',alignItems:'center',cursor:'pointer',color:'black',textDecoration:'none',hover:{backgroundColor:'red'}}}>
                     <FaRegHandPaper/>
                     Hold
-                  </div>
+                  </a>
                   <div style={{border:'1px solid #ccc',backgroundColor:'white',padding:'2px 10px',borderRadius:'8px',display:'flex',gap:'5px',alignItems:'center',cursor:'pointer'}}>
                     <LuScanLine/>
                     Scan
@@ -829,8 +867,15 @@ const fetchCustomers = async () => {
                         <div style={{fontWeight:'600',fontSize:'14px',color:'#333'}}>
                           {item.productName}
                         </div>
-                        <div style={{fontSize:'12px',color:'#666',marginTop:'-8px'}}>
-                          ₹{item.sellingPrice} per {item.unit}
+                        <div style={{fontSize:'12px',marginTop:'-8px', display:'flex',gap:'20px'}}>
+                          <div>
+                            <span style={{color:'black'}}>Price: </span>
+                            <span style={{color:'#666'}}>₹{item.sellingPrice} / {item.unit}</span>
+                          </div>
+                          <div>
+                            <span style={{color:'black'}}>Discount: </span>
+                            <span style={{color:'#666'}}>{item.discountType == 'Fixed' ? '₹':''} {item.discountValue} {item.discountType == 'Percentage' ? '%':''}</span>
+                          </div>
                         </div>
                       </div>
 
@@ -921,18 +966,18 @@ const fetchCustomers = async () => {
               <span>₹{subTotal.toFixed(2)}</span>
             </div>
             <div style={{display:'flex',justifyContent:'space-between',color:'#676767'}}>
+              <div>Discount</div>
+              <div style={{display:'flex',justifyContent:'space-around',gap:'20px'}}>
+                <span>₹{discount}</span>
+              </div>
+            </div>
+            <div style={{display:'flex',justifyContent:'space-between',color:'#676767'}}>
               <span>Tax</span>
               <span>₹{totalTax}</span>
             </div>
             <div style={{display:'flex',justifyContent:'space-between',color:'#676767'}}>
-              <div>Discount</div>
-              <div style={{display:'flex',justifyContent:'space-around',gap:'20px'}}>
-                <span>00.00 ₹ %</span>
-              </div>
-            </div>
-            <div style={{display:'flex',justifyContent:'space-between',color:'#676767'}}>
               <span>Round Off</span>
-              <span>₹00.00</span>
+              <span>₹{totalAmount.toFixed(2)}</span>
             </div>
             </div>
             </>
@@ -1769,7 +1814,7 @@ const fetchCustomers = async () => {
         </>
       )}
 
-      {/* product discount change popup paymentpopup */}
+      {/* paymentpopup */}
       {paymentpopup && (
         <>
         <div style={{
@@ -1863,8 +1908,6 @@ const fetchCustomers = async () => {
         </div>
         </>
       )}
-
-
 
     </div>
   )
