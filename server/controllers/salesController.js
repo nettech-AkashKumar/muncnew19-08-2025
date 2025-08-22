@@ -387,6 +387,7 @@ exports.getSales = async (req, res) => {
     const total = await Sales.countDocuments(query);
     const sales = await Sales.find(query)
       .populate({ path: 'customer', select: '-password -__v' })
+      .populate({ path: "products.productId", select: "productName sku quantity unit images sellingPrice" })
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(limit);

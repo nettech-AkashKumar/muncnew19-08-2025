@@ -223,6 +223,8 @@ const AddSalesModal = () => {
         shipping: shippingAddr,
         products: selectedProducts.map(p => ({
           productId: p._id,
+          productName:p.productName,
+          sku:p.sku,
           saleQty: p.saleQty || p.quantity || 1,
           quantity: p.quantity,
           sellingPrice: p.sellingPrice,
