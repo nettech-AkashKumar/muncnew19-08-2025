@@ -158,7 +158,7 @@ const AddSalesModal = () => {
         axios
           .get(`${BASE_URL}/api/products/search?name=${searchTerm}`)
           .then((res) => setProducts(res.data))
-          .catch((err) => console.error("Search error:", err));
+          .catch((err) => console.error("Search errorr:", err));
       } else {
         setProducts([]);
       }
