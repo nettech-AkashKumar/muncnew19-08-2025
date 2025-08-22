@@ -131,17 +131,24 @@ const EmailDetail = ({ email, onBack, handleToggleStar }) => {
   return (
     <div className="email-detail">
       <div style={{ display: "flex", gap: "20px" }}>
+        <div className="" style={{color:'#676767',fontSize:'14px',fontFamily:"Roboto, sans-serif",fontWeight: 400, }}>
         <button
           style={{
             border: "none",
             background: "none",
-            fontWeight: 800,
+            fontWeight: 400,
             cursor: "pointer",
+            fontFamily:"Roboto, sans-serif",
+            fontSize:'14px',
+            lineHeight:'14px',
+            color:'#676767'
           }}
           onClick={onBack}
         >
           <FaArrowLeft />
         </button>
+        Back
+        </div>
         <button
           style={{
             border: "none",
