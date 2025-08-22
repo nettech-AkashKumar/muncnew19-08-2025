@@ -437,22 +437,7 @@ const AddWarehouseModal = () => {
     const [form, setForm] = useState(initialForm);
     const [loading, setLoading] = useState(false);
 
-    // const [form, setForm] = useState({
-    //     warehouseName: "",
-    //     space: "",
-    //     items: "",
-    //     itemSize: "medium",
-    //     contactPerson: null,
-    //     phone: "",
-    //     email: "",
-    //     phoneWork: "",
-    //     streetAddress: "",
-    //     country: null,
-    //     state: null,
-    //     city: null,
-    //     postalCode: "",
-    //     status: true,
-    // });
+    
 
     const isOverfilled = () => {
         const capacity = calculateItemCapacity(Number(form.space), form.itemSize);
@@ -542,25 +527,7 @@ const AddWarehouseModal = () => {
         setForm((prev) => ({ ...prev, status: !prev.status }));
     };
 
-    // const handleSubmit = async (e) => {
-    //     e.preventDefault();
-    //     try {
-    //         const racks = generateRacks(Number(form.space), form.itemSize, shelfLevels);
-    //         await axios.post(`${BASE_URL}/api/warehouse`, {
-    //             ...form,
-    //             contactPerson: form.contactPerson?.value || null,
-    //             country: form.country?.value || null,
-    //             state: form.state?.value || null,
-    //             city: form.city?.value || null,
-    //             capacityEstimate: calculateItemCapacity(Number(form.space), form.itemSize),
-    //             racks,
-    //         });
-    //         toast.success("Warehouse added successfully");
-    //     } catch (error) {
-    //         console.error(error);
-    //         toast.error("Failed to add warehouse");
-    //     }
-    // };
+    
     const handleSubmit = async (e) => {
         e.preventDefault();
         setLoading(true);
@@ -574,7 +541,7 @@ const AddWarehouseModal = () => {
 
             await axios.post(`${BASE_URL}/api/warehouse`, {
                 ...form,
-                // status: form.status === "Active",   // ⬅️ backend अब भी boolean पाता है
+               
 
                 contactPerson: form.contactPerson?.value || null,
                 country: form.country?.value || null,

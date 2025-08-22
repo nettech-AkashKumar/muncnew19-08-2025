@@ -56,16 +56,21 @@ const UserProfile = () => {
   }, []);
 
   useEffect(() => {
-    if (selectedCountry) {
-      setStateList(State.getStatesOfCountry(selectedCountry));
-    }
-  }, [selectedCountry]);
+  const countryCode = selectedCountry || userData?.country;
+  if (countryCode) {
+    setStateList(State.getStatesOfCountry(countryCode));
+  }
+}, [selectedCountry, userData?.country]);
+
 
   useEffect(() => {
-    if (selectedState) {
-      setCityList(City.getCitiesOfState(selectedCountry, selectedState));
-    }
-  }, [selectedState]);
+  const countryCode = selectedCountry || userData?.country;
+  const stateCode = selectedState || userData?.state;
+  if (countryCode && stateCode) {
+    setCityList(City.getCitiesOfState(countryCode, stateCode));
+  }
+}, [selectedState, selectedCountry, userData?.state, userData?.country]);
+
 
   // fetch user
   useEffect(() => {
@@ -75,7 +80,7 @@ const UserProfile = () => {
         console.log("User ID from URL:", id);
         const userId = id;
         const res = await axios.get(`${BASE_URL}/api/user/${userId}`);
-        // console.log("Fetched user:", res.data);
+        console.log("Fetched user:", res.data);
         setUserData(res.data);
         if (res.data.profileImage?.url) {
           setPreviewUrl(res.data.profileImage.url);
@@ -108,7 +113,7 @@ const UserProfile = () => {
 
   return (
     <div>
-      <div className="profile-container pb-2">
+      <div className="profile-container">
         {userData ? (
           <div>
             <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
@@ -118,7 +123,7 @@ const UserProfile = () => {
                     Profile
                   </span>
                   <span className="pprreofile" style={{ backgroundColor: '#1368EC', borderRadius: '4px', padding: '8px', color: '#FFFFFF' }}>
-                    Sales Manager
+                    {userData.role?.roleName || ""}
                   </span>
                 </div>
                 <hr style={{ color: '#b9b9b9ff', height: '1px', }} />
@@ -348,11 +353,12 @@ const UserProfile = () => {
                             padding: "8px 5px",
                             borderRadius: "5px",
                           }}
+                          value={selectedCountry || userData?.country || ""}
+                          onChange={(e) => setSelectedCountry(e.target.value)}
                         >
-                          <option value="">Select Country</option>
-                          <option value="">India</option>
-                          <option value="">Brazil</option>
-                          <option value="">Australia</option>
+                          {countryList.map((country) => (
+                            <option key={country.isoCode} value={country.isoCode}>{country.name || ""}</option>
+                          ))}
                         </select>
                       </div>
                       <div
@@ -372,11 +378,14 @@ const UserProfile = () => {
                             padding: "8px 5px",
                             borderRadius: "5px",
                           }}
+                          value={selectedState || userData?.state || ""}
+                          onChange={(e) => setSelectedState(e.target.value)}
                         >
-                          <option value="">Select State</option>
-                          <option value="">Bihar</option>
-                          <option value="">Assam</option>
-                          <option value="">Jharkhand</option>
+                          {stateList.map((state) => (
+                            <option key={state.isoCode} value={state.isoCode}>
+                              {state.name}
+                            </option>
+                          ))}
                         </select>
                       </div>
                       <div
@@ -396,11 +405,14 @@ const UserProfile = () => {
                             padding: "8px 5px",
                             borderRadius: "5px",
                           }}
+                          value={selectedCity || userData?.city || ""}
+                          onChange={(e) => setSelectedCity(e.target.value)}
                         >
-                          <option value="">Select City</option>
-                          <option value="">Patna</option>
-                          <option value="">Purnia</option>
-                          <option value="">Vaishali</option>
+                          {cityList.map((city) => (
+                            <option key={city.isoCode} value={city.isoCode}>
+                              {city.name}
+                            </option>
+                          ))}
                         </select>
                       </div>
                       <div
@@ -421,6 +433,7 @@ const UserProfile = () => {
                             padding: "8px 5px",
                             borderRadius: "5px",
                           }}
+                          value={userData.postalcode || ""}
                         />
                       </div>
                     </div>

@@ -11,7 +11,7 @@ import { LuScanLine } from "react-icons/lu";
 import { AiOutlineTransaction,AiOutlineRetweet } from "react-icons/ai";
 import { CgSortAz } from "react-icons/cg";
 import { TbArrowsSort } from "react-icons/tb";
-import { IoIosSearch } from "react-icons/io";
+import { IoIosSearch, IoIosArrowBack , IoIosArrowForward } from "react-icons/io";
 
 function Pos() {
 
@@ -153,6 +153,10 @@ function Pos() {
     };
   }, []);
 
+
+
+
+
   //fetch products
   const [products, setProducts] = useState([]);
   const [allProducts, setAllProducts] = useState([]); // Store all products for filtering
@@ -182,6 +186,10 @@ function Pos() {
       fetchProducts();
     }, []);
   
+
+
+
+
   //fetch category
   const [categories, setCategories] = useState([]);
   const fetchCategories = async () => {
@@ -196,6 +204,11 @@ function Pos() {
   useEffect(() => {
     fetchCategories();
   }, []);
+
+
+
+
+
 
   // Category filtering functionality
   const [selectedCategory, setSelectedCategory] = useState(null);
@@ -220,9 +233,15 @@ function Pos() {
     setProducts(allProducts);
   };
 
+
+
+
+
   // Product selection and cart functionality
   const [selectedItems, setSelectedItems] = useState([]);
+  const [subTotal, setSubTotal] = useState(0);
   const [totalAmount, setTotalAmount] = useState(0);
+  const [totalTax, setTotalTax] = useState('');
   const [totalItems, setTotalItems] = useState(0);
   const [totalQuantity, setTotalQuantity] = useState(0);
 
@@ -234,13 +253,15 @@ function Pos() {
       const updatedItems = [...selectedItems];
       updatedItems[existingItemIndex].quantity += 1;
       updatedItems[existingItemIndex].totalPrice = updatedItems[existingItemIndex].quantity * updatedItems[existingItemIndex].sellingPrice;
+      updatedItems[existingItemIndex].totalTax = (updatedItems[existingItemIndex].sellingPrice * updatedItems[existingItemIndex].tax * updatedItems[existingItemIndex].quantity) / 100;
       setSelectedItems(updatedItems);
     } else {
       // Add new product to cart
       const newItem = {
         ...product,
         quantity: 1,
-        totalPrice: product.sellingPrice
+        totalPrice: product.sellingPrice,
+        totalTax: (product.sellingPrice * product.tax) / 100,
       };
       setSelectedItems([...selectedItems, newItem]);
     }
@@ -253,7 +274,7 @@ function Pos() {
     } else {
       const updatedItems = selectedItems.map(item => 
         item._id === itemId 
-          ? { ...item, quantity: newQuantity, totalPrice: newQuantity * item.sellingPrice }
+          ? { ...item, quantity: newQuantity, totalPrice: newQuantity * item.sellingPrice, totalTax: (item.tax * newQuantity * item.sellingPrice)/100  }
           : item
       );
       setSelectedItems(updatedItems);
@@ -266,14 +287,23 @@ function Pos() {
 
   // Calculate totals whenever selectedItems changes
   useEffect(() => {
-    const total = selectedItems.reduce((sum, item) => sum + item.totalPrice, 0);
+    const subtotal = selectedItems.reduce((sum, item) => sum + item.totalPrice, 0);
+    const tax = selectedItems.reduce((sum, item) => sum + item.totalTax, 0);
     const items = selectedItems.length;
     const quantity = selectedItems.reduce((sum, item) => sum + item.quantity, 0);
     
-    setTotalAmount(total);
+    setSubTotal(subtotal)
+    setTotalAmount(subtotal + tax);
+    setTotalTax(tax);
     setTotalItems(items);
     setTotalQuantity(quantity);
   }, [selectedItems]);
+
+const [amountReceived, setAmountReceived] = useState("");
+
+const changeToReturn = Math.max((Number(amountReceived) || 0) - totalAmount, 0);
+
+
 
   //bill details up down arrow
   const [updown, setUpdown] = useState(false);
@@ -333,9 +363,9 @@ const fetchCustomers = async () => {
     const filtered = customers.filter(customer => {
       const searchTerm = query.toLowerCase();
       return (
-        customer.customerName?.toLowerCase().includes(searchTerm) ||
+        customer.name?.toLowerCase().includes(searchTerm) ||
         customer.email?.toLowerCase().includes(searchTerm) ||
-        customer.phoneNumber?.toLowerCase().includes(searchTerm)
+        customer.phone?.toLowerCase().includes(searchTerm)
       );
     });
 
@@ -419,7 +449,7 @@ const fetchCustomers = async () => {
                     display:'flex',
                     flexDirection:'column',
                     marginLeft:'10px',
-                    borderLeft:'1px solid #0051CF',
+                    borderLeft: selectedCategory === null ? '1px solid #0051CF' : '',
                     backgroundColor: selectedCategory === null ? '#F7F7F7' : 'transparent',
                     borderRadius:'8px',
                     padding:'2px 5px',
@@ -446,6 +476,7 @@ const fetchCustomers = async () => {
                       cursor:'pointer',
                       padding:'2px 5px',
                       borderRadius:'8px',
+                      borderLeft:  selectedCategory && selectedCategory._id === category._id ? '1px solid #0051CF' : '',
                       backgroundColor: selectedCategory && selectedCategory._id === category._id ? '#F7F7F7' : 'transparent',
                       fontWeight: selectedCategory && selectedCategory._id === category._id ? '600' : 'normal'
                     }}
@@ -528,7 +559,7 @@ const fetchCustomers = async () => {
                       color:'#ccc',
                       fontSize:'24px'
                     }}>
-                      <SlHandbag style={{fontSize:'40px',marginBottom:'5px'}}/>
+                      {/* <SlHandbag style={{fontSize:'40px',marginBottom:'5px'}}/> */}
                       <span style={{fontSize:'10px'}}>No Image</span>
                     </div>
                   </div>
@@ -585,14 +616,21 @@ const fetchCustomers = async () => {
         <div style={{position:'relative',width:'30%',}}>
           
           {/* customer */}
-          <div style={{display:'flex',width:'100%',padding:'10px 10px',gap:'10px',borderBottom:'1px solid #ccc',height:'70px',backgroundColor:'#E3F3FF'}}>
+          <div style={{display:'flex',width:'100%',padding:'10px 10px',gap:'10px',borderBottom:'1px solid #ccc',height:'70px',backgroundColor: selectedCustomer ? '#E3F3FF' : '',}}>
+            {selectedCustomer ? (
+            <>
             <div>
-            <BsPersonSquare style={{fontSize:'50px'}}/>
+              <BsPersonSquare style={{fontSize:'50px'}}/>
             </div>
+            </>
+            ) : (
+              <div></div>
+            )}
+
             <div style={{flex:1}}>
               {selectedCustomer ? (
                 <>
-                  <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'5px'}}>
+                  <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',}}>
                     <span style={{fontWeight:'600',color:'#333'}}>{selectedCustomer.name}</span>
                     <button 
                       onClick={handleClearCustomer}
@@ -610,30 +648,29 @@ const fetchCustomers = async () => {
                       ✕
                     </button>
                   </div>
-                  <span style={{fontSize:'12px',color:'#666'}}>
-                    {selectedCustomer.email && `${selectedCustomer.email} • `}
+                  <span style={{color:'#666'}}>
                     {selectedCustomer.phone || 'No Phone'}
                   </span>
                 </>
               ) : (
                 <>
-                  
-                  <span style={{color:'#666'}}>Not Selected</span>
-                  
+                  <div style={{marginTop:'10px',}}>
+                    <span style={{color:'#999',marginLeft:'10px'}}><i>No Customer Selected</i></span>
+                  </div>
                 </>
               )}
             </div>
           </div>
 
           {/* selected items details */}
-          <div style={{flex:1,overflowY:'auto',padding:'10px',borderBottom:'1px solid #ccc'}}>
+          <div style={{flex:1,overflowY:'auto',padding:'10px',}}>
             <div style={{fontWeight:'600',color:'#333',marginBottom:'10px',fontSize:'16px'}}>
               Selected Items ({selectedItems.length})
             </div>
             
             {selectedItems.length === 0 ? (
-              <div style={{textAlign:'center',color:'#999',padding:'20px'}}>
-                No items selected
+              <div style={{color:'#999',padding:'20px'}}>
+                <i>No items selected</i>
               </div>
             ) : (
               <div style={{display:'flex',flexDirection:'column',gap:'8px',overflowY:'auto',maxHeight:'45vh'}}>
@@ -649,18 +686,47 @@ const fetchCustomers = async () => {
                   >
                     <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'8px'}}>
                       
-                    <div>
-                      <img src={item.images[0].url || item.images[0]} alt="product image" style={{width:'40px',height:'40px'}} />
+                    <div style={{display:'flex',justifyContent:'center',backgroundColor:'white',width:'50px',height:'50px',alignItems:'center',borderRadius:'8px',overflow:'hidden'}}>
+                    {item.images && item.images.length > 0 && item.images[0] ? (
+                      <img
+                        src={item.images[0].url || item.images[0]}
+                        alt={item.productName}
+                        style={{ 
+                          height: "100%", 
+                          width: "100%",
+                          objectFit:'contain',
+                          maxWidth:'100%',
+                          maxHeight:'100%'
+                        }}
+                        onError={(e) => {
+                          e.target.style.display = 'none';
+                          e.target.nextSibling.style.display = 'flex';
+                        }}
+                      />
+                    ) : null}
+                    {/* Fallback icon when no image */}
+                    <div style={{
+                      display: item.images && item.images.length > 0 && item.images[0] ? 'none' : 'flex',
+                      flexDirection:'column',
+                      alignItems:'center',
+                      justifyContent:'center',
+                      color:'#ccc',
+                      fontSize:'24px'
+                    }}>
+                      {/* <SlHandbag style={{fontSize:'40px',marginBottom:'5px'}}/> */}
+                      <span style={{fontSize:'10px'}}>No Image</span>
                     </div>
+                  </div>
 
-                      <div style={{flex:1}}>
+                      <div style={{flex:1,gap:'10px',display:'flex',flexDirection:'column',marginLeft:'10px'}}>
                         <div style={{fontWeight:'600',fontSize:'14px',color:'#333'}}>
                           {item.productName}
                         </div>
-                        <div style={{fontSize:'12px',color:'#666'}}>
+                        <div style={{fontSize:'12px',color:'#666',marginTop:'-8px'}}>
                           ₹{item.sellingPrice} per {item.unit}
                         </div>
                       </div>
+
                       <button
                         onClick={() => removeItem(item._id)}
                         style={{
@@ -745,17 +811,16 @@ const fetchCustomers = async () => {
             </div>
             <div style={{display:'flex',justifyContent:'space-between',color:'#676767'}}>
               <span>Sub Total</span>
-              <span>₹{totalAmount.toFixed(2)}</span>
+              <span>₹{subTotal.toFixed(2)}</span>
             </div>
             <div style={{display:'flex',justifyContent:'space-between',color:'#676767'}}>
               <span>Tax</span>
-              <span>₹00.00</span>
+              <span>₹{totalTax}</span>
             </div>
             <div style={{display:'flex',justifyContent:'space-between',color:'#676767'}}>
               <div>Discount</div>
               <div style={{display:'flex',justifyContent:'space-around',gap:'20px'}}>
-                <span>₹00.00</span>
-                <span>00.00%</span>
+                <span>00.00 ₹%</span>
               </div>
             </div>
             <div style={{display:'flex',justifyContent:'space-between',color:'#676767'}}>
@@ -797,11 +862,14 @@ const fetchCustomers = async () => {
                 <span>[F3]</span>
               </div>
             </div>
+
           </div>
 
         </div>
 
       </div>
+
+{/* ALL POPUPS */}
 
       {/* customers popup */}
       {popup && (
@@ -819,16 +887,11 @@ const fetchCustomers = async () => {
             overflowY: 'auto',
           }}
           >
-          <div ref={formRef} style={{width:'760px',height:'500px',margin:'auto',marginTop:'80px',marginBottom:'80px',padding:'10px 16px',overflowY:'auto',backgroundColor:'#fff',borderRadius:'8px'}}>
-            
-            {/* Header */}
-            <div style={{borderBottom:'1px solid #E1E1E1',padding:'15px 0px',marginBottom:'20px'}}>
-              <h3 style={{margin:0,color:'#333'}}>Select Customer</h3>
-            </div>
+          <div ref={formRef} style={{width:'760px',height:'500px',margin:'auto',marginTop:'80px',marginBottom:'80px',padding:'10px 16px',overflowY:'auto',borderRadius:'8px'}}>
 
             {/* Search Box */}
             <div style={{position:'relative',marginBottom:'20px'}}>
-              <div style={{display:'flex',alignItems:'center',border:'1px solid #E1E1E1',borderRadius:'8px',backgroundColor:'#fff',padding:'8px 12px'}}>
+              <div style={{display:'flex',alignItems:'center',border:'1px solid #E1E1E1',borderRadius:'8px',backgroundColor:'#fff',padding:'6px 12px'}}>
                 <IoSearch style={{fontSize:'20px',marginRight:'10px',color:'#C2C2C2'}} />
                 <input 
                   type="text" 
@@ -850,7 +913,7 @@ const fetchCustomers = async () => {
                   border:'1px solid #E1E1E1',
                   borderRadius:'8px',
                   boxShadow:'0 4px 12px rgba(0,0,0,0.1)',
-                  maxHeight:'200px',
+                  maxHeight:'300px',
                   overflowY:'auto',
                   zIndex:1000
                 }}>
@@ -873,8 +936,8 @@ const fetchCustomers = async () => {
                         {customer.name || 'No Name'}
                       </div>
                       <div style={{fontSize:'14px',color:'#666'}}>
-                        {customer.email && `${customer.email} • `}
                         {customer.phone || 'No Phone'}
+                        {customer.email && ` • ${customer.email}`}
                       </div>
                     </div>
                   ))}
@@ -929,6 +992,7 @@ const fetchCustomers = async () => {
               </div>
             )}
           </div>
+
         </div>
       )}
 
@@ -954,20 +1018,20 @@ const fetchCustomers = async () => {
             
             <div style={{display:'flex',justifyContent:'space-between',borderBottom:'1px solid #E1E1E1',padding:'10px 0px'}}>
               <span>Cash details</span>
-              <span>₹00.00</span>
+              <span>₹{totalAmount}</span>
             </div>
 
             <div style={{display:'flex',justifyContent:'space-between',padding:'10px 0px',width:'100%',gap:'15px',marginTop:'5px',}}>
               <div style={{width:'100%'}}>
                 <span>Amount Received</span>
                 <div style={{display:'flex',justifyContent:'space-between',padding:'10px 15px',backgroundColor:'white',borderRadius:'10px',border:'1px solid #E6E6E6',width:'100%',marginTop:'5px'}}>
-                  <span>₹00.00</span>
+                  <input type="text" placeholder="₹00.00" style={{border:'none',outline:'none',width:'100%'}} value={amountReceived} onChange={(e) => setAmountReceived(e.target.value)} />
                 </div>
               </div>
               <div style={{width:'100%'}}>
                 <span>Change to return</span>
                 <div style={{display:'flex',justifyContent:'space-between',padding:'10px 15px',backgroundColor:'white',borderRadius:'10px',border:'1px solid #E6E6E6',width:'100%',marginTop:'5px'}}>
-                  <span>₹00.00</span>
+                  <span>₹{changeToReturn}</span>
                 </div>
               </div>
             </div>
@@ -979,7 +1043,6 @@ const fetchCustomers = async () => {
               </div>
             </div>
 
-            
           </div>
         </div>
         </>
@@ -1172,94 +1235,161 @@ const fetchCustomers = async () => {
             alignItems:'center',
           }}
           >
-          <div ref={TransactionRef} style={{width:'70vw',height:'80vh',padding:'10px 16px',overflowY:'auto',backgroundColor:'#fff',border:'1px solid #E1E1E1',borderRadius:'8px'}}>
-            
-            <div style={{display:'flex',justifyContent:'space-between',border:'1px solid #E1E1E1',padding:'5px 0px',borderRadius:'8px',alignItems:'center'}} >
-            
-                        <div className='' style={{display:'flex',justifyContent:'space-between',width:'100%'}}>
-                            <div className="">
-                                {searchdrop ? (
-                                    <>
-                                        <div style={{ border: 'none', marginLeft: '20px', alignItems: 'center', display: 'flex' }}>
-                                            <IoIosSearch style={{ fontSize: '25px' }} />
-                                            <input type='text' placeholder='Search Here' style={{ border: 'none', outline: 'none', fontSize: '20px' }} />
-                                        </div>
-                                    </>
-                                ) : (
-                                    <>
-                                      <button className="">All</button>
-                                    </>
-                                )}
-                            </div>
+          <div ref={TransactionRef} style={{width:'70vw',height:'auto',padding:'10px 16px',overflowY:'auto',backgroundColor:'#fff',border:'1px solid #E1E1E1',borderRadius:'8px',position:'relative'}}>
 
-                            <div className="" style={{ marginTop: "4px" }}>
-                                {searchdrop ? (
-                                    <></>) : (<>
-                                    <button className="" value={searchdrop} onClick={handleSearchDropChange}><IoSearch /> <CgSortAz style={{ fontSize: '30px' }} /></button>
-                                    </>)}
-                                    <button className="" onClick={handleClear}><TbArrowsSort /></button>
-                            </div>
+              <div style={{ border: '1px solid #E1E1E1', padding: '5px 0px', borderRadius: '8px', alignItems: 'center', marginTop: '5px' }} >
+
+                <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%', padding: '5px 20px', alignItems: 'center' }}>
+                  <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                    {searchdrop ? (
+                      <>
+                        <div style={{ border: 'none', marginLeft: '10px', alignItems: 'center', display: 'flex', width: '400px' }}>
+                          <IoIosSearch style={{ fontSize: '25px' }} />
+                          <input type='text' placeholder='Search Here' style={{ border: 'none', outline: 'none', fontSize: '20px', width: '100%' }} />
+                        </div>
+                      </>
+                    ) : (
+                      <>
+                        <div style={{ display: 'flex', gap: '15px', alignItems: 'center' }}>
+                          <div style={{ backgroundColor: '#ccc', color: 'black', padding: '5px 8px', borderRadius: '6px' }}>All</div>
+                          <div style={{ color: 'black', padding: '5px 8px', }}>Recents</div>
+                          <div style={{ color: 'black', padding: '5px 8px', }}>Paid</div>
+                          <div style={{ color: 'black', padding: '5px 8px', }}>Due</div>
+                          <div style={{ color: 'black', padding: '5px 8px', }}>+</div>
+                        </div>
+                      </>
+                    )}
+                  </div>
+
+                  <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                    {searchdrop ? (
+                      <></>) : (<>
+                        <div style={{ color: 'black', padding: '3px 8px', borderRadius: '6px', border: '2px solid #ccc', display: 'flex', gap: '10px', alignItems: 'center' }} value={searchdrop} onClick={handleSearchDropChange}>
+                          <IoSearch />
+                          <CgSortAz style={{ fontSize: '25px' }} />
+                        </div>
+                      </>)}
+                    <div style={{ color: 'black', padding: '7px 8px', borderRadius: '6px', border: '2px solid #ccc', display: 'flex', gap: '10px', alignItems: 'center' }} onClick={handleClear}><TbArrowsSort /></div>
+                  </div>
+                </div>
+
+                {searchdrop ? (
+                  <>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', padding: '5px 10px', }}>
+
+                      <div style={{ marginTop: "4px", display: 'flex', gap: '10px' }}>
+                        <div style={{ border: '2px solid #ccc', padding: '1px 5px 0px 8px', alignItems: 'center', display: 'flex', borderRadius: '6px' }}>
+                          <div style={{ outline: 'none', border: 'none', color: '#555252' }}> Filter <CgSortAz style={{ fontSize: '30px' }} /></div>
                         </div>
 
-                        {searchdrop ? (
-                            <>
-                                <div className='' style={{ display: 'flex', justifyContent: 'space-between', padding: '5px', borderBottom: '2px solid #E6E6E6' }}>
+                        <div
+                          style={{ border: categoryValue ? '2px dashed #1368EC' : '2px dashed #ccc', padding: '0px 10px 0px 8px', alignItems: 'center', display: 'flex', borderRadius: '6px' }}
+                          value={categoryValue}
+                          onChange={handleCategoryChange}>
+                          <select className="" style={{ outline: 'none', border: 'none', color: categoryValue ? '#1368EC' : '#555252' }}>
+                            <option value="" style={{ color: '#555252' }}>Category</option>
+                            <option value="c1" style={{ color: '#555252' }}>Category 1</option>
+                            <option value="c2" style={{ color: '#555252' }}>Category 2</option>
+                          </select>
+                        </div>
 
-                                    <div className="" style={{ marginTop: "4px", display: 'flex', gap: '10px' }}>
-                                        <div style={{ border: '2px solid #ccc', padding: '1px 5px 0px 3px', alignItems: 'center', display: 'flex', borderRadius: '6px' }}>
-                                            <button className="" style={{ outline: 'none', border: 'none', color: '#555252' }}> Filter <CgSortAz style={{ fontSize: '30px' }} /></button>
-                                        </div>
+                        <div
+                          style={{ border: socketValue ? '2px dashed #1368EC' : '2px dashed #ccc', padding: '0px 10px 0px 8px', alignItems: 'center', display: 'flex', borderRadius: '6px' }}
+                          value={socketValue}
+                          onChange={handleSocketChange}>
+                          <select className="" style={{ outline: 'none', border: 'none', color: socketValue ? '#1368EC' : '#555252' }}>
+                            <option value="" style={{ color: '#555252' }}>Socket Level</option>
+                            <option value="sl1" style={{ color: '#555252' }}>Last 7 days</option>
+                          </select>
+                        </div>
 
-                                        <div
-                                            style={{ border: categoryValue ? '2px dashed #1368EC' : '2px dashed #ccc', padding: '0px 10px 0px 3px', alignItems: 'center', display: 'flex', borderRadius: '6px' }}
-                                            value={categoryValue}
-                                            onChange={handleCategoryChange}>
-                                            <select className="" style={{ outline: 'none', border: 'none', color: categoryValue ? '#1368EC' : '#555252' }}>
-                                                <option value="" style={{ color: '#555252' }}>Category</option>
-                                                <option value="c1" style={{ color: '#555252' }}>Category 1</option>
-                                                <option value="c2" style={{ color: '#555252' }}>Category 2</option>
-                                            </select>
-                                        </div>
+                        <div
+                          style={{ border: warehouseValue ? '2px dashed #1368EC' : '2px dashed #ccc', padding: '0px 10px 0px 8px', alignItems: 'center', display: 'flex', borderRadius: '6px' }}
+                          value={warehouseValue}
+                          onChange={handleWarehouseChange}>
+                          <select className="" style={{ outline: 'none', border: 'none', color: warehouseValue ? '#1368EC' : '#555252' }}>
+                            <option value="" style={{ color: '#555252' }}>Warehouse</option>
+                            <option value="wh1" style={{ color: '#555252' }}>Warehouse 1</option>
+                          </select>
+                        </div>
 
-                                        <div
-                                            style={{ border: socketValue ? '2px dashed #1368EC' : '2px dashed #ccc', padding: '0px 10px 0px 3px', alignItems: 'center', display: 'flex', borderRadius: '6px' }}
-                                            value={socketValue}
-                                            onChange={handleSocketChange}>
-                                            <select className="" style={{ outline: 'none', border: 'none', color: socketValue ? '#1368EC' : '#555252' }}>
-                                                <option value="" style={{ color: '#555252' }}>Socket Level</option>
-                                                <option value="sl1" style={{ color: '#555252' }}>Last 7 days</option>
-                                            </select>
-                                        </div>
+                        <div
+                          style={{ border: exprationValue ? '2px dashed #1368EC' : '2px dashed #ccc', padding: '0px 10px 0px 3px', alignItems: 'center', display: 'flex', borderRadius: '6px' }}
+                          value={exprationValue}
+                          onChange={handleExprationChange}>
+                          <select className="" style={{ outline: 'none', border: 'none', color: exprationValue ? '#1368EC' : '#555252' }}>
+                            <option value="" style={{ color: '#555252' }}>Expiration</option>
+                            <option value="e1" style={{ color: '#555252' }}>Expiration 1</option>
+                          </select>
+                        </div>
+                      </div>
 
-                                        <div
-                                            style={{ border: warehouseValue ? '2px dashed #1368EC' : '2px dashed #ccc', padding: '0px 10px 0px 3px', alignItems: 'center', display: 'flex', borderRadius: '6px' }}
-                                            value={warehouseValue}
-                                            onChange={handleWarehouseChange}>
-                                            <select className="" style={{ outline: 'none', border: 'none', color: warehouseValue ? '#1368EC' : '#555252' }}>
-                                                <option value="" style={{ color: '#555252' }}>Warehouse</option>
-                                                <option value="wh1" style={{ color: '#555252' }}>Warehouse 1</option>
-                                            </select>
-                                        </div>
+                      <div style={{ color: 'black', padding: '2px 8px', borderRadius: '6px', border: '2px solid #ccc', display: 'flex', alignItems: 'center', }}>
+                        <span>Clear</span>
+                      </div>
 
-                                        <div
-                                            style={{ border: exprationValue ? '2px dashed #1368EC' : '2px dashed #ccc', padding: '0px 10px 0px 3px', alignItems: 'center', display: 'flex', borderRadius: '6px' }}
-                                            value={exprationValue}
-                                            onChange={handleExprationChange}>
-                                            <select className="" style={{ outline: 'none', border: 'none', color: exprationValue ? '#1368EC' : '#555252' }}>
-                                                <option value="" style={{ color: '#555252' }}>Expiration</option>
-                                                <option value="e1" style={{ color: '#555252' }}>Expiration 1</option>
-                                            </select>
-                                        </div>
-                                    </div>
+                    </div>
+                  </>
+                ) : (<></>)}
 
-                                    <div className="" style={{ marginTop: "4px" }}>
-                                        <button className="">Clear</button>
-                                    </div>
+              </div>
 
-                                </div>
-                            </>
-                        ) : (<></>)}
+            <div style={{border:'1px solid #ccc',marginTop:'10px',borderRadius:'8px',height:'50vh',overflowY:'auto'}}>
+                <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                  <thead style={{ backgroundColor: '#E6E6E6' }}>
+                    <tr style={{ color: "#676767", }}>
+                      <th style={{ padding: '8px', borderTopLeftRadius: '8px' }}><input type="checkbox" /> Customer</th>
+                      <th>Sold Items</th>
+                      <th>Date & Time</th>
+                      <th>Status</th>
+                      <th>Total Amount</th>
+                      <th style={{ borderTopRightRadius: '8px' }}>Due Amount</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr style={{ borderTop: '1px solid #E6E6E6' }}>
+                      <td style={{ padding: '8px' }}><input type="checkbox" /> name</td>
+                      <td>item</td>
+                      <td>31-05-2025</td>
+                      <td>sold</td>
+                      <td>₹00.00</td>
+                      <td>₹00.00</td>
+                    </tr>
+                  </tbody>
+                </table>
+            </div>
 
+            <div style={{display:'flex',justifyContent:'end',marginTop:'10px',padding:'0px 10px',gap:'10px',}}>
+              <div
+              style={{
+                padding: "6px 12px",
+                borderRadius: "5px",
+                border: "1px solid #E6E6E6",
+                backgroundColor: "#FFFFFF",
+                color: "#333",
+                boxShadow: "0px 0px 5px rgba(0, 0, 0, 0.1)",
+              }}
+              >
+                10 per page
+              </div>
+              <div
+              style={{
+                padding: "6px 12px",
+                borderRadius: "5px",
+                border: "1px solid #E6E6E6",
+                backgroundColor: "#FFFFFF",
+                display: "flex",
+                alignItems: "center",
+                gap: "15px",
+                color: "#333",
+                boxShadow: "0px 0px 5px rgba(0, 0, 0, 0.1)",
+              }}
+              >
+                <span>1 - 25 of 369</span> 
+                <span style={{color:'#ccc'}}>|</span> 
+                <IoIosArrowBack style={{color:'#ccc',cursor: "pointer",}} /> 
+                <IoIosArrowForward style={{color:'#ccc',cursor: "pointer",}} /> 
+              </div>
             </div>
 
           </div>
