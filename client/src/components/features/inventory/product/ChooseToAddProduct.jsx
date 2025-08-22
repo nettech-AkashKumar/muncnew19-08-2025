@@ -86,7 +86,7 @@ function ChooseToAddProduct() {
             </div>
           </div>
         </div>
-        <div className='col'>
+        {/* <div className='col'>
           <div
             style={{
               border: selectedOption === 'scan' ? '2px solid #007bff' : '2px solid #E6E6E6',
@@ -102,7 +102,7 @@ function ChooseToAddProduct() {
               <span style={{ color: '#676767' }}>Scan the product to quickly add it to your inventory.</span>
             </div>
           </div>
-        </div>
+        </div> */}
       </div>
       <div style={{ marginTop: '32px', textAlign: 'center' }}>
         {selectedOption === 'bulk' ? (
@@ -132,21 +132,21 @@ function ChooseToAddProduct() {
             />
           </div>
         ) : selectedOption === 'scan' ? (
-           <Link 
-      to="/scan-product"
-      style={{ 
-        padding: '7px 16px', 
-        backgroundColor: '#007bff', 
-        color: 'white', 
-        border: 'none', 
-        borderRadius: '4px', 
-        cursor: 'pointer', 
-        fontSize: '14px',
-        textDecoration: 'none'
-      }}
-    >
-      Continue
-    </Link> 
+          <Link
+            to="/scan-product"
+            style={{
+              padding: '7px 16px',
+              backgroundColor: '#007bff',
+              color: 'white',
+              border: 'none',
+              borderRadius: '4px',
+              cursor: 'pointer',
+              fontSize: '14px',
+              textDecoration: 'none'
+            }}
+          >
+            Continue
+          </Link>
         ) :
           (
             <div>

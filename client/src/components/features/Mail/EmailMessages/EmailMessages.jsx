@@ -60,11 +60,11 @@ const EmailMessages = ({
     }
   };
 
-useEffect(() => {
-  console.log("EmailMessages mounted");
-  fetchUsers();
-}, []);
-  
+  useEffect(() => {
+    console.log("EmailMessages mounted");
+    fetchUsers();
+  }, []);
+
 
 
   useEffect(() => {
@@ -72,44 +72,53 @@ useEffect(() => {
     const fetchEmail = async () => {
       try {
         const res = await axios.get(`${BASE_URL}/api/email/mail/receive`);
-        console.log("EMAILS RECEIVED FROM BACKEND:", res.data.data);
-        const formattedData = res.data.data.map((email) => {
-          console.log("CHECKING EMAIL.FROM VALUE:", email.from, "TYPE:", typeof email.from);
-          //find the matching user by email
-          const matchedUser = users.find((user) => {
-            if (typeof email.from === "string") {
-              return user.email?.toLowerCase() === email.from?.toLowerCase();
-            }
-            if (email.from && typeof email.from.email === "string") {
-              return user.email?.toLowerCase() === email.from.email?.toLowerCase();
-            }
-            return false;
-          });
+        console.log("📩 EMAILS RECEIVED FROM BACKEND:", res.data.data);
 
-          // const name = email.name;
-          // const initials = name
-          //   .split(" ")
-          //   .map((word) => word[0])
-          //   .join("")
-          //   .toUpperCase()
-          //   .slice(0, 2);
+        const formattedData = res.data.data.map((email) => {
+          console.log("🔎 CHECKING EMAIL.FROM VALUE:", email.from, "TYPE:", typeof email.from);
+          console.log("   Raw FROM (full):", JSON.stringify(email.from, null, 2));
+
+
+          let matchedUser = null;
+          if (typeof email.from === "string") {
+            matchedUser = users.find((user) => user.email?.toLowerCase() === email.from?.toLowerCase());
+          } else if (email.from?.email) {
+            matchedUser = users.find((user) => user.email?.toLowerCase() === email.from.email?.toLowerCase());
+          } else if (email.from?._id) {
+            matchedUser = users.find((user) => user._id === email.from._id);
+          }
+
+          const senderName = matchedUser
+            ? `${matchedUser.firstName || ""} ${matchedUser.lastName || ""}`.trim()
+            : email.from?.firstName || email.from?.lastName
+              ? `${email.from?.firstName || ""} ${email.from?.lastName || ""}`.trim()
+              : typeof email.from === "string"
+                ? email.from
+                : "Unknown User";
+
+          const profileImage =
+            matchedUser?.profileImage?.url ||
+            (Array.isArray(matchedUser?.profileImage) && matchedUser.profileImage[0]?.url) ||
+            email.from?.profileImage?.url ||
+            (Array.isArray(email.from?.profileImage) && email.from.profileImage[0]?.url) ||
+            (typeof email.from?.profileImage === "string" ? email.from.profileImage : null);
+
+          // ✅ Debug log for each email
+          console.log("➡️ EMAIL DEBUG:");
+          console.log("   ID:", email._id);
+          console.log("   Raw FROM:", email.from);
+          console.log("   Matched User:", matchedUser);
+          console.log("   Final Sender Name:", senderName);
+          console.log("   Final Profile Image:", profileImage);
+
           return {
             ...email,
             sender: {
-              name: matchedUser ? `${matchedUser.firstName} ${matchedUser.lastName}` : typeof email.from === "object" ? `${email.from?.firstName || ""} ${email.from?.lastName || ""}`.trim()
-                : email.from,
-              profileImage: matchedUser?.profileImage
-                ? Array.isArray(matchedUser.profileImage)
-                  ? matchedUser.profileImage[0]?.url
-                  : matchedUser.profileImage?.url
-                : Array.isArray(email.from?.profileImage)
-                  ? email.from.profileImage[0]?.url
-                  : email.from?.profileImage?.url
-              // initials,
-              // backgroundColor: "#5e35b1",
+              name: senderName,
+              profileImage,
             },
             subject: email.subject,
-            messagePreview: (email.body || "").slice(0, 50) + "...", //trim preview
+            messagePreview: (email.body || "").slice(0, 140) + "...", //trim preview
             time:
               email.createdAt && !isNaN(new Date(email.createdAt))
                 ? new Intl.DateTimeFormat("en-GB", {
@@ -120,7 +129,7 @@ useEffect(() => {
                   minute: "2-digit",
                   hour12: true,
                 }).format(new Date(email.createdAt))
-                : "Invalide Date",
+                : "Invalid Date",
             status: { dotColor: "red" },
             folders: {
               galleryCount: email.attachments?.length || 0,
@@ -131,15 +140,16 @@ useEffect(() => {
             },
           };
         });
-        console.log("FINAL FORMATTED EMAILS FOR STATE:", formattedData);
+
+        console.log("✅ FINAL FORMATTED EMAILS FOR STATE:", formattedData);
         setEmails(formattedData);
-        // console.log("formattedDataemails", formattedData);
       } catch (error) {
-        console.error("Failed to fetch emails", error);
+        console.error("❌ Failed to fetch emails", error);
       }
     };
-   fetchEmail();
+    fetchEmail();
   }, [users]);
+
 
 
   const handleDeleteSelected = async () => {
@@ -331,7 +341,7 @@ useEffect(() => {
         </div>
         {/* filter */}
       </div>
-      
+
       {/* email message div */}
       <div className="justinmaindivmap">
         {selectedEmail ? (

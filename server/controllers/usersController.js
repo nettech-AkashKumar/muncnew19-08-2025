@@ -17,6 +17,7 @@ exports.createUser = async (req, res) => {
       state,
       city,
       postalcode,
+      address,
       passwordChangedAt,
       confirmPassword,
       role,
@@ -56,6 +57,7 @@ exports.createUser = async (req, res) => {
       state,
       city,
       postalcode,
+      address,
       password: hashedPassword,
       passwordChangedAt:new Date(),
       profileImage,
@@ -132,6 +134,7 @@ exports.updateUser = async (req, res) => {
       state,
       city,
       postalcode,
+      address,
       currentpassword,
       newpassword,
       confirmpassword,
@@ -180,7 +183,8 @@ exports.updateUser = async (req, res) => {
     if (country) user.country = country;
     if (state) user.state = state;
     if (city) user.city = city;
-    if(postalcode) user.postalcode = postalcode;
+    if (postalcode) user.postalcode = postalcode;
+    if (address) user.address = address;
     if (role) user.role = role;
     if (typeof status !== "undefined") user.status = status;
 
