@@ -34,15 +34,15 @@ exports.createSupplier = async (req, res) => {
     // Cloudinary Image Upload (Single or Multiple Files)
     const uploadedImages = req.files?.length
       ? await Promise.all(
-          req.files.map((file) =>
-            cloudinary.uploader.upload(file.path, {
-              folder: "suppliers",
-            })
-          )
+        req.files.map((file) =>
+          cloudinary.uploader.upload(file.path, {
+            folder: "suppliers",
+          })
         )
+      )
       : req.file
-      ? [await cloudinary.uploader.upload(req.file.path, { folder: "suppliers" })]
-      : [];
+        ? [await cloudinary.uploader.upload(req.file.path, { folder: "suppliers" })]
+        : [];
 
     supplierData.images = uploadedImages.map((img) => ({
       url: img.secure_url,
