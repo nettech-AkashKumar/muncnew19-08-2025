@@ -587,7 +587,7 @@ const OverdueReport = () => {
                 <input type="checkbox" />
               </th>
               <th style={{ padding: "15px 20px" }}>Name</th>
-              <th style={{ padding: "15px 20px" }}>Unvoice No.</th>
+              <th style={{ padding: "15px 20px" }}>Invoice No.</th>
               <th style={{ padding: "15px 20px" }}>Due Date</th>
               <th style={{ padding: "15px 20px" }}>Days Overdue</th>
               <th style={{ padding: "15px 20px" }}>Status</th>
