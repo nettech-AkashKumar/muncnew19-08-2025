@@ -22,7 +22,7 @@ const warehouseSchema = new mongoose.Schema(
   {
     warehouseName: {
         type: String, 
-        // required: true
+        required: true
      },
     space: {
          type: String,
@@ -37,40 +37,54 @@ const warehouseSchema = new mongoose.Schema(
       enum: ["small", "medium", "large"],
       default: "medium",
     },
-    contactPerson: { type: String,  },
-    warehouseOwner: { type: String,  },
+    contactPerson: { type: String},
+    warehouseCode :{type : String,  required:true},
+    warehouseOwner: { type: String,  required:true },
+    
     phone: { 
         type: String,
-        //  required: true 
+         required: true 
         },
     email: { 
         type: String,
         //  required: true
          },
     phoneWork: String,
-    streetAddress: String,
+    // streetAddress: String,
+    address: { type : String,  required:true},
+
     country: {
       // type: mongoose.Schema.Types.ObjectId,
         type :String,
       // ref: "Country",
-    //   required: true,
+      required: true,
     },
     state: {
       // type: mongoose.Schema.Types.ObjectId,
         type :String,
       // ref: "State",
-    //   required: true,
+      required: true,
     },
     city: { 
       // type: mongoose.Schema.Types.ObjectId, 
       type :String,
       // ref: "City", 
-      // required: true 
+      required: true 
     },
-    postalCode: { 
+    // postalCode: { 
+    //     type: String, 
+    //     // required: true
+    //  },
+    pinCode: { 
         type: String, 
-        // required: true
+        required: true
      },
+     layout: {
+    rows: { type: Number },
+    columns: { type: Number },
+    width: { type: String },
+    zones: { type: String }
+  },
     //   status: { type: Boolean, default: true },
     status: {
       type: String,

@@ -1790,7 +1790,7 @@ const Users = () => {
                     <div
                       className="add-image-circle"
                       style={{
-                        border: "2px dashed #dadadaff",
+                        border: "2px solid #007bff",
                         width: "100px",
                         height: "100px",
                         display: "flex",
