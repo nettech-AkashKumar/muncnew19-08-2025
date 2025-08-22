@@ -114,15 +114,43 @@ const receiveEmail = async (req, res) => {
       .sort({
         createdAt: -1,
       });
+      const users = await User.find().select("firstName lastName email profileImage");
+      console.log('uuser', users);
+
+      const enrichRecipient = (addr) => {
+        const user = users.find((u) => u.email.toLowerCase() === addr.toLowerCase());
+        if(user) {
+          return {
+            email:user.email,
+            firstName: user.firstName,
+            lastName: user.lastName,
+            profileImage: user.profileImage,
+          }
+        }
+        return {email: addr, firstName:"", lastName:"", profileImage:null};
+      };
+      
     // console.log("RAW EMAILS FROM DB:", JSON.stringify(emails, null, 2));
     const formattedEmails = emails.map((email) => {
-        if (!email.from) {
-    return {
-      ...email.toObject(),
-      from: { email: "unknown@example.com", firstName: "Unknown", lastName: "" }
-    };
-  }
-      // console.log("EMAIL FROM FIELD TYPE:", typeof email.from, email.from);
+      // handle missing or string "from"
+      let fromData;
+      if (!email.from) {
+        fromData = { email: "unknown@example.com", firstName: "Unknown", lastName: "", profileImage: null };
+      } else if (typeof email.from === "string") {
+        fromData = { email: email.from, firstName: "", lastName: "", profileImage: null };
+      } else {
+        fromData = email.from; // already populated
+      }
+
+      // return {
+      //   ...email.toString(),
+      //   from:fromData,
+      //   to:email.to.map(enrichRecipient),
+      //   cc:email.cc.map(enrichRecipient),
+      //   bcc:email.bcc.map(enrichRecipient),
+      // }
+
+      // // console.log("EMAIL FROM FIELD TYPE:", typeof email.from, email.from);
       if (typeof email.from === "string") {
         return {
           ...email.toObject(),

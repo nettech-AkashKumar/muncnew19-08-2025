@@ -6,7 +6,7 @@
   vertical-align: middle;
   margin: 0px;
   padding: 0;
-  margin-top: 20px;
+  color: #979797;
 }
 
 .email-meta {
@@ -34,7 +34,7 @@
 }
 
 .email-detail button {
-  margin-bottom: 15px;
+  margin-bottom: 8px;
 }
 
 .subject-header {

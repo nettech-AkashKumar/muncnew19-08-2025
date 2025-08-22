@@ -22,6 +22,7 @@ function AddWarehouse() {
   const [mainZones, setMainZones] = useState(1);
   // State for warehouse details form
   const [warehouseName, setWarehouseName] = useState("");
+  const [phone, setphone] = useState("");
   const [warehouseCode, setWarehouseCode] = useState("");
   const [warehouseOwner, setWarehouseOwner] = useState("");
   const [address, setAddress] = useState("");
@@ -39,14 +40,6 @@ function AddWarehouse() {
   const [cityList, setCityList] = useState([]);
 
   const [loading, setLoading] = useState(false);
-  // const [contactPerson, setContactPerson] = useState("");
-
-  // const payload = {
-  // warehouseName,
-  // contactPerson,
-  // phone,
-  // email,
-  // };
 
   useEffect(() => {
     setCountryList(Country.getAllCountries());
@@ -63,6 +56,7 @@ function AddWarehouse() {
       setCityList(City.getCitiesOfState(selectedCountry, selectedState));
     }
   }, [selectedState]);
+  
   // State for import status and message
   const [isImported, setIsImported] = useState(false);
   const [showMessage, setShowMessage] = useState(false);
@@ -101,6 +95,7 @@ function AddWarehouse() {
   const handleDraft = () => {
     const warehouseData = {
       warehouseName,
+      phone,
       warehouseCode,
       warehouseOwner,
       // contactPerson,
@@ -125,6 +120,7 @@ function AddWarehouse() {
   const handleSave = async () => {
     const warehouseData = {
       warehouseName,
+      phone,
       warehouseCode,
       warehouseOwner,
       address,
@@ -165,6 +161,7 @@ function AddWarehouse() {
   const handleDone = () => {
     // Reset all states to initial values
     setWarehouseName("");
+    setphone("");
     setWarehouseCode("");
     setWarehouseOwner("");
     setAddress("");
@@ -179,7 +176,7 @@ function AddWarehouse() {
     setIsImported(false);
     setShowMessage(false);
     // Navigate to AllWarehouse page
-    navigate("/AllWarehouse"); // Adjust route as needed
+    navigate("/warehouse"); // Adjust route as needed
   };
 
   // Effect to auto-hide the success message after 3 seconds
@@ -228,6 +225,7 @@ function AddWarehouse() {
     try {
       const warehouseData = {
         warehouseName,
+        phone,
         warehouseCode,
         warehouseOwner,
         address,
@@ -255,6 +253,7 @@ function AddWarehouse() {
 
       // Reset form
       setWarehouseName("");
+      setphone("");
       setWarehouseCode("");
       setWarehouseOwner("");
       setAddress("");
@@ -269,7 +268,7 @@ function AddWarehouse() {
       setIsImported(false);
       setShowMessage(false);
 
-      navigate("/AllWarehouse");
+      navigate("/warehouse");
     } catch (error) {
       console.error("Error adding warehouse:", error);
       toast.error(
@@ -427,34 +426,65 @@ function AddWarehouse() {
             boxShadow: "0 2px 4px rgba(0, 0, 0, 0.1)",
           }}
         >
-          <div style={{ marginBottom: "20px" }}>
-            <label
-              style={{
-                color: "#1F2937",
-                fontWeight: "500",
-                fontSize: "18px",
-                marginBottom: "8px",
-                display: "block",
-              }}
-            >
-              Warehouse Name
-            </label>
-            <input
-              type="text"
-              value={warehouseName}
-              onChange={(e) => setWarehouseName(e.target.value)}
-              style={{
-                width: "100%",
-                padding: "12px",
-                borderRadius: "8px",
-                border: "1px solid #D1D5DB",
-                backgroundColor: "#F9FAFB",
-                color: "#6B7280",
-                fontSize: "14px",
-                outline: "none",
-              }}
-              placeholder="Enter Warehouse Name"
-            />
+          <div style={{ display: "flex", gap: "16px", marginBottom: "20px" }}>
+            <div style={{ flex: 1 }}>
+              <label
+                style={{
+                  color: "#1F2937",
+                  fontWeight: "500",
+                  fontSize: "18px",
+                  marginBottom: "8px",
+                  display: "block",
+                }}
+              >
+                Warehouse Name
+              </label>
+              <input
+                type="text"
+                value={warehouseName}
+                onChange={(e) => setWarehouseName(e.target.value)}
+                style={{
+                  width: "100%",
+                  padding: "12px",
+                  borderRadius: "8px",
+                  border: "1px solid #D1D5DB",
+                  backgroundColor: "#F9FAFB",
+                  color: "#6B7280",
+                  fontSize: "14px",
+                  outline: "none",
+                }}
+                placeholder="Enter Warehouse Name"
+              />
+            </div>
+            <div style={{ flex: 1 }}>
+              <label
+                style={{
+                  color: "#1F2937",
+                  fontWeight: "500",
+                  fontSize: "18px",
+                  marginBottom: "8px",
+                  display: "block",
+                }}
+              >
+                Contact No
+              </label>
+              <input
+                type="number"
+                value={phone}
+                onChange={(e) => setphone(e.target.value)}
+                style={{
+                  width: "100%",
+                  padding: "12px",
+                  borderRadius: "8px",
+                  border: "1px solid #D1D5DB",
+                  backgroundColor: "#F9FAFB",
+                  color: "#6B7280",
+                  fontSize: "14px",
+                  outline: "none",
+                }}
+                placeholder="Enter Warehouse Name"
+              />
+            </div>
           </div>
 
           <div style={{ display: "flex", gap: "16px", marginBottom: "20px" }}>
@@ -513,7 +543,6 @@ function AddWarehouse() {
                   outline: "none",
                 }}
               />
-             
             </div>
           </div>
 
@@ -690,10 +719,10 @@ function AddWarehouse() {
               >
                 Pin Code
               </label>
-             
+
               <input
-               value={pinCode}
-  onChange={(e) => setPinCode(e.target.value)}
+                value={pinCode}
+                onChange={(e) => setPinCode(e.target.value)}
                 type="number"
                 style={{
                   width: "100%",
@@ -763,7 +792,7 @@ function AddWarehouse() {
               <Popup
                 trigger={
                   <button
-                   type="button"
+                    type="button"
                     style={{
                       backgroundColor: "#3B82F6",
                       color: "#FFFFFF",

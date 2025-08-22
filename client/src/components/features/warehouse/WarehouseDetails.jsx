@@ -185,8 +185,46 @@ function WarehouseDetails() {
   //         window.addEventListener("warehouse-added", listener);
   //         return () => window.removeEventListener("warehouse-added", listener);
       }, [detailsWarehouses]);
-  
 
+
+  const [sales, setSales] = useState([]);
+
+        const fetchSales = async () => {
+          setLoading(true);
+          try {
+            const res = await axios.get(`${BASE_URL}/api/sales`);
+            const data = res.data.sales;
+            console.log('sales8788qs', data);
+            
+            setSales(res.data.sales);
+          } catch (err) {
+            setSales([]);
+          }
+          setLoading(false);
+        };
+  
+useEffect(() => {
+  fetchSales();
+}, []);
+
+
+//for history table
+
+const [purchases, setPurchases] = useState([]);
+
+
+  const fetchPurchases = async () => {
+    try {
+      const res = await axios.get(`${BASE_URL}/api/purchases`,);
+      setPurchases(res.data.purchases);
+    } catch (error) {
+      console.error("Error fetching purchases:", error);
+    }
+  };
+
+    useEffect(() => {
+      fetchPurchases();
+    }, []);
 
   return (
 
@@ -629,7 +667,7 @@ function WarehouseDetails() {
           <span>Top Selling Products</span>
         </div>
 
-        <div style={{ padding: "8px 24px", gap: "18px" }}>
+        {/* <div style={{ padding: "8px 24px", gap: "18px" }}>
           <span
             style={{
               font: "Robot",
@@ -685,7 +723,7 @@ function WarehouseDetails() {
           >
             Processing
           </span>
-        </div>
+        </div> */}
 
         {/* Table */}
         <div>
@@ -719,10 +757,10 @@ function WarehouseDetails() {
             </thead>
 
             <tbody>
-              {sellingProducts.map((wholeseller, i) => (
+              {sales.map((item, idx) => (
                 <tr
-                  key={wholeseller.id}
-                  onClick={() => handleCustomerClick(wholeseller)}
+                  key={idx}
+                  
                   style={{ cursor: "pointer" }}
                 >
                   <td
@@ -741,11 +779,11 @@ function WarehouseDetails() {
                   >
                     <div className="customer-info">
                       <img
-                        src="https://via.placeholder.com/32"
+                        src={item.products[0]?.productId?.images[0]?.url}
                         alt="avatar"
                         className="avatar"
                       />
-                      {wholeseller.product}
+                      {item.products[0]?.productId?.productName}
                     </div>
                   </td>
                   <td
@@ -754,7 +792,7 @@ function WarehouseDetails() {
                       borderBottom: "1px solid #e6e6e6",
                     }}
                   >
-                    {wholeseller.sku}
+                    {item.products[0]?.productId?.sku}
                   </td>
                   <td
                     style={{
@@ -762,7 +800,7 @@ function WarehouseDetails() {
                       borderBottom: "1px solid #e6e6e6",
                     }}
                   >
-                    {wholeseller.mrp}
+                    {item.products[0]?.productId?.sellingPrice}
                   </td>
                   <td
                     style={{
@@ -770,7 +808,7 @@ function WarehouseDetails() {
                       borderBottom: "1px solid #e6e6e6",
                     }}
                   >
-                    {wholeseller.available}
+                    {item.products[0]?.productId?.quantity}
                   </td>
                   <td
                     style={{
@@ -778,7 +816,7 @@ function WarehouseDetails() {
                       borderBottom: "1px solid #e6e6e6",
                     }}
                   >
-                    {wholeseller.unit}
+                    {item.unit}
                   </td>
                   <td
                     style={{
@@ -786,7 +824,7 @@ function WarehouseDetails() {
                       borderBottom: "1px solid #e6e6e6",
                     }}
                   >
-                    {wholeseller.revenue}
+                    {item.revenue}
                   </td>
                 </tr>
               ))}
@@ -1134,8 +1172,8 @@ function WarehouseDetails() {
             </thead>
 
             <tbody>
-              {dummyData.map((item, index) => (
-                <tr key={index} style={{ cursor: "pointer" }}>
+              {purchases.map((purchases) => (
+                <tr key={purchases._id} style={{ cursor: "pointer" }}>
                   <td
                     style={{
                       padding: "12px 24px",
@@ -1150,7 +1188,7 @@ function WarehouseDetails() {
                       borderBottom: "1px solid #e6e6e6",
                     }}
                   >
-                    {item.product}
+                    {purchases.products[0]?.product?.productName}
                   </td>
                   <td
                     style={{
@@ -1158,7 +1196,7 @@ function WarehouseDetails() {
                       borderBottom: "1px solid #e6e6e6",
                     }}
                   >
-                    {item.time}
+                    {purchases.orderTax}
                   </td>
                   <td
                     style={{
@@ -1166,12 +1204,12 @@ function WarehouseDetails() {
                       borderBottom: "1px solid #e6e6e6",
                     }}
                   >
-                    {item.qty}
+                    {purchases.products[0]?.product?.quantity}
                   </td>
                   <td
                     style={{ borderBottom: "1px solid #ddd", padding: "8px" }}
                   >
-                    {(() => {
+                    {/* {(() => {
                       const type = item.movementType.trim().toLowerCase(); // normalize
 
                       if (type === "stock in") {
@@ -1185,7 +1223,7 @@ function WarehouseDetails() {
                               backgroundColor: "#DFFFE0", // green shade
                             }}
                           >
-                            {item.movementType}
+                            {}
                           </span>
                         );
                       }
@@ -1201,14 +1239,14 @@ function WarehouseDetails() {
                               backgroundColor: "#FCE4E6", // red shade
                             }}
                           >
-                            {item.movementType}
+                            {purchase.movementType}
                           </span>
                         );
                       }
 
                       // fallback (no color)
-                      return <span>{item.movementType}</span>;
-                    })()}
+                      return <span>{}</span>;
+                    })()} */}
                   </td>
 
                   <td
@@ -1217,7 +1255,7 @@ function WarehouseDetails() {
                       borderBottom: "1px solid #e6e6e6",
                     }}
                   >
-                    {item.sourceDest}
+                    {}
                   </td>
                   <td
                     style={{
@@ -1225,7 +1263,7 @@ function WarehouseDetails() {
                       borderBottom: "1px solid #e6e6e6",
                     }}
                   >
-                    {item.reference}
+                    {purchases.referenceNumber}
                   </td>
                 </tr>
               ))}
