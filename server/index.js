@@ -41,6 +41,7 @@ const devicemanagementrouter = require("./routes/settings/devicemanagementroute.
 const companysettingrouter = require("./routes/settings/companysettingroute.js");
 const localizationrouter = require("./routes/settings/Localizationroute.js");
 const balanceSheetRoutes = require("./routes/balanceSheetRoutes.js");
+const salesRoutes = require('./routes/salesRoutes.js');
 
 
 const http = require('http');
@@ -111,6 +112,7 @@ app.use("/api/variant-attributes", VarientRoutes);
 app.use("/api/warranty", WarrantyRoutes);
 app.use('/api/debit-notes', debitNoteRoutes);
 app.use("/api/profile", userProfileRoutes);
+app.use('/api/sales', salesRoutes);
 
 // api for mail 
 app.use("/api/email/mail", emailrouter)

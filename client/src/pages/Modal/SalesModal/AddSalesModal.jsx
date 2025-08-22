@@ -28,22 +28,7 @@ const AddSalesModal = () => {
   const [description, setDescription] = useState("");
   const [referenceNumber, setReferenceNumber] = useState("");
 
-  // Fetch latest sale reference from backend and auto-generate next
-  useEffect(() => {
-    const fetchLatestReference = async () => {
-      try {
-        const res = await axios.get(`${BASE_URL}/api/sales/latest-reference`);
-        // Backend should return last reference like 'SL005', generate next
-        let lastRef = res.data?.referenceNumber || "SL000";
-        let num = parseInt(lastRef.replace("SL", ""), 10) || 0;
-        let nextRef = `SL${(num + 1).toString().padStart(3, "0")}`;
-        setReferenceNumber(nextRef);
-      } catch (err) {
-        setReferenceNumber("SL001"); // fallback
-      }
-    };
-    fetchLatestReference();
-  }, []);
+
   const [selectedImages, setSelectedImages] = useState([]);
   const [imagePreviews, setImagePreviews] = useState([]);
 
@@ -63,6 +48,7 @@ const AddSalesModal = () => {
 
 
   console.log("search:", options);
+  console.log("customer:", selectedCustomer);
   console.log("product:", products);
   console.log("selectedProducts:", selectedProducts);
 
@@ -81,11 +67,29 @@ const AddSalesModal = () => {
     enableAddCharges: false
   });
 
-  // Input handlers
+
+  // REPLACE your existing handleChange with this:
   const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormState((prev) => ({ ...prev, [name]: value }));
+    const { name, type, checked, value } = e.target;
+    setFormState((prev) => ({
+      ...prev,
+      [name]: type === "checkbox" ? checked : value,
+    }));
   };
+
+  useEffect(() => {
+    const fetchReferenceNumber = async () => {
+      try {
+        const res = await axios.get(`${BASE_URL}/api/sales/next-reference`);
+        setReferenceNumber(res.data.referenceNumber);
+      } catch (err) {
+        console.error("Failed to fetch reference number:", err);
+        setReferenceNumber("SL-001"); // fallback
+      }
+    };
+
+    fetchReferenceNumber();
+  }, []);
 
   useEffect(() => {
     const fetchActiveCustomer = async () => {
@@ -208,6 +212,56 @@ const AddSalesModal = () => {
     const previews = files.map((file) => URL.createObjectURL(file));
     setImagePreviews(previews);
   };
+  // 🔹 Handle Submit
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    try {
+      const payload = {
+        customer: selectedCustomer?.value ? String(selectedCustomer.value) : "",
+        billing: billingAddr,
+        shipping: shippingAddr,
+        products: selectedProducts.map(p => ({
+          productId: p._id,
+          saleQty: p.saleQty || p.quantity || 1,
+          quantity: p.quantity,
+          sellingPrice: p.sellingPrice,
+          discount: p.discount,
+          tax: p.tax,
+        })),
+        saleDate,
+        labourCost,
+        orderDiscount,
+        shippingCost,
+        status,
+        paymentType,
+        paidAmount,
+        dueAmount,
+        dueDate,
+        paymentMethod,
+        transactionId,
+        onlineMod,
+        transactionDate,
+        paymentStatus,
+        images: selectedImages,
+        description,
+        referenceNumber,
+        // Add all formState fields
+        ...formState,
+      };
+
+      console.log("Final Payload:", payload);
+
+      const response = await axios.post(`${BASE_URL}/api/sales/create`, payload);
+
+      toast.success(response.data.message);
+      onSuccess?.();
+      onClose();
+    } catch (error) {
+      console.error("Error saving sale:", error);
+      toast.error(error.response?.data?.message || "Error saving sale");
+    }
+  };
 
   // Handle form submit
   // const handleSubmit = async (e) => {
@@ -280,115 +334,35 @@ const AddSalesModal = () => {
   // };
 
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-
-    // 🔴 Required fields check
-    let missingFields = [];
-
-    // Validate customer selection robustly
-    if (!selectedCustomer || !selectedCustomer.value) missingFields.push("Customer");
-    // if (!saleDate) missingFields.push("Sale Date");
-    // if (!status) missingFields.push("Status");
-    // if (!paymentType) missingFields.push("Payment Type");
-    if (selectedProducts.length === 0) missingFields.push("Products");
-    if (!referenceNumber) missingFields.push("Reference Number");
-
-    if (missingFields.length > 0) {
-      toast.error(`Please fill required fields: ${missingFields.join(", ")}`);
-      return;
-    }
-
-    // 🔴 Back-date check
-    if (new Date(saleDate) < new Date(new Date().toISOString().slice(0, 10))) {
-      toast.error("Back date sales not allowed");
-      return;
-    }
-
-    // ✅ Build payload
-    const payload = {
-      customer: selectedCustomer?.value,
-      billing: billingAddr,
-      shipping: shippingAddr,
-      products: selectedProducts.map((p) => ({
-        productId: p._id,
-        quantity: p.quantity,
-        sellingPrice: p.sellingPrice,
-        discount: p.discount,
-        tax: p.tax,
-      })),
-      saleDate,
-      labourCost,
-      orderDiscount,
-      shippingCost,
-      status,
-      paymentType,
-      paidAmount,
-      dueAmount,
-      dueDate,
-      paymentMethod,
-      transactionId,
-      onlineMod,
-      transactionDate,
-      paymentStatus,
-      description,
-      referenceNumber, // ✅ Added reference number
-      ...formState,
-    };
-
-    try {
-      const formData = new FormData();
-
-      // ✅ Append payload
-      Object.entries(payload).forEach(([key, value]) => {
-        if (key === "products" || key === "billing" || key === "shipping") {
-          formData.append(key, JSON.stringify(value));
-        } else if (Array.isArray(value)) {
-          value.forEach((val, idx) => formData.append(`${key}[${idx}]`, val));
-        } else if (value !== undefined && value !== null) {
-          formData.append(key, value);
-        }
-      });
-
-      // ✅ Images
-      selectedImages.forEach((file) => {
-        formData.append("images", file);
-      });
-
-      // ✅ API call
-      await axios.post(`${BASE_URL}/api/sales/create`, formData, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
-
-      toast.success("Sale created successfully!");
-
-      // ✅ Close modal
-      window.$("#add-sales-new").modal("hide");
-    } catch (err) {
-      toast.error("Failed to submit sale: " + (err.response?.data?.message || err.message));
-    }
-  };
-
-
   // const handleSubmit = async (e) => {
   //   e.preventDefault();
 
-  //   // ✅ Validation
-  //   if (!selectedCustomer?.value || !saleDate || !status || !paymentType || selectedProducts.length === 0) {
-  //     setDateError("Please fill all required fields.");
+  //   // 🔴 Required fields check
+  //   let missingFields = [];
+
+  //   // Validate customer selection robustly
+  //   if (!selectedCustomer || !selectedCustomer.value || typeof selectedCustomer.value !== 'string' || selectedCustomer.value.length !== 24) {
+  //     missingFields.push("Customer");
+  //   }
+  //   // if (!saleDate) missingFields.push("Sale Date");
+  //   // if (!status) missingFields.push("Status");
+  //   // if (!paymentType) missingFields.push("Payment Type");
+  //   if (selectedProducts.length === 0) missingFields.push("Products");
+  //   if (!referenceNumber) missingFields.push("Reference Number");
+
+  //   if (missingFields.length > 0) {
+  //     toast.error(`Please fill required fields: ${missingFields.join(", ")}`);
   //     return;
   //   }
 
-  //   // ✅ Date check with proper Date object
+  //   // 🔴 Back-date check
   //   if (new Date(saleDate) < new Date(new Date().toISOString().slice(0, 10))) {
-  //     setDateError("Back date sales not allowed");
+  //     toast.error("Back date sales not allowed");
   //     return;
   //   }
-  //   setDateError("");
-
-  //   // ✅ Build payload
+  //   console.log("[DEBUG] selectedCustomer:", selectedCustomer);
   //   const payload = {
-  //     customer: selectedCustomer?.value,
+  //     customer: selectedCustomer?.value ? String(selectedCustomer.value) : "",
   //     billing: billingAddr,
   //     shipping: shippingAddr,
   //     products: selectedProducts.map(p => ({
@@ -412,61 +386,88 @@ const AddSalesModal = () => {
   //     onlineMod,
   //     transactionDate,
   //     paymentStatus,
+  //     images: selectedImages,
   //     description,
-  //     referenceNumber,   // ✅ Force add reference number
+  //     referenceNumber,
+  //     // Add all formState fields
   //     ...formState,
   //   };
+  //   console.log("[DEBUG] sales payload:", payload);
 
   //   try {
   //     const formData = new FormData();
 
-  //     // ✅ Append everything to formData
+  //     // ✅ Append payload
   //     Object.entries(payload).forEach(([key, value]) => {
   //       if (key === "products" || key === "billing" || key === "shipping") {
-  //         formData.append(key, JSON.stringify(value)); // objects/arrays
+  //         formData.append(key, JSON.stringify(value));
   //       } else if (Array.isArray(value)) {
   //         value.forEach((val, idx) => formData.append(`${key}[${idx}]`, val));
   //       } else if (value !== undefined && value !== null) {
-  //         formData.append(key, value); // ✅ including referenceNumber
+  //         formData.append(key, value);
   //       }
   //     });
 
-  //     // ✅ Handle images separately
+  //     // ✅ Images
   //     selectedImages.forEach((file) => {
   //       formData.append("images", file);
   //     });
 
-  //     // ✅ Send request
+  //     // ✅ API call
   //     await axios.post(`${BASE_URL}/api/sales/create`, formData, {
   //       headers: { "Content-Type": "multipart/form-data" },
   //     });
 
-  //     // Close modal after success
+  //     toast.success("Sale created successfully!");
+
+  //     // ✅ Close modal
   //     window.$("#add-sales-new").modal("hide");
   //   } catch (err) {
-  //     setDateError("Failed to submit sale: " + (err.response?.data?.message || err.message));
+  //     toast.error("Failed to submit sale: " + (err.response?.data?.message || err.message));
   //   }
   // };
 
 
-  // Calculate product line totals and grand total
+  // const calculateLineTotal = (product) => {
+  //   const price = product.sellingPrice || 0;
+  //   const qty = product.quantity || 1;
+  //   const discount = product.discount || 0;
+  //   const tax = product.tax || 0;
+  //   const subTotal = qty * price;
+  //   const afterDiscount = subTotal - discount;
+  //   // Tax is percent of afterDiscount
+  //   const taxAmount = (afterDiscount * tax) / 100;
+  //   return {
+  //     subTotal,
+  //     afterDiscount,
+  //     taxAmount,
+  //     lineTotal: afterDiscount + taxAmount,
+  //     unitCost: qty > 0 ? (afterDiscount + taxAmount) / qty : 0
+  //   };
+  // };
   const calculateLineTotal = (product) => {
     const price = product.sellingPrice || 0;
     const qty = product.quantity || 1;
-    const discount = product.discount || 0;
-    const tax = product.tax || 0;
-    const subTotal = qty * price;
-    const afterDiscount = subTotal - discount;
-    // Tax is percent of afterDiscount
-    const taxAmount = (afterDiscount * tax) / 100;
+    let discount = 0;
+
+    if (product.isDiscountPercent) {
+      discount = ((price * qty) * (product.discount || 0)) / 100;
+    } else {
+      discount = product.discount || 0;
+    }
+
+    const afterDiscount = (price * qty) - discount;
+    const taxAmount = (afterDiscount * (product.tax || 0)) / 100;
+
     return {
-      subTotal,
+      subTotal: price * qty,
       afterDiscount,
       taxAmount,
       lineTotal: afterDiscount + taxAmount,
       unitCost: qty > 0 ? (afterDiscount + taxAmount) / qty : 0
     };
   };
+
 
   // Calculate all product totals
   const productTotals = selectedProducts.map(calculateLineTotal);
@@ -508,6 +509,25 @@ const AddSalesModal = () => {
   }
 
 
+  let roundOffValue = 0;
+  if (formState.roundOff) {
+    const rounded = Math.round(grandTotal);
+    roundOffValue = rounded - grandTotal;
+    grandTotal = rounded;
+  }
+
+  useEffect(() => {
+    if (paymentType === "Partial") {
+      const due = grandTotal - paidAmount;
+      setDueAmount(due > 0 ? due : 0);
+    } else {
+      setPaidAmount(grandTotal);
+      setDueAmount(0);
+    }
+  }, [paymentType, paidAmount, grandTotal]);
+
+
+
   return (
     <div className="modal fade" id="add-sales-new">
       <div className="modal-dialog add-centered">
@@ -545,12 +565,8 @@ const AddSalesModal = () => {
                               <div className="mb-3">
                                 <label className="form-label">Date<span className="text-danger ms-1">*</span></label>
                                 <div className="input-groupicon calender-input">
-                                  <input
-                                    type="date"
-                                    className="datetimepicker form-control"
-                                    value={saleDate}
-                                    min={new Date().toISOString().slice(0, 10)}
-                                    onChange={e => {
+                                  <input type="date" className="datetimepicker form-control" value={saleDate} min={new
+                                    Date().toISOString().slice(0, 10)} onChange={e => {
                                       setSaleDate(e.target.value);
                                       setDateError("");
                                     }}
@@ -563,60 +579,53 @@ const AddSalesModal = () => {
                               </div>
                             </div>
 
-
                             <div className="col-md-12">
                               <div className="mb-3">
                                 <label className="form-label">Customer Name<span className="text-danger ms-1">*</span></label>
                                 <div className="row">
                                   <div className="col-lg-11 col-sm-10 col-10">
 
+                                    {/* <Select options={options} value={selectedCustomer} // onChange={option=> {
+                                      // setSelectedCustomer(option);
+                                      // setSelectedBilling(null);
+                                      // setSelectedShipping(null);
+                                      // }}
+                                      onChange={handleCustomerChange}
+                                      placeholder="Choose a customer..."
+                                      isClearable
+                                    /> */}
                                     <Select
                                       options={options}
-                                      value={selectedCustomer}
-                                      onChange={option => {
-                                        setSelectedCustomer(option);
-                                        setSelectedBilling(null);
-                                        setSelectedShipping(null);
-                                      }}
+                                      value={selectedCustomerOption}  // <-- from your computed variable
+                                      onChange={handleCustomerChange}
                                       placeholder="Choose a customer..."
                                       isClearable
                                     />
                                     {/* Billing address dropdown if multiple */}
                                     {billingOptions.length > 1 && (
-                                      <Select
-                                        className="mt-2"
-                                        options={billingOptions}
-                                        value={selectedBilling}
-                                        onChange={setSelectedBilling}
-                                        placeholder="Select Billing Address"
-                                      />
+                                      <Select className="mt-2" options={billingOptions} value={selectedBilling}
+                                        onChange={setSelectedBilling} placeholder="Select Billing Address" />
                                     )}
                                     {/* Shipping address dropdown if multiple */}
                                     {shippingOptions.length > 1 && (
-                                      <Select
-                                        className="mt-2"
-                                        options={shippingOptions}
-                                        value={selectedShipping}
-                                        onChange={setSelectedShipping}
-                                        placeholder="Select Shipping Address"
-                                      />
+                                      <Select className="mt-2" options={shippingOptions} value={selectedShipping}
+                                        onChange={setSelectedShipping} placeholder="Select Shipping Address" />
                                     )}
 
                                   </div>
                                   <div className="col-lg-1 col-sm-2 col-2 ps-0">
                                     <div className="add-icon">
-                                      <a href="#" className="bg-dark text-white p-2 rounded" data-bs-toggle="modal" data-bs-target="#add_customer"><i data-feather="plus-circle" className="plus" /></a>
+                                      <a href="#" className="bg-dark text-white p-2 rounded" data-bs-toggle="modal"
+                                        data-bs-target="#add_customer"><i data-feather="plus-circle" className="plus" /></a>
                                     </div>
                                   </div>
                                 </div>
                               </div>
                             </div>
 
-
                             <div>
-                              <a href="javascript:void(0);"
-                                className="d-flex align-items-center "><i
-                                  className="isax isax-add-circle5 me-1 text-primary" />Add
+                              <a href="javascript:void(0);" className="d-flex align-items-center "><i
+                                className="isax isax-add-circle5 me-1 text-primary" />Add
                                 Due Date</a>
                             </div>
                           </div>
@@ -628,21 +637,24 @@ const AddSalesModal = () => {
                             <div className="col-md-12">
                               <div className="mb-3">
                                 <div className="logo-image">
-                                  <img src="assets/img/invoice-logo.svg"
-                                    className="invoice-logo-dark" alt="img" />
-                                  <img src="assets/img/invoice-logo-white-2.svg"
-                                    className="invoice-logo-white" alt="img" />
+                                  <img src="assets/img/invoice-logo.svg" className="invoice-logo-dark" alt="img" />
+                                  <img src="assets/img/invoice-logo-white-2.svg" className="invoice-logo-white" alt="img" />
                                 </div>
                               </div>
                             </div>
                             <div className="col-md-6">
                               <div className="mb-3">
-                                <select className="form-select" name="status"
-                                  value={formState.status} onChange={handleChange}>
-                                  <option>Select Status</option>
-                                  <option>Pending</option>
-                                  <option>Complete</option>
-                                  <option>Cancelled</option>
+                                {/* STATUS — bind to top-level `status` state */}
+                                <select
+                                  className="form-select"
+                                  name="status"
+                                  value={status}
+                                  onChange={(e) => setStatus(e.target.value)}
+                                >
+                                  <option value="">Select Status</option>
+                                  <option value="Pending">Pending</option>
+                                  <option value="Complete">Complete</option>
+                                  <option value="Cancelled">Cancelled</option>
                                   <option value="In Progress">In Progress</option>
                                   <option value="On Hold">On Hold</option>
                                 </select>
@@ -650,32 +662,41 @@ const AddSalesModal = () => {
                             </div>
                             <div className="col-md-6">
                               <div className="mb-3">
-                                <select className="form-select" name="currency"
-                                  value={formState.currency} onChange={handleChange}>
-                                  <option>Currency</option>
-                                  <option>$</option>
-                                  <option>€</option>
-                                  <option>₹</option>
+                                {/* CURRENCY — keep inside formState */}
+                                <select
+                                  className="form-select"
+                                  name="currency"
+                                  value={formState.currency || ""}
+                                  onChange={handleChange}
+                                >
+                                  <option value="">Currency</option>
+                                  <option value="$">$</option>
+                                  <option value="€">€</option>
+                                  <option value="₹">₹</option>
                                 </select>
                               </div>
                             </div>
                             <div className="col-md-12">
-                              <div
-                                className="p-2 border rounded d-flex justify-content-between">
+                              <div className="p-2 border rounded d-flex justify-content-between">
                                 <div className="d-flex align-items-center">
                                   <div className="form-check form-switch me-4">
-                                    <input className="form-check-input" type="checkbox"
-                                      role="switch" id="enabe_tax" name="enableTax"
-                                      checked={formState.enableTax}
-                                      onChange={handleChange} />
-                                    <label className="form-check-label"
-                                      htmlFor="enabe_tax">Enable Tax</label>
+                                    {/* <input className="form-check-input" type="checkbox" role="switch" id="enabe_tax"
+                                      name="enableTax" checked={formState.enableTax} onChange={handleChange} /> */}
+                                    <input
+                                      className="form-check-input"
+                                      type="checkbox"
+                                      role="switch"
+                                      id="enableTaxSwitch"
+                                      name="enableTax"
+                                      checked={!!formState.enableTax}
+                                      onChange={handleChange}
+                                    />
+                                    <label className="form-check-label" htmlFor="enabe_tax">Enable Tax</label>
                                   </div>
                                 </div>
                                 <div>
-                                  <a ><span
-                                    className="bg-primary-subtle p-1 rounded"><i
-                                      className="isax isax-setting-2 text-primary" /></span></a>
+                                  <a><span className="bg-primary-subtle p-1 rounded"><i
+                                    className="isax isax-setting-2 text-primary" /></span></a>
                                 </div>
                               </div>
                             </div>
@@ -686,7 +707,6 @@ const AddSalesModal = () => {
                   </div>
                 </div>
 
-
                 {/* Bill From/To content for selected customer */}
                 {customerObj && (
                   <div className="bill-content pb-0">
@@ -694,8 +714,8 @@ const AddSalesModal = () => {
                       <div className="col-md-6">
                         <div className="card box-shadow-0">
                           {/* <div className="card-header border-0 pb-0">
-                              <h6>Bill From</h6>
-                            </div> */}
+                <h6>Bill From</h6>
+              </div> */}
                           <div className="card-body">
                             <div className="mb-3">
                               <label className="form-label">Billing Adress</label>
@@ -723,19 +743,14 @@ const AddSalesModal = () => {
                       <div className="col-md-6">
                         <div className="card box-shadow-0">
                           {/* <div className="card-header border-0 pb-0">
-                              <h6>Bill To</h6>
-                            </div> */}
+                <h6>Bill To</h6>
+              </div> */}
                           <div className="card-body">
                             <div className="mb-3">
                               <div className="d-flex align-items-center justify-content-between">
                                 <label className="form-label">Shipping Adress</label>
                               </div>
-                              <input
-                                type="text"
-                                className="form-control"
-                                value={shippingAddr?.name || ""}
-                                readOnly
-                              />
+                              <input type="text" className="form-control" value={shippingAddr?.name || ""} readOnly />
                             </div>
                             <div className="p-3 bg-light rounded border">
                               <div className="d-flex">
@@ -757,194 +772,6 @@ const AddSalesModal = () => {
                   </div>
                 )}
 
-
-                {/* product & search
-                <div className="items-details">
-                  <div className="purchase-header mb-3">
-                    <h6>Items &amp; Details</h6>
-                  </div>
-                  <div className="row">
-                    <div className="col-md-6">
-                      <div className="mb-3">
-                        <h6 className="fs-14 mb-1">Item Type</h6>
-                        <div className="d-flex align-items-center gap-3">
-                          <div className="form-check">
-                            <input className="form-check-input" type="radio"
-                              name="flexRadioDefault" id="flexRadioDefault1" defaultChecked />
-                            <label className="form-check-label" htmlFor="flexRadioDefault1">
-                              Product
-                            </label>
-                          </div>
-                          <div className="form-check">
-                            <input className="form-check-input" type="radio"
-                              name="flexRadioDefault" id="flexRadioDefault2" />
-                            <label className="form-check-label" htmlFor="flexRadioDefault2">
-                              Service
-                            </label>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="col-12">
-                      <div className="mb-3">
-                        <label className="form-label">
-                          Product<span className="text-danger ms-1">*</span>
-                        </label>
-                        <input type="text" className="form-control" placeholder="Search Product"
-                          value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)}
-                        />
-                      </div>
-                      {products.length > 0 && (
-                        <div className="search-results border rounded p-3 mb-3">
-                          <h6 className="fw-semibold border-bottom pb-2 mb-3">
-                            <i className="bi bi-list me-2" />
-                            All Products
-                            <span className="float-end text-muted small">
-                              {products.length} Result{products.length > 1 ? "s" : ""}
-                            </span>
-                          </h6>
-
-                          {products.map((product) => (
-                            <div key={product._id} className="d-flex align-items-start justify-content-between py-2 border-bottom"
-                              onClick={() =>
-                                handleProductSelect(product)}
-                              style={{ cursor: "pointer" }}
-                            >
-                              <div className="d-flex align-items-start gap-3">
-                                {product.images?.[0] && (
-                                  <img src={product.images[0].url} alt={product.productName} className="media-image"
-                                    style={{ width: "45px", height: "45px", borderRadius: "6px", objectFit: "cover" }} />
-                                )}
-                                <div>
-                                  <h6 className="fw-bold mb-1">{product.productName}</h6>
-                                  <p className="text-muted small mb-0">
-                                    {product.category?.categoryName || "No Category"} •{" "}
-                                    {product.subCategory?.subCategoryName || "No Sub"} • ₹{product.sellingPrice || product.price || 0} • Available Qty -{" "}
-                                    {product.availableQty || product.quantity || 0}/ {product.unit}
-                                    • {product.productCode || "N/A"}
-                                    {product.hsnCode ? ` • HSN: ${product.hsnCode}` : ""}
-                                  </p>
-                                </div>
-                              </div>
-
-                              <i className="bi bi-pencil text-primary" />
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-
-                  <div className="table-responsive rounded border-bottom-0 border mb-3">
-                    <table className="table table-nowrap add-table mb-0">
-                      <thead className="table-dark">
-                        <tr>
-                          <th>Product/Service</th>
-                          <th>HSN Code</th>
-                          <th>Qty</th>
-                          <th> Selling Price</th>
-                          {formState.enableTax && (
-                            <>
-                              <th>Tax Amount</th>
-                            </>
-                          )}
-
-                          <th> Unit Cost</th>
-                          <th>Total Return</th>
-                          <th />
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {selectedProducts.length > 0 ? (
-                          selectedProducts.map((product, index) => {
-                            const qty = product.quantity;
-                            const price = product.sellingPrice || 0;
-                            const discount = product.discount || 0;
-                            const tax = product.tax || 0;
-                            const subTotal = qty * price;
-                            const afterDiscount = subTotal - discount;
-                            const taxAmount = (afterDiscount * tax) / 100;
-                            const lineTotal = afterDiscount + taxAmount;
-                            const unitCost = qty > 0 ? lineTotal / qty : 0;
-                            return (
-                              <tr key={product._id}>
-                                <td>
-                                  {product.productName}
-                                  <br />
-                                  <small className="text-muted">
-                                    Available: {product.quantity || 0} {product.unit}
-                                  </small>
-                                </td>
-                                <td>{product.hsnCode || "-"}</td>
-                                <td>
-                                  <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "8px" }}>
-                                    <input type="number" className="form-control form-control-sm"
-                                      style={{ width: "70px", textAlign: "center" }} min="1" max={product.availableQty || 9999}
-                                      value={qty} onChange={(e) => {
-                                        let val = parseInt(e.target.value, 10);
-                                        if (isNaN(val)) val = 1;
-                                        if (val < 1) val = 1; if (val > (product.availableQty || 9999)) val = product.availableQty || 9999;
-                                        setSelectedProducts((prev) =>
-                                          prev.map((item, i) =>
-                                            i === index ? { ...item, quantity: val } : item
-                                          )
-                                        );
-                                      }}
-                                    />
-                                    <span className="text-muted">{product.unit}</span>
-                                  </div>
-                                </td>
-                                <td>
-                                  <input type="number" className="form-control form-control-sm" style={{ width: "90px" }}
-                                    min="0" value={price} onChange={(e) => {
-                                      const val = parseFloat(e.target.value);
-                                      setSelectedProducts((prev) =>
-                                        prev.map((item, i) =>
-                                          i === index
-                                            ? { ...item, sellingPrice: isNaN(val) ? 0 : val }
-                                            : item
-                                        )
-                                      );
-                                    }}
-                                  />
-                                </td>
-
-                                {formState.enableTax && (
-                                  <td>₹{taxAmount.toFixed(2)}</td>
-                                )}
-
-
-                                <td>₹{unitCost.toFixed(2)}</td>
-                                <td className="fw-semibold text-success">
-                                  ₹{lineTotal.toFixed(2)}
-                                </td>
-                                <td>
-                                  <button
-                                    className="btn btn-sm btn-danger"
-                                    onClick={() => handleRemoveProduct(product._id)}
-                                    type="button"
-                                  >
-                                    <TbTrash />
-                                  </button>
-                                </td>
-                              </tr>
-                            );
-                          })
-                        ) : (
-                          <tr>
-                            <td colSpan="10" className="text-center text-muted">
-                              No products selected.
-                            </td>
-                          </tr>
-                        )}
-                      </tbody>
-                    </table>
-                  </div>
-
-                  
-                </div> */}
-
                 {/* product & search */}
                 <div className="items-details">
                   <div className="purchase-header mb-3">
@@ -958,15 +785,14 @@ const AddSalesModal = () => {
                         <h6 className="fs-14 mb-1">Item Type</h6>
                         <div className="d-flex align-items-center gap-3">
                           <div className="form-check">
-                            <input className="form-check-input" type="radio"
-                              name="flexRadioDefault" id="flexRadioDefault1" defaultChecked />
+                            <input className="form-check-input" type="radio" name="flexRadioDefault" id="flexRadioDefault1"
+                              defaultChecked />
                             <label className="form-check-label" htmlFor="flexRadioDefault1">
                               Product
                             </label>
                           </div>
                           <div className="form-check">
-                            <input className="form-check-input" type="radio"
-                              name="flexRadioDefault" id="flexRadioDefault2" />
+                            <input className="form-check-input" type="radio" name="flexRadioDefault" id="flexRadioDefault2" />
                             <label className="form-check-label" htmlFor="flexRadioDefault2">
                               Service
                             </label>
@@ -980,8 +806,8 @@ const AddSalesModal = () => {
                         <label className="form-label">
                           Product<span className="text-danger ms-1">*</span>
                         </label>
-                        <input type="text" className="form-control" placeholder="Search Product"
-                          value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)}
+                        <input type="text" className="form-control" placeholder="Search Product" value={searchTerm}
+                          onChange={(e) => setSearchTerm(e.target.value)}
                         />
                       </div>
                       {/* Search Result List */}
@@ -1010,7 +836,8 @@ const AddSalesModal = () => {
                                   <h6 className="fw-bold mb-1">{product.productName}</h6>
                                   <p className="text-muted small mb-0">
                                     {product.category?.categoryName || "No Category"} •{" "}
-                                    {product.subCategory?.subCategoryName || "No Sub"} • ₹{product.sellingPrice || product.price || 0} • Available Qty -{" "}
+                                    {product.subCategory?.subCategoryName || "No Sub"} • ₹{product.sellingPrice || product.price || 0}
+                                    • Available Qty -{" "}
                                     {product.availableQty || product.quantity || 0}/ {product.unit}
                                     • {product.productCode || "N/A"}
                                   </p>
@@ -1057,7 +884,6 @@ const AddSalesModal = () => {
                             // const lineTotal = afterDiscount + taxAmount;
                             // const unitCost = saleQty > 0 ? lineTotal / saleQty : 0;
 
-
                             // const qty = product.quantity;
                             const price = product.sellingPrice || 0;
                             const discount = product.discount || 0;
@@ -1077,26 +903,20 @@ const AddSalesModal = () => {
                                   </small>
                                 </td>
                                 {/* <td>
-                                  <input
-                                    type="number"
-                                    className="form-control form-control-sm"
-                                    style={{ width: "70px", textAlign: "center" }}
-                                    min={1}
-                                    max={availableQty}
-                                    value={qyt}
-                                    onChange={e => {
-                                      let val = parseInt(e.target.value, 10);
-                                      if (isNaN(val) || val < 1) val = 1;
-                                      if (val > availableQty) val = availableQty;
-                                      setSelectedProducts(prev =>
-                                        prev.map((item, i) =>
-                                          i === index ? { ...item, qyt: val } : item
-                                        )
-                                      );
-                                    }}
-                                  />
-                                  <span className="text-muted ms-2">{product.unit}</span>
-                                </td> */}
+                  <input type="number" className="form-control form-control-sm"
+                    style={{ width: "70px", textAlign: "center" }} min={1} max={availableQty} value={qyt} onChange={e=>
+                  {
+                  let val = parseInt(e.target.value, 10);
+                  if (isNaN(val) || val < 1) val=1; if (val> availableQty) val = availableQty;
+                    setSelectedProducts(prev =>
+                    prev.map((item, i) =>
+                    i === index ? { ...item, qyt: val } : item
+                    )
+                    );
+                    }}
+                    />
+                    <span className="text-muted ms-2">{product.unit}</span>
+                </td> */}
 
                                 <td>
                                   <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "8px" }}>
@@ -1117,8 +937,8 @@ const AddSalesModal = () => {
                                   </div>
                                 </td>
                                 <td>
-                                  <input type="number" className="form-control form-control-sm" style={{ width: "90px" }}
-                                    min="0" value={price} onChange={(e) => {
+                                  <input type="number" className="form-control form-control-sm" style={{ width: "90px" }} min="0"
+                                    value={price} onChange={(e) => {
                                       const val = parseFloat(e.target.value);
                                       setSelectedProducts((prev) =>
                                         prev.map((item, i) =>
@@ -1135,15 +955,12 @@ const AddSalesModal = () => {
                                   <td>₹{taxAmount.toFixed(2)}</td>
                                 )}
 
-
                                 <td>₹{unitCost.toFixed(2)}</td>
                                 <td className="fw-semibold text-success">
                                   ₹{lineTotal.toFixed(2)}
                                 </td>
                                 <td>
-                                  <button
-                                    className="btn btn-sm btn-danger"
-                                    onClick={() => handleRemoveProduct(product._id)}
+                                  <button className="btn btn-sm btn-danger" onClick={() => handleRemoveProduct(product._id)}
                                     type="button"
                                   >
                                     <TbTrash />
@@ -1164,16 +981,11 @@ const AddSalesModal = () => {
                   </div>
 
                   {/* Table list end
-                  <div>
-                    <a href="#" className="d-inline-flex align-products-center add-invoice-data"><i
-                      className="isax isax-add-circle5 text-primary me-1" />Add New</a>
-                  </div> */}
+        <div>
+          <a href="#" className="d-inline-flex align-products-center add-invoice-data"><i
+              className="isax isax-add-circle5 text-primary me-1" />Add New</a>
+        </div> */}
                 </div>
-
-
-
-
-
 
                 <div className="extra-info mt-3">
                   {/* start row */}
@@ -1184,38 +996,33 @@ const AddSalesModal = () => {
                         <div>
                           <ul className="nav nav-tabs nav-solid-primary mb-3" role="tablist">
                             <li className="nav-item me-2" role="presentation">
-                              <a className="nav-link active border fs-12 fw-semibold rounded"
-                                data-bs-toggle="tab" data-bs-target="#notes"
-                                aria-current="page" href="javascript:void(0);"><i
+                              <a className="nav-link active border fs-12 fw-semibold rounded" data-bs-toggle="tab"
+                                data-bs-target="#notes" aria-current="page" href="javascript:void(0);"><i
                                   className="isax isax-document-text me-1" />Add Notes</a>
                             </li>
                             {formState.enableAddCharges && (<li className="nav-item me-2" role="presentation">
-                              <a className="nav-link border fs-12 fw-semibold rounded"
-                                data-bs-toggle="tab" data-bs-target="#addCharges"
-                                href="javascript:void(0);"><i
+                              <a className="nav-link border fs-12 fw-semibold rounded" data-bs-toggle="tab"
+                                data-bs-target="#addCharges" href="javascript:void(0);"><i
                                   className="isax isax-document me-1" />Additional Charges</a>
                             </li>)}
 
                             {formState.enableTax && (
                               <li className="nav-item me-2" role="presentation">
-                                <a className="nav-link border fs-12 fw-semibold rounded"
-                                  data-bs-toggle="tab" data-bs-target="#tax"
-                                  href="javascript:void(0);"><i
-                                    className="isax isax-document me-1" />Tax</a>
+                                <a className="nav-link border fs-12 fw-semibold rounded" data-bs-toggle="tab" data-bs-target="#tax"
+                                  href="javascript:void(0);"><i className="isax isax-document me-1" />Tax</a>
                               </li>)}
 
                             <li className="nav-item" role="presentation">
-                              <a className="nav-link border fs-12 fw-semibold rounded"
-                                data-bs-toggle="tab" data-bs-target="#bank"
-                                href="javascript:void(0);"><i
-                                  className="isax isax-bank me-1" />Bank Details</a>
+                              <a className="nav-link border fs-12 fw-semibold rounded" data-bs-toggle="tab" data-bs-target="#bank"
+                                href="javascript:void(0);"><i className="isax isax-bank me-1" />Bank Details</a>
                             </li>
                           </ul>
 
                           <div className="tab-content">
                             <div className="tab-pane active show" id="notes" role="tabpanel">
                               <label className="form-label">Additional Notes</label>
-                              <textarea className="form-control" name="notes" value={formState.notes || ""} onChange={handleChange} />
+                              <textarea className="form-control" name="notes" value={formState.notes || ""}
+                                onChange={handleChange} />
                             </div>
                             {formState.enableAddCharges && (<div className="tab-pane fade" id="addCharges" role="tabpanel">
                               <div className="row">
@@ -1294,10 +1101,11 @@ const AddSalesModal = () => {
                                 <div className="col-lg-4"><label>Payment Status</label>
                                   <select className="form-select" value={paymentStatus} onChange={e => setPaymentStatus(e.target.value)}>
                                     <option>Select</option>
-                                    <option>Paid</option>
-                                    <option>Unpaid</option>
-                                    <option>Partial</option>
-                                    <option>Pending</option>
+                                    <option value="Paid">Paid</option>
+                                    <option value="Unpaid">Unpaid</option>
+                                    <option value="Partial">Partial</option>
+                                    <option value="Pending">Pending</option>
+
                                   </select>
                                 </div>
 
@@ -1312,19 +1120,33 @@ const AddSalesModal = () => {
 
                                     {paymentType === "Partial" && (
                                       <>
+                                        {/* Partial payment fields */}
                                         <div className="col-lg-4">
                                           <label>Total Amount</label>
                                           <input type="number" className="form-control" value={grandTotal} readOnly />
                                         </div>
+
                                         <div className="col-lg-4">
                                           <label>Paid Amount</label>
-                                          <input type="number" className="form-control" value={paidAmount} max={grandTotal} onChange={e =>
-                                            setPaidAmount(parseFloat(e.target.value) || 0)} />
+                                          <input
+                                            type="number"
+                                            className="form-control"
+                                            value={paidAmount}
+                                            min="0"
+                                            max={grandTotal}
+                                            onChange={(e) => {
+                                              const n = Number(e.target.value) || 0;
+                                              const clamped = Math.max(0, Math.min(n, grandTotal));
+                                              setPaidAmount(clamped);
+                                            }}
+                                          />
                                         </div>
+
                                         <div className="col-lg-4">
                                           <label>Due Amount</label>
                                           <input type="number" className="form-control" value={dueAmount.toFixed(2)} readOnly />
                                         </div>
+
                                         <div className="col-lg-4 mt-2">
                                           <label>Due Date</label>
                                           <input type="date" className="form-control" value={dueDate} onChange={e => setDueDate(e.target.value)}
@@ -1338,14 +1160,18 @@ const AddSalesModal = () => {
                                       <div className="d-flex gap-4">
                                         {["Cash", "Online", "Cheque"].map((method) => (
                                           <div className="form-check" key={method}>
-                                            <input type="radio" className="form-check-input" id={method} checked={paymentMethod === method}
+                                            <input
+                                              type="radio"
+                                              className="form-check-input"
+                                              name="paymentMethod"             // <-- add this
+                                              id={method}
+                                              checked={paymentMethod === method}
                                               onChange={() => setPaymentMethod(method)}
                                             />
-                                            <label className="form-check-label" htmlFor={method}>
-                                              {method}
-                                            </label>
+                                            <label className="form-check-label" htmlFor={method}>{method}</label>
                                           </div>
                                         ))}
+
                                       </div>
                                     </div>
 
@@ -1451,10 +1277,21 @@ const AddSalesModal = () => {
 
 
                         <div className="form-check form-switch me-4 mb-3">
-                          <input className="form-check-input" type="checkbox"
+                          {/* <input className="form-check-input" type="checkbox"
                             role="switch" id="enabe_tax" name="enableAddCharges"
                             checked={formState.enableAddCharges}
-                            onChange={handleChange} />
+                            onChange={handleChange} /> */}
+                          <input
+                            className="form-check-input"
+                            type="checkbox"
+                            role="switch"
+                            id="enableAddChargesSwitch"
+                            name="enableAddCharges"
+                            checked={!!formState.enableAddCharges}
+                            onChange={handleChange}
+                          />
+
+
                           <label className="form-check-label"
                             htmlFor="enabe_tax">Add Additional Charges</label>
                         </div>
@@ -1513,19 +1350,33 @@ const AddSalesModal = () => {
                           <div className="p-2 d-flex justify-content-between">
                             <div className="d-flex align-items-center">
                               <div className="form-check form-switch me-4">
-                                <input className="form-check-input" type="checkbox" role="switch" id="enabe_tax1" name="roundOff" checked={!!formState.roundOff} onChange={handleChange} />
+                                {/* <input className="form-check-input" type="checkbox" role="switch" id="enabe_tax1" name="roundOff" checked={!!formState.roundOff} onChange={handleChange} /> */}
+                                <input
+                                  className="form-check-input"
+                                  type="checkbox"
+                                  role="switch"
+                                  id="roundOffSwitch"
+                                  name="roundOff"
+                                  checked={!!formState.roundOff}
+                                  onChange={handleChange}
+                                />
                                 <label className="form-check-label" htmlFor="enabe_tax1">Round Off Total</label>
                               </div>
                             </div>
                             <div>
-                              <h6 className="fs-14">$596</h6>
+                              <h6 className="fs-14">₹ {roundOffValue ? roundOffValue.toFixed(2) : "0.00"}</h6>
                             </div>
                           </div>
                         </li>
                         <li className="mt-3 pb-3 border-bottom border-gray">
                           <div className="d-flex align-items-center justify-content-between">
                             <h6>Total (INR)</h6>
-                            <h6>₹ {formState.roundOff ? Math.round(grandTotal) : grandTotal ? grandTotal.toFixed(2) : '0.00'}</h6>
+                            {/* <h6>₹ {formState.roundOff ? Math.round(grandTotal) : grandTotal ? grandTotal.toFixed(2) : '0.00'}</h6> */}
+                            <h6>
+                              ₹ {Number.isFinite(grandTotal)
+                                ? (formState.roundOff ? Math.round(grandTotal).toFixed(2) : grandTotal.toFixed(2))
+                                : "0.00"}
+                            </h6>
                           </div>
                         </li>
                         <li className="mt-3 pb-3 border-bottom border-gray">
@@ -2981,69 +2832,75 @@ export default AddSalesModal
 //   };
 
 //   // Handle form submit
-//   const handleSubmit = async (e) => {
-//     e.preventDefault();
-//     if (saleDate < new Date().toISOString().slice(0, 10)) {
-//       setDateError("Back date sales not allowed");
-//       return;
-//     }
-//     setDateError("");
-//     // Build payload with all form fields
-//     const payload = {
-//       customer: selectedCustomer?.value,
-//       billing: billingAddr,
-//       shipping: shippingAddr,
-//       products: selectedProducts.map(p => ({
-//         productId: p._id,
-//         quantity: p.quantity,
-//         sellingPrice: p.sellingPrice,
-//         discount: p.discount,
-//         tax: p.tax,
-//       })),
-//       saleDate,
-//       labourCost,
-//       orderDiscount,
-//       shippingCost,
-//       status,
-//       paymentType,
-//       paidAmount,
-//       dueAmount,
-//       dueDate,
-//       paymentMethod,
-//       transactionId,
-//       onlineMod,
-//       transactionDate,
-//       paymentStatus,
-//       images: selectedImages,
-//       description,
-//       referenceNumber,
-//       // Add all formState fields
-//       ...formState,
-//     };
-//     try {
-//       // Use FormData for file/image upload
-//       const formData = new FormData();
-//       Object.entries(payload).forEach(([key, value]) => {
-//         if (Array.isArray(value) && key === "images") {
-//           value.forEach((file, idx) => formData.append(`images[${idx}]`, file));
-//         } else if (Array.isArray(value) && key === "signatureImage") {
-//           value.forEach((file, idx) => formData.append(`signatureImage[${idx}]`, file));
-//         } else if (typeof value === "object" && value !== null) {
-//           formData.append(key, JSON.stringify(value));
-//         } else {
-//           formData.append(key, value);
-//         }
-//       });
-//       await axios.post(`${BASE_URL}/api/sales/create`, formData, {
-//         headers: {
-//           'Content-Type': 'multipart/form-data'
-//         }
-//       });
-//       window.$('#add-sales-new').modal('hide');
-//     } catch (err) {
-//       setDateError("Failed to submit sale: " + (err.response?.data?.message || err.message));
-//     }
-//   };
+const handleSubmit = async (e) => {
+  e.preventDefault();
+  if (saleDate < new Date().toISOString().slice(0, 10)) {
+    setDateError("Back date sales not allowed");
+    return;
+  }
+  setDateError("");
+  // Build payload with all form fields
+  const payload = {
+    customer: selectedCustomer?.value,
+    billing: billingAddr,
+    shipping: shippingAddr,
+    products: selectedProducts.map(p => ({
+      productId: p._id,
+      quantity: p.quantity,
+      sellingPrice: p.sellingPrice,
+      discount: p.discount,
+      tax: p.tax,
+    })),
+    saleDate,
+    orderTax,
+    orderDiscount,
+    shippingCost,
+    status,
+    paymentType,
+    paidAmount,
+    dueAmount,
+    dueDate,
+    paymentMethod,
+    transactionId,
+    onlineMod,
+    transactionDate,
+    paymentStatus,
+    images: selectedImages,
+    description,
+    referenceNumber,
+    // Add all formState fields
+    ...formState,
+  };
+  console.log("[DEBUG] Selected Customer:", selectedCustomer);
+  console.log("[DEBUG] Payload before sending:", payload);
+  try {
+    // Use FormData for file/image upload
+    const formData = new FormData();
+    Object.entries(payload).forEach(([key, value]) => {
+      if (Array.isArray(value) && key === "images") {
+        value.forEach((file, idx) => formData.append(`images[${idx}]`, file));
+      } else if (Array.isArray(value) && key === "signatureImage") {
+        value.forEach((file, idx) => formData.append(`signatureImage[${idx}]`, file));
+      } else if (typeof value === "object" && value !== null) {
+        formData.append(key, JSON.stringify(value));
+      } else {
+        formData.append(key, value);
+      }
+    });
+    // Debug log for FormData
+    for (let pair of formData.entries()) {
+      console.log(`[DEBUG] FormData: ${pair[0]} =`, pair[1]);
+    }
+    await axios.post(`${BASE_URL}/api/sales/create`, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data'
+      }
+    });
+    window.$('#add-sales-new').modal('hide');
+  } catch (err) {
+    setDateError("Failed to submit sale: " + (err.response?.data?.message || err.message));
+  }
+};
 
 //   // Calculate product line totals and grand total
 //   const calculateLineTotal = (product) => {
