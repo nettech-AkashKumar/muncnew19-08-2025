@@ -18,6 +18,14 @@ import BASE_URL from "../../../../pages/config/config";
 import { useLocation } from "react-router-dom";
 import Alk from "../../../../assets/images/alk.jpg"
 
+const formatRecipients = (list = []) =>
+  list.map(r =>
+    r.firstName || r.lastName
+      ? `${r.firstName || ""} ${r.lastName || ""} <${r.email}>`
+      : r.email
+  ).join(", ");
+
+
 const EmailMessages = ({
   filteredEmails,
   handleToggleStar: externalToggleStar,
@@ -256,12 +264,6 @@ const EmailMessages = ({
 
   // const [activeTabs, setActiveTabs] = useState('All')
   // const tabs = ['All', 'Unread', 'Archived']
-
-
-
-
-
-
 
   return (
     <div className="mainemailmessage">

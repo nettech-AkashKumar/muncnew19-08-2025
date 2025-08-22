@@ -22,8 +22,8 @@ const EmailDetail = ({ email, onBack, handleToggleStar }) => {
   // const [emailshow, setEmailShow] = useState(false);
   const [menuOpenId, setMenuOpenId] = useState(null);
   const [emails, setEmails] = useState([]);
-  const [body, setBody] = useState("")  //store emoji input
-  const [emojiList, setEmojiList] = useState([])  //emojis to show below email body
+  const [body, setBody] = useState(""); //store emoji input
+  const [emojiList, setEmojiList] = useState([]); //emojis to show below email body
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
 
   // for handlereply and forward
@@ -31,8 +31,8 @@ const EmailDetail = ({ email, onBack, handleToggleStar }) => {
     show: false,
     to: "",
     subject: "",
-    body: ""
-  })
+    body: "",
+  });
 
   const menuRef = useRef();
 
@@ -77,34 +77,38 @@ const EmailDetail = ({ email, onBack, handleToggleStar }) => {
       to: email.from,
       // subject: `Re: ${email.subject}`,
       body: `\n\n------------------ Original Message ------------------\n${email.body}`,
-    })
-  }
+    });
+  };
 
   const handleForward = () => {
     setModalData({
       show: true,
       to: "",
       subject: `Fwd: ${email.subject}`,
-      body: `\n\n------------------ Forwarded Message ------------------\nFrom: ${email.from}\nDate: ${new Date(email.createdAt).toLocaleString()}\nTo: ${email.to.join(", ")}\nSubject: ${email.subject}\n\n${email.body}`
+      body: `\n\n------------------ Forwarded Message ------------------\nFrom: ${
+        email.from
+      }\nDate: ${new Date(
+        email.createdAt
+      ).toLocaleString()}\nTo: ${email.to.join(", ")}\nSubject: ${
+        email.subject
+      }\n\n${email.body}`,
     });
   };
 
-
-
   const handleEmojiClick = (emojiData) => {
-    setEmojiList((prev) => [...prev, emojiData.emoji])
+    setEmojiList((prev) => [...prev, emojiData.emoji]);
     // setBody("")
-  }
+  };
   useEffect(() => {
     const handleKeyDown = (e) => {
-      if (e.key === 'Enter' && body.trim() !== "") {
-        setEmojiList((prev) => [...prev, body])
+      if (e.key === "Enter" && body.trim() !== "") {
+        setEmojiList((prev) => [...prev, body]);
         // setBody("")
       }
-    }
-    window.addEventListener("keydown", handleKeyDown)
-    return () => window.removeEventListener("keydown", handleKeyDown)
-  }, [body])
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [body]);
 
   if (!email) return null;
 
@@ -127,40 +131,47 @@ const EmailDetail = ({ email, onBack, handleToggleStar }) => {
     }
   };
 
-
   return (
     <div className="email-detail">
       <div style={{ display: "flex", gap: "20px" }}>
-        <div className="" style={{color:'#676767',fontSize:'14px',fontFamily:"Roboto, sans-serif",fontWeight: 400, }}>
-        <button
+        <div
+          className=""
           style={{
-            border: "none",
-            background: "none",
+            color: "#676767",
+            fontSize: "14px",
+            fontFamily: "Roboto, sans-serif",
             fontWeight: 400,
-            cursor: "pointer",
-            fontFamily:"Roboto, sans-serif",
-            fontSize:'14px',
-            lineHeight:'14px',
-            color:'#676767'
           }}
-          onClick={onBack}
         >
-          <FaArrowLeft />
-        </button>
-        Back
+          <button
+            style={{
+              border: "none",
+              background: "none",
+              fontWeight: 400,
+              cursor: "pointer",
+              fontFamily: "Roboto, sans-serif",
+              fontSize: "14px",
+              lineHeight: "14px",
+              color: "#676767",
+            }}
+            onClick={onBack}
+          >
+            <FaArrowLeft />
+          </button>
+          Back
         </div>
-        <button
+        {/* <button
           style={{
             border: "none",
             background: "none",
             fontWeight: 800,
             cursor: "pointer",
           }}
-          onClick={""}
+          onClick={() => handleDelete(email._id)}
         >
           <RiDeleteBin6Line />
-        </button>
-        <span
+        </button> */}
+        {/* <span
           style={{ display: "flex", gap: "5px", cursor: "pointer" }}
           onClick={() => setEmailShow(true)}
         >
@@ -176,46 +187,89 @@ const EmailDetail = ({ email, onBack, handleToggleStar }) => {
             <LuForward />
           </button>
           <span>Forward</span>
-        </span>
+        </span> */}
       </div>
       <div className="subject-header">
         <div className="subject-left">
-          <h2 className="emailsub">{email.subject}</h2>
+          {/* <h2 className="emailsub">{email.subject}</h2> */}
           <div
             style={{
               display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
+              // alignItems: "center",
+              // justifyContent: "center",
               gap: "8px",
             }}
           >
             <span>
-              <img src="" alt="img" />
+              {email.sender.profileImage ? (
+                <img
+                  src={email.sender.profileImage}
+                  alt="alk"
+                  style={{
+                    width: "25px",
+                    height: "25px",
+                    borderRadius: "50%",
+                    objectFit: "cover",
+                  }}
+                />
+              ) : (
+                <div
+                  style={{
+                    backgroundColor: "#ccc",
+                    width: "25px",
+                    height: "25px",
+                    borderRadius: "50%",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    fontSize: "12px",
+                    color: "#fff",
+                  }}
+                >
+                  {email.sender.name?.[0]?.toUpperCase()}
+                </div>
+              )}
             </span>
-            <span>{email.to}</span>
+            <div style={{display:'flex', flexDirection:'column', margin:0, padding:0}}> 
+              <span  style={{ display: "block", margin: 0, padding: 0, marginTop:'-20px', marginBottom:'-10px' }}>
+              <span style={{margin:0, paddingRight:'4px', color:'#262626', fontSize:'14px', fontWeight:500, lineHeight:'14px'}}>{email.sender?.name || email.from || "Unknown"}</span>
+              <span style={{margin:0, paddingRight:'4px', fontSize:'12px', fontWeight:400, lineHeight:'14px', color:'#676767'}}>&lt;{email.to}&gt;</span>
             <button
               onClick={() => setShowDetails(!showDetails)}
               className="toggle-meta"
+              style={{paddingTop:'4px'}}
             >
               <MdExpandMore />
             </button>
+            </span>
+            <span style={{margin:'2px 0px 2px 0px', fontSize:'12px', fontWeight:400, lineHeight:'14px', color:'#676767'}}>To: {email.to}</span>
+              <span style={{margin:'2px 0px 2px 0px', fontSize:'12px', fontWeight:400, lineHeight:'14px', color:'#676767'}}>Subject: <span style={{color:'#262626'}}>{email.subject}</span></span>
+              </div>
           </div>
         </div>
         <div className="subject-right">
-          <span className="email-time">
+          <span className="email-time" style={{ color: "#262626" }}>
             {email.createdAt && !isNaN(new Date(email.createdAt))
               ? new Intl.DateTimeFormat("en-GB", {
-                day: "2-digit",
-                month: "short",
-                year: "numeric",
-                hour: "2-digit",
-                minute: "2-digit",
-                hour12: true,
-              }).format(new Date(email.createdAt))
+                  day: "2-digit",
+                  month: "short",
+                  year: "numeric",
+                  hour: "2-digit",
+                  minute: "2-digit",
+                  hour12: true,
+                }).format(new Date(email.createdAt))
               : "Invalid Date"}
           </span>
-          <span className="icon" onClick={() => handleToggleStar(email._id, email.tags.starred)} >
-            <AiFillStar style={{ fontSize: '20px', color: email.tags.starred ? '#fba64b' : 'ccc' }} />
+          <span
+            className="icon"
+            onClick={() => handleToggleStar(email._id, email.tags.starred)}
+          >
+            <AiFillStar
+              style={{
+                fontSize: "20px",
+                color: email.tags.starred ? "#fba64b" : "ccc",
+              }}
+            />
           </span>
           <span
             className="icon"
@@ -223,9 +277,22 @@ const EmailDetail = ({ email, onBack, handleToggleStar }) => {
           >
             <GrEmoji />
           </span>
-          <span className="icon" onClick={handleReply}>
-            <LuReply />
+          <span
+            className="icon"
+            style={{
+              border: "none",
+              background: "none",
+              fontWeight: 800,
+              cursor: "pointer",
+              color: "#919191ff",
+            }}
+            onClick={() => handleDelete(email._id)}
+          >
+            <RiDeleteBin6Line />
           </span>
+          {/* <span className="icon" onClick={handleReply}>
+            <LuReply />
+          </span> */}
           <EmailModal
             show={modalData.show}
             onClose={() => setModalData({ ...modalData, show: false })}
@@ -263,100 +330,100 @@ const EmailDetail = ({ email, onBack, handleToggleStar }) => {
         <div className="email-meta">
           <p
             style={{
-              fontSize: "16px",
-              color: "gray",
-              fontWeight: 500,
-              marginBottom: "5px",
+              fontSize:'12px', fontWeight:400, lineHeight:'14px', color:'#676767'
             }}
           >
             From:{" "}
-            <span style={{ fontSize: "16px", color: "black", fontWeight: 500 }}>
-              {email.from}
+            <span style={{
+              fontSize:'14px', fontWeight:400, lineHeight:'14px', color:'#262626'
+            }}>
+              {email.sender?.name || email.from || "Unknown"}
             </span>
           </p>
           <p
             style={{
-              fontSize: "16px",
-              color: "gray",
-              fontWeight: 500,
-              marginBottom: "5px",
+              fontSize:'12px', fontWeight:400, lineHeight:'14px', color:'#676767'
             }}
           >
             To:{" "}
-            <span style={{ fontSize: "16px", color: "black", fontWeight: 500 }}>
-              {email.to.join(",") || "None"}
+            <span style={{
+              fontSize:'14px', fontWeight:400, lineHeight:'14px', color:'#262626'
+            }}>
+              {Array.isArray(email.to) ? email.to.join(", ") : email.to || "None"}
             </span>
           </p>
           <p
             style={{
-              fontSize: "16px",
-              color: "gray",
-              fontWeight: 500,
-              marginBottom: "5px",
+              fontSize:'12px', fontWeight:400, lineHeight:'14px', color:'#676767'
             }}
           >
             Cc:{" "}
-            <span style={{ fontSize: "16px", color: "black", fontWeight: 500 }}>
-              {email.cc?.join(",") || "None"}
+            <span style={{
+              fontSize:'14px', fontWeight:400, lineHeight:'14px', color:'#262626'
+            }}>
+              {Array.isArray(email.cc) && email.cc.length > 0 ? email.cc.join(", ") : "None"}
             </span>
           </p>
           <p
             style={{
-              fontSize: "16px",
-              color: "gray",
-              fontWeight: 500,
-              marginBottom: "5px",
+              fontSize:'12px', fontWeight:400, lineHeight:'14px', color:'#676767'
             }}
           >
             Bcc:{" "}
-            <span style={{ fontSize: "16px", color: "black", fontWeight: 500 }}>
-              {email.bcc?.join(",") || "None"}
+            <span style={{
+              fontSize:'14px', fontWeight:400, lineHeight:'14px', color:'#262626'
+            }}>
+              {Array.isArray(email.bcc) && email.bcc.length > 0 ? email.bcc.join(", ") : "None"}
             </span>
           </p>
           <p
             style={{
-              fontSize: "16px",
-              color: "gray",
-              fontWeight: 500,
-              marginBottom: "5px",
+              fontSize:'12px', fontWeight:400, lineHeight:'14px', color:'#676767'
             }}
           >
             Date:{" "}
-            <span style={{ fontSize: "16px", color: "black", fontWeight: 500 }}>
+            <span style={{
+              fontSize:'14px', fontWeight:400, lineHeight:'14px', color:'#262626'
+            }}>
               {email.createdAt && !isNaN(new Date(email.createdAt))
                 ? new Intl.DateTimeFormat("en-GB", {
-                  day: "2-digit",
-                  month: "short",
-                  year: "numeric",
-                }).format(new Date(email.createdAt))
+                    day: "2-digit",
+                    month: "short",
+                    year: "numeric",
+                  }).format(new Date(email.createdAt))
                 : "Invalid Date"}
             </span>
           </p>
           <p
             style={{
-              fontSize: "16px",
-              color: "gray",
-              fontWeight: 500,
-              marginBottom: "5px",
+              fontSize:'12px', fontWeight:400, lineHeight:'14px', color:'#676767'
             }}
           >
             Subject:{" "}
-            <span style={{ fontSize: "16px", color: "black", fontWeight: 500 }}>
+            <span style={{
+              fontSize:'14px', fontWeight:400, lineHeight:'14px', color:'#262626'
+            }}>
               {email.subject}
             </span>
           </p>
         </div>
       )}
-      <div
-        className="email-body" style={{ border: 'none' }}
+      <hr style={{color:'#b8b8b8ff', height:'1px', fontWeight:400}}/>
+      <div 
+      style={{border: "none", fontSize:'14px', fontWeight:400, lineHeight:'14px', color:'#262626'}}
+        className="email-body"
         dangerouslySetInnerHTML={{
-          __html: email.body.replace(/\n/g, "<br/>")
+          __html: email.body.replace(/\n/g, "<br/>"),
         }}
       />
 
       {/* image and attachment */}
       <div style={{ marginTop: "20px" }}>
-        <h4>Attachments</h4>
+        <h4
+        style={{
+              fontSize:'14px', fontWeight:400, lineHeight:'14px', color:'#262626'
+            }}
+        >Attachments</h4>
         <div style={{ display: "flex", flexWrap: "wrap", gap: "20px" }}>
           {/* Images */}
           {email.image?.map((imgUrl, index) => {
@@ -365,23 +432,24 @@ const EmailDetail = ({ email, onBack, handleToggleStar }) => {
             //   "/"
             // )}`;
             return (
-              <div
-                className="attachment-box"
-                key={index}
-              >
+              <div className="attachment-box" key={index}>
                 <img
                   src={imgUrl}
                   alt={`attachment-${index}`}
                   className="attachment-img"
                 />
-                <div
-                  className="hover-download-btn"
-                >
-                  <a className="acker" onClick={() => handleDownload(imgUrl, `attachment-${index}.jpeg`)} href="#">
-                   <MdFileDownload />
+                <div className="hover-download-btn">
+                  <a
+                    className="acker"
+                    onClick={() =>
+                      handleDownload(imgUrl, `attachment-${index}.jpeg`)
+                    }
+                    href="#"
+                  >
+                    <MdFileDownload />
                   </a>
                   <a
-                  className="acker"
+                    className="acker"
                     href={imgUrl}
                     target="_blank"
                     rel="noreferrer"
@@ -394,66 +462,75 @@ const EmailDetail = ({ email, onBack, handleToggleStar }) => {
           })}
 
           {/* PDFs and Others */}
- {email.attachments?.map((fileUrl, index) => {
-  const fileName = fileUrl.split("/").pop();
-  const extension = fileUrl.split(".").pop().toLowerCase();
-  const isImage = /\.(jpeg|jpg|png|gif)$/i.test(fileUrl);
-  if (isImage) return null;
+          {email.attachments?.map((fileUrl, index) => {
+            const fileName = fileUrl.split("/").pop();
+            const extension = fileUrl.split(".").pop().toLowerCase();
+            const isImage = /\.(jpeg|jpg|png|gif)$/i.test(fileUrl);
+            if (isImage) return null;
 
-  const isPdf = extension === "pdf";
-  // const iconPreview = isPdf
-  //   ? fileUrl.replace("/upload/", "/upload/pg_1,w_120,h_120,c_thumb/")
-  //   : "/file-icon.png";
-  const iconPreview = isPdf
-  ? "/pdf.png"
-  : "/file-icon.png";
+            const isPdf = extension === "pdf";
+            // const iconPreview = isPdf
+            //   ? fileUrl.replace("/upload/", "/upload/pg_1,w_120,h_120,c_thumb/")
+            //   : "/file-icon.png";
+            const iconPreview = isPdf ? "/pdf.png" : "/file-icon.png";
 
-
-  return (
-    <div className="attachment-box" key={index}>
-      <img
-        src={iconPreview}
-        // alt={fileName}
-        className="attachment-img"
-      />
-      <div className="hover-download-btn">
-        <a className="acker" onClick={() => handleDownload(fileUrl, fileName)} href="#">
-          <MdFileDownload />
-        </a>
-        <a className="acker" href={fileUrl} target="_blank" rel="noreferrer">
-          <BsEyeFill />
-        </a>
-      </div>
-      <a
-      className="acker"
-        href={fileUrl}
-        target="_blank"
-        rel="noreferrer"
-        download
-        style={{
-          display: "block",
-          marginTop: "10px",
-          color: "#333",
-          fontSize: "14px",
-          overflow: "hidden",
-          textOverflow: "ellipsis",
-          whiteSpace: "nowrap",
-          textDecoration: "none",
-        }}
-        title={fileName}
-      >
-        {fileName}
-      </a>
-    </div>
-  );
-})}
-
-
+            return (
+              <div className="attachment-box" key={index}>
+                <img
+                  src={iconPreview}
+                  // alt={fileName}
+                  className="attachment-img"
+                />
+                <div className="hover-download-btn">
+                  <a
+                    className="acker"
+                    onClick={() => handleDownload(fileUrl, fileName)}
+                    href="#"
+                  >
+                    <MdFileDownload />
+                  </a>
+                  <a
+                    className="acker"
+                    href={fileUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    <BsEyeFill />
+                  </a>
+                </div>
+                <a
+                  className="acker"
+                  href={fileUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  download
+                  style={{
+                    display: "block",
+                    marginTop: "10px",
+                    color: "#333",
+                    fontSize: "14px",
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                    whiteSpace: "nowrap",
+                    textDecoration: "none",
+                  }}
+                  title={fileName}
+                >
+                  {fileName}
+                </a>
+              </div>
+            );
+          })}
         </div>
         {emojiList.length > 0 && (
-          <div className="emoji-preview" style={{ marginTop: "10px", fontSize: "22px" }}>
+          <div
+            className="emoji-preview"
+            style={{ marginTop: "10px", fontSize: "22px" }}
+          >
             {emojiList.map((emoji, index) => (
-              <span key={index} style={{ marginRight: '10px' }}>{emoji}</span>
+              <span key={index} style={{ marginRight: "10px" }}>
+                {emoji}
+              </span>
             ))}
           </div>
         )}
@@ -494,9 +571,9 @@ const EmailDetail = ({ email, onBack, handleToggleStar }) => {
         <span
           onClick={() => setShowEmojiPicker(!showEmojiPicker)}
           style={{
-            display:'flex',
-            alignItems:'center',
-            justifyContent:'center',
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
             border: "1px solid black",
             borderRadius: "50%",
             padding: "10px 10px",
