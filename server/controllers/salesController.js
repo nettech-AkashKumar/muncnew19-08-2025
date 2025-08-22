@@ -261,50 +261,50 @@ exports.createSale = async (req, res) => {
     if (!products || products.length === 0) {
       return res.status(400).json({ message: "Please add at least one product" });
     }
-    // // ✅ Check and update product stock
-    // for (const item of products) {
-    //   const product = await Product.findById(item.product);
-    //   if (!product) {
-    //     return res.status(404).json({ message: "Product not found" });
-    //   }
+    // ✅ Check and update product stock
+    for (const item of products) {
+      const product = await Product.findById(item.product);
+      if (!product) {
+        return res.status(404).json({ message: "Product not found" });
+      }
 
-    //   if (product.availableQty < item.saleQty) {
-    //     return res.status(400).json({
-    //       message: `Not enough stock for ${product.name}. Available: ${product.availableQty}, Requested: ${item.saleQty}`,
-    //     });
-    //   }
+      if (product.availableQty < item.saleQty) {
+        return res.status(400).json({
+          message: `Not enough stock for ${product.name}. Available: ${product.availableQty}, Requested: ${item.saleQty}`,
+        });
+      }
 
-    //   // 🔹 Subtract saleQty from stock
-    //   product.availableQty -= item.saleQty;
-    //   await product.save();
+      // 🔹 Subtract saleQty from stock
+      product.availableQty -= item.saleQty;
+      await product.save();
 
-    //   // 🔹 Stock History Entry
-    //   await StockHistory.create({
-    //     product: product._id,
-    //     type: "SALE",
-    //     quantity: -item.saleQty,
-    //     reference: referenceNumber,
-    //     date: saleDate,
-    //     notes: `Sale created for ${item.saleQty} qty`,
-    //   });
-    // }
+      // 🔹 Stock History Entry
+      await StockHistory.create({
+        product: product._id,
+        type: "SALE",
+        quantity: -item.saleQty,
+        reference: referenceNumber,
+        date: saleDate,
+        notes: `Sale created for ${item.saleQty} qty`,
+      });
+    }
 
-    // // ✅ Payment History Log
-    // if (paymentType === "Full" || paymentType === "Partial") {
-    //   await PaymentHistory.create({
-    //     sale: sale._id,
-    //     customer,
-    //     paymentType,
-    //     paidAmount,
-    //     dueAmount,
-    //     paymentMethod,
-    //     transactionId,
-    //     onlineMod,
-    //     transactionDate,
-    //     status: paymentStatus,
-    //     notes: "Initial payment logged during Sale creation",
-    //   });
-    // }
+    // ✅ Payment History Log
+    if (paymentType === "Full" || paymentType === "Partial") {
+      await PaymentHistory.create({
+        sale: sale._id,
+        customer,
+        paymentType,
+        paidAmount,
+        dueAmount,
+        paymentMethod,
+        transactionId,
+        onlineMod,
+        transactionDate,
+        status: paymentStatus,
+        notes: "Initial payment logged during Sale creation",
+      });
+    }
 
     // ✅ Create Sale
     const sale = new Sales({
