@@ -78,7 +78,7 @@
 
 // export default OverdueReport;
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { IoMdSearch } from "react-icons/io";
 import { BsFilter } from "react-icons/bs";
 import { PiArrowsDownUpLight } from "react-icons/pi";
@@ -92,89 +92,10 @@ import { TbArrowsSort } from "react-icons/tb";
 import { IoIosSearch } from "react-icons/io";
 import * as XLSX from "xlsx";
 import { saveAs } from "file-saver";
+import axios from "axios";
+import BASE_URL from "../../config/config";
 
-const data = [
-  {
-    name: "Rohan Kumar",
-    invoice: 1244,
-    dueDate: "12 Jul 2025",
-    overdue: "13 Days",
-    status: "Partial",
-    amount: "₹ 46,005.00",
-  },
-  {
-    name: "Anaya",
-    invoice: 2435,
-    dueDate: "12 Jul 2025",
-    overdue: "23 Days",
-    status: "UnPaid",
-    amount: "₹ 54,005.00",
-  },
-  {
-    name: "Arjun Sharma",
-    invoice: 4258,
-    dueDate: "12 Jul 2025",
-    overdue: "16 Days",
-    status: "Partial",
-    amount: "₹ 405.00",
-  },
-  {
-    name: "Rajesh",
-    invoice: 4578,
-    dueDate: "06 Jul 2025",
-    overdue: "12 Days",
-    status: "Partial",
-    amount: "₹ 1,981.00",
-  },
-  {
-    name: "Ajay Srivastava",
-    invoice: 4563,
-    dueDate: "12 Jul 2025",
-    overdue: "13 Days",
-    status: "UnPaid",
-    amount: "₹ 46,005.00",
-  },
-  {
-    name: "Priya",
-    invoice: 4215,
-    dueDate: "12 Jul 2025",
-    overdue: "13 Days",
-    status: "Partial",
-    amount: "₹ 46,005.00",
-  },
-  {
-    name: "Jiya",
-    invoice: 1245,
-    dueDate: "06 Jul 2025",
-    overdue: "13 Days",
-    status: "Partial",
-    amount: "₹ 1,981.00",
-  },
-  {
-    name: "Vikram Singh",
-    invoice: 9658,
-    dueDate: "06 Jul 2025",
-    overdue: "13 Days",
-    status: "Partial",
-    amount: "₹ 405.00",
-  },
-  {
-    name: "Anjali",
-    invoice: 7532,
-    dueDate: "01 Jul 2025",
-    overdue: "12 Days",
-    status: "Partial",
-    amount: "₹ 405.00",
-  },
-  {
-    name: "Karan Kumar",
-    invoice: 9532,
-    dueDate: "01 Jul 2025",
-    overdue: "7 Days",
-    status: "UnPaid",
-    amount: "₹ 1,981.00",
-  },
-];
+
 const OverdueReport = () => {
   const [filterOpen, setFilterOpen] = useState(false);
 
@@ -211,6 +132,94 @@ const OverdueReport = () => {
     setWarehouseValue("");
     setExprationValue("");
   };
+  // const [data, setData] = useState([]);
+  // const [loading, setLoading] = useState(false);
+  
+  // const fetchOverdueData = async () => {
+  //   setLoading(true);
+  //   try {
+  //     const res = await axios.get("/api/sales", {
+        
+  //       params: { paymentStatus: "Overdue" },
+  //     });
+  //     console.log('kkkkk' , res.data.sale);
+      
+
+  //     // agar API filter nahi karti to manually filter
+  //     const overdue = res.data.sales.filter(
+  //       (s) => s.paymentStatus?.toLowerCase() === "overdue"
+  //     );
+
+  //     // table ke liye shape bana diya
+  //     const mapped = overdue.map((item) => ({
+  //       name: item.customer?.customer || "-",
+  //       invoice: item.referenceNumber || "-",
+  //       dueDate: item.dueDate
+  //         ? new Date(item.dueDate).toLocaleDateString()
+  //         : "-",
+  //       overdue: "-", // abhi placeholder hai
+  //       status: item.paymentStatus || "-",
+  //       amount: item.dueAmount ? `₹ ${item.dueAmount}` : "₹ 0",
+  //     }));
+
+  //     setData(mapped);
+  //   } catch (err) {
+  //     console.error("Error fetching overdue sales:", err);
+  //     setData([]);
+  //   }
+  //   setLoading(false);
+  // };
+
+  // useEffect(() => {
+  //   fetchOverdueData();
+  // }, []);
+  const [sales, setSales] = useState([]);
+
+        const fetchSales = async () => {
+          try {
+            const res = await axios.get(`${BASE_URL}/api/sales`);
+            const data = res.data.sales; 
+            setSales(res.data.sales);
+            console.log('sal', data);
+          } catch (err) {
+            setSales([]);
+          }
+        };
+  
+useEffect(() => {
+  fetchSales();
+}, []);
+ // pagination states
+  // const [currentPage, setCurrentPage] = useState(1);
+  // const itemsPerPage = 8;
+
+  // const fetchSales = async () => {
+  //   try {
+  //     const res = await axios.get(`${BASE_URL}/api/sales`);
+  //     setSales(res.data.sales || []);
+  //   } catch (err) {
+  //     setSales([]);
+  //   }
+  // };
+
+  // useEffect(() => {
+  //   fetchSales();
+  // }, []);
+
+  // // pagination logic
+  // const totalPages = Math.ceil(sales.length / itemsPerPage);
+  // const indexOfLastItem = currentPage * itemsPerPage;
+  // const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  // const currentItems = sales.slice(indexOfFirstItem, indexOfLastItem);
+
+  // const handlePrev = () => {
+  //   if (currentPage > 1) setCurrentPage(currentPage - 1);
+  // };
+
+  // const handleNext = () => {
+  //   if (currentPage < totalPages) setCurrentPage(currentPage + 1);
+  // };
+
   const handleExport = () => {
   // Convert JSON data to a worksheet
   const worksheet = XLSX.utils.json_to_sheet(data);
@@ -602,16 +611,16 @@ const OverdueReport = () => {
               fontSize: "16px",
             }}
           >
-            {data.map((item, index) => (
+            {sales.map((item, index) => (
               <tr key={index} style={{ borderBottom: "1px solid #E6E6E6" }}>
                 <td style={{ padding: "5px 20px" }}>
                   <input type="checkbox" />
                 </td>
                 <td style={{ padding: "5px 20px" }}>
-                  <img src={logotable} alt="logotable" />
-                  {item.name}
+                  <img src={item.images} alt="image" />
+                  {item.customer.name}
                 </td>
-                <td style={{ padding: "5px 20px" }}>{item.invoice}</td>
+                <td style={{ padding: "5px 20px" }}>{item.referenceNumber}</td>
                 <td style={{ padding: "5px 20px" }}>{item.dueDate}</td>
                 <td style={{ padding: "5px 20px" }}>{item.overdue}</td>
                 <td style={{ padding: "5px 20px" }}>
@@ -620,15 +629,15 @@ const OverdueReport = () => {
                       padding: "5px",
                       borderRadius: "5px",
                       backgroundColor:
-                        item.status === "Partial"
+                        item.status === "Pending"
                           ? "#FDFFE4"
-                          : item.status === "UnPaid"
+                          : item.status === "Complete"
                           ? "#FCE4E6"
                           : "",
                       color:
-                        item.status === "Partial"
+                        item.status === "Pending"
                           ? "#636D1D"
-                          : item.status === "UnPaid"
+                          : item.status === "Complete"
                           ? "#491E1F"
                           : "",
                     }}
@@ -636,7 +645,7 @@ const OverdueReport = () => {
                     {item.status}
                   </span>
                 </td>
-                <td style={{ padding: "5px 20px" }}>{item.amount}</td>
+                <td style={{ padding: "5px 20px" }}>{item.dueAmount}</td>
               </tr>
             ))}
           </tbody>
@@ -680,6 +689,58 @@ const OverdueReport = () => {
             </button>
           </span>
         </div>
+           {/* <div
+          className="d-flex justify-content-end gap-3"
+          style={{ padding: "10px 20px" }}
+        >
+          <span
+            style={{
+              backgroundColor: "white",
+              boxShadow: "rgb(0 0 0 / 4%) 0px 3px 8px",
+              padding: "7px",
+              borderRadius: "5px",
+              border: "1px solid #e4e0e0ff",
+            }}
+          >
+            {itemsPerPage} <span style={{ color: "grey" }}>per page</span>
+          </span>
+          <span
+            style={{
+              backgroundColor: "white",
+              boxShadow: "rgb(0 0 0 / 4%) 0px 3px 8px",
+              padding: "7px",
+              borderRadius: "5px",
+              border: "1px solid #e4e0e0ff",
+            }}
+          >
+            {indexOfFirstItem + 1}-{Math.min(indexOfLastItem, sales.length)}{" "}
+            <span style={{ color: "grey" }}>of {sales.length}</span>{" "}
+            <button
+              onClick={handlePrev}
+              disabled={currentPage === 1}
+              style={{
+                border: "none",
+                color: currentPage === 1 ? "#ccc" : "grey",
+                backgroundColor: "white",
+                cursor: currentPage === 1 ? "not-allowed" : "pointer",
+              }}
+            >
+              <GrFormPrevious />
+            </button>{" "}
+            <button
+              onClick={handleNext}
+              disabled={currentPage === totalPages}
+              style={{
+                border: "none",
+                color: currentPage === totalPages ? "#ccc" : "grey",
+                backgroundColor: "white",
+                cursor: currentPage === totalPages ? "not-allowed" : "pointer",
+              }}
+            >
+              <MdNavigateNext />
+            </button>
+          </span>
+        </div> */}
       </div>
     </div>
   );

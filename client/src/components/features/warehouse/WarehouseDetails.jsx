@@ -667,7 +667,7 @@ const [purchases, setPurchases] = useState([]);
           <span>Top Selling Products</span>
         </div>
 
-        <div style={{ padding: "8px 24px", gap: "18px" }}>
+        {/* <div style={{ padding: "8px 24px", gap: "18px" }}>
           <span
             style={{
               font: "Robot",
@@ -723,7 +723,7 @@ const [purchases, setPurchases] = useState([]);
           >
             Processing
           </span>
-        </div>
+        </div> */}
 
         {/* Table */}
         <div>
