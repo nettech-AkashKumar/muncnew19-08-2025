@@ -1,6 +1,11 @@
 import React, { useEffect, useRef, useState } from 'react'
+import { Country, State, City } from "country-state-city";
+
+//host
 import BASE_URL from "../../pages/config/config";
 import axios from "axios";
+
+//icons
 import { IoSearch } from "react-icons/io5";
 import { SlHandbag } from "react-icons/sl";
 import { GoPersonAdd } from "react-icons/go";
@@ -12,6 +17,12 @@ import { AiOutlineTransaction,AiOutlineRetweet } from "react-icons/ai";
 import { CgSortAz } from "react-icons/cg";
 import { TbArrowsSort } from "react-icons/tb";
 import { IoIosSearch, IoIosArrowBack , IoIosArrowForward } from "react-icons/io";
+import { MdPrint } from "react-icons/md";
+import { AiOutlineDownload } from "react-icons/ai";
+import { IoMdAdd } from "react-icons/io";
+
+//images
+import PaymentDone from '../../assets/img/payment-done.png';
 
 function Pos() {
 
@@ -152,6 +163,71 @@ function Pos() {
       document.removeEventListener('mousedown', handleClickOutside);
     };
   }, []);
+
+  //add customer popup
+  const [addcustomerpopup, setAddCustomerPopup] = useState(false);
+  const AddCustomerRef = useRef(null);
+  const handleAddCustomerPopupChange = () => {
+    setAddCustomerPopup(!addcustomerpopup);
+  }
+  const closeAddCustomer = () => {
+    setAddCustomerPopup(false);
+  };
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (AddCustomerRef.current && !AddCustomerRef.current.contains(event.target)) {
+        closeAddCustomer();
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+
+  //discount popup
+  const [discountpopup, setDiscountPopup] = useState(false);
+  const DiscountRef = useRef(null);
+  const handleProductDiscountClick = () => {
+    setDiscountPopup(!discountpopup);
+  }
+  const closeDiscount = () => {
+    setDiscountPopup(false);
+  };
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (DiscountRef.current && !DiscountRef.current.contains(event.target)) {
+        closeDiscount();
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    }
+  }, []);
+
+  //payment done popup
+  const [paymentpopup, setPaymentPopup] = useState(false);
+  const PaymentRef = useRef(null);
+  const handlePaymentPopupChange = () => {
+    setPaymentPopup(!paymentpopup);
+  }
+  const closePayment = () => {
+    setPaymentPopup(false);
+  };
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (PaymentRef.current && !PaymentRef.current.contains(event.target)) {
+        closePayment();
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    }
+  }, []);
+
+
 
 
 
@@ -387,6 +463,37 @@ const fetchCustomers = async () => {
     setShowDropdown(false);
   };
 
+  //set address
+  const [country, setCountry] = useState("");
+  const [state, setState] = useState("");
+  const [city, setCity] = useState("");
+  const [pinCode, setPinCode] = useState("");
+
+  const [selectedCountry, setSelectedCountry] = useState("");
+  const [selectedState, setSelectedState] = useState("");
+  const [selectedCity, setSelectedCity] = useState("");
+
+  const [countryList, setCountryList] = useState([]);
+  const [stateList, setStateList] = useState([]);
+  const [cityList, setCityList] = useState([]);
+
+  
+    useEffect(() => {
+      setCountryList(Country.getAllCountries());
+    }, []);
+  
+    useEffect(() => {
+      if (selectedCountry) {
+        setStateList(State.getStatesOfCountry(selectedCountry));
+      }
+    }, [selectedCountry]);
+  
+    useEffect(() => {
+      if (selectedState) {
+        setCityList(City.getCitiesOfState(selectedCountry, selectedState));
+      }
+    }, [selectedState]);
+
   return (
     <div style={{marginLeft:'-21px',backgroundColor:'#fff'}}>
 
@@ -493,8 +600,8 @@ const fetchCustomers = async () => {
             <div style={{width:'80%',backgroundColor:'#F7F7F7',height:'100%',overflowY:'auto'}}>
               
               {/* products */}
-              <div style={{height:'78vh',marginTop:'20px'}}>
-              <div className='row' style={{gap:'30px',marginLeft:'30px',overflowY:'auto',}}>
+              <div style={{height:'74vh',marginTop:'20px',overflowY:'auto',padding:'0px 20px',}}>
+              <div className='row' style={{gap:'25px',marginLeft:'40px',}}>
               {products.length === 0 ? (
                 <span>No Product Available</span>
               ) : (
@@ -532,7 +639,7 @@ const fetchCustomers = async () => {
                     </div>
                   )}
 
-                  <div style={{display:'flex',justifyContent:'center',backgroundColor:'white',width:'100%',height:'100px',alignItems:'center',borderRadius:'8px',overflow:'hidden'}}>
+                  <div style={{display:'flex',justifyContent:'center',backgroundColor:'white',width:'100%',height:'97px',alignItems:'center',borderRadius:'8px',overflow:'hidden'}}>
                     {product.images && product.images.length > 0 && product.images[0] ? (
                       <img
                         src={product.images[0].url || product.images[0]}
@@ -686,7 +793,7 @@ const fetchCustomers = async () => {
                   >
                     <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'8px'}}>
                       
-                    <div style={{display:'flex',justifyContent:'center',backgroundColor:'white',width:'50px',height:'50px',alignItems:'center',borderRadius:'8px',overflow:'hidden'}}>
+                    <div style={{display:'flex',justifyContent:'center',backgroundColor:'white',width:'50px',height:'50px',alignItems:'center',borderRadius:'8px',overflow:'hidden'}} onClick={handleProductDiscountClick}>
                     {item.images && item.images.length > 0 && item.images[0] ? (
                       <img
                         src={item.images[0].url || item.images[0]}
@@ -718,7 +825,7 @@ const fetchCustomers = async () => {
                     </div>
                   </div>
 
-                      <div style={{flex:1,gap:'10px',display:'flex',flexDirection:'column',marginLeft:'10px'}}>
+                      <div style={{flex:1,gap:'10px',display:'flex',flexDirection:'column',marginLeft:'10px'}} onClick={handleProductDiscountClick}>
                         <div style={{fontWeight:'600',fontSize:'14px',color:'#333'}}>
                           {item.productName}
                         </div>
@@ -820,7 +927,7 @@ const fetchCustomers = async () => {
             <div style={{display:'flex',justifyContent:'space-between',color:'#676767'}}>
               <div>Discount</div>
               <div style={{display:'flex',justifyContent:'space-around',gap:'20px'}}>
-                <span>00.00 ₹%</span>
+                <span>00.00 ₹ %</span>
               </div>
             </div>
             <div style={{display:'flex',justifyContent:'space-between',color:'#676767'}}>
@@ -965,7 +1072,7 @@ const fetchCustomers = async () => {
             </div>
 
             {/* Add New Customer Button */}
-            <div style={{display:'flex',alignItems:'center',border:'1px solid #1368EC',borderRadius:'8px',backgroundColor:'#f8f9ff',padding:'12px 16px',cursor:'pointer',marginTop:'20px'}}>
+            <div style={{display:'flex',alignItems:'center',border:'1px solid #1368EC',borderRadius:'8px',backgroundColor:'#f8f9ff',padding:'12px 16px',cursor:'pointer',marginTop:'20px'}} onClick={handleAddCustomerPopupChange}>
               <GoPersonAdd style={{fontSize:'24px',marginRight:'10px',color:'#1368EC'}} />
               <div style={{fontSize:'16px',color:'#1368EC',fontWeight:'500'}}>
                 Add New Customer
@@ -982,21 +1089,22 @@ const fetchCustomers = async () => {
                 borderRadius:'8px'
               }}>
                 <div style={{fontWeight:'600',color:'#2e7d32',marginBottom:'8px'}}>
-                  Selected Customer:
+                  Selected Customer Details:
                 </div>
                 <div style={{color:'#333'}}>
-                  <strong>{selectedCustomer.name}</strong>
+                  <div>Name: <strong>{selectedCustomer.name && selectedCustomer.name}</strong></div>
+                  <div>Phone: <strong>{selectedCustomer.phone && selectedCustomer.phone}</strong></div>
                   {selectedCustomer.email && <div>Email: {selectedCustomer.email}</div>}
-                  {selectedCustomer.phoneNumber && <div>Phone: {selectedCustomer.phone}</div>}
                 </div>
               </div>
             )}
+            
           </div>
 
         </div>
       )}
 
-      {/* cash popup */}
+      {/* cash details popup */}
       {cashpopup && (
         <>
         <div style={{
@@ -1038,7 +1146,7 @@ const fetchCustomers = async () => {
 
             <div style={{display:'flex',justifyContent:'space-between',marginTop:'5px',marginBottom:'8px'}}>
               <div></div>
-              <div style={{padding:'6px 15px',backgroundColor:'#1368EC',borderRadius:'8px',color:'white'}}>
+              <div style={{padding:'6px 15px',backgroundColor:'#1368EC',borderRadius:'8px',color:'white'}} onClick={handlePaymentPopupChange}>
                 <span>Record Payment</span>
               </div>
             </div>
@@ -1048,7 +1156,7 @@ const fetchCustomers = async () => {
         </>
       )}
 
-      {/* card popup */}
+      {/* add card popup */}
       {cardpopup && (
         <>
         <div style={{
@@ -1075,14 +1183,14 @@ const fetchCustomers = async () => {
             <div style={{display:'flex',justifyContent:'space-between',padding:'10px 0px',width:'100%',gap:'15px',marginTop:'5px',}}>
               <div style={{width:'100%'}}>
                 <span>Card Number</span>
-                <div style={{display:'flex',justifyContent:'space-between',padding:'10px 15px',backgroundColor:'white',borderRadius:'10px',border:'1px solid #E6E6E6',width:'100%',marginTop:'5px'}}>
-                  <span>1234 5678 9101 1213</span>
+                <div style={{display:'flex',justifyContent:'space-between',padding:'10px 15px',backgroundColor:'#F9FAFB',borderRadius:'10px',border:'1px solid #E6E6E6',width:'100%',marginTop:'5px'}}>
+                  <input type="number" placeholder='1234 5678 9101 1213' style={{border:'none',outline:'none',width:'100%',backgroundColor:'#F9FAFB'}} required />
                 </div>
               </div>
               <div style={{width:'100%'}}>
                 <span>Name on Card</span>
-                <div style={{display:'flex',justifyContent:'space-between',padding:'10px 15px',backgroundColor:'white',borderRadius:'10px',border:'1px solid #E6E6E6',width:'100%',marginTop:'5px'}}>
-                  <span>Aditya Kumar</span>
+                <div style={{display:'flex',justifyContent:'space-between',padding:'10px 15px',backgroundColor:'#F9FAFB',borderRadius:'10px',border:'1px solid #E6E6E6',width:'100%',marginTop:'5px'}}>
+                  <input type="text" placeholder='Enter Card Holder Name' style={{border:'none',outline:'none',width:'100%',backgroundColor:'#F9FAFB'}} required />
                 </div>
               </div>
             </div>
@@ -1090,14 +1198,14 @@ const fetchCustomers = async () => {
             <div style={{display:'flex',justifyContent:'space-between',padding:'10px 0px',width:'50%',gap:'15px',marginTop:'2px',}}>
               <div style={{width:'100%'}}>
                 <span>Valid till</span>
-                <div style={{display:'flex',justifyContent:'center',padding:'10px 15px',backgroundColor:'white',borderRadius:'10px',border:'1px solid #E6E6E6',width:'100%',marginTop:'5px'}}>
-                  <input type="text" placeholder="12/34" style={{border:'none',outline:'none',width:'100%'}} />
+                <div style={{display:'flex',justifyContent:'center',padding:'10px 15px',backgroundColor:'#F9FAFB',borderRadius:'10px',border:'1px solid #E6E6E6',width:'100%',marginTop:'5px'}}>
+                  <input type="number" placeholder='30/12' style={{border:'none',outline:'none',width:'100%',backgroundColor:'#F9FAFB'}} required />
                 </div>
               </div>
               <div style={{width:'100%'}}>
                 <span>CVV</span>
-                <div style={{display:'flex',justifyContent:'center',padding:'10px 15px',backgroundColor:'white',borderRadius:'10px',border:'1px solid #E6E6E6',width:'100%',marginTop:'5px'}}>
-                  <input type="text" placeholder="999" style={{border:'none',outline:'none',width:'100%'}} />
+                <div style={{display:'flex',justifyContent:'center',padding:'10px 15px',backgroundColor:'#F9FAFB',borderRadius:'10px',border:'1px solid #E6E6E6',width:'100%',marginTop:'5px'}}>
+                  <input type="number" placeholder='999' style={{border:'none',outline:'none',width:'100%',backgroundColor:'#F9FAFB'}} required />
                 </div>
               </div>
             </div>
@@ -1137,7 +1245,6 @@ const fetchCustomers = async () => {
               </div>
             </div>
 
-            
           </div>
         </div>
         </>
@@ -1164,60 +1271,15 @@ const fetchCustomers = async () => {
           <div ref={UpiRef} style={{width:'500px',padding:'10px 16px',overflowY:'auto',backgroundColor:'#fff',border:'1px solid #E1E1E1',borderRadius:'8px'}}>
             
             <div style={{display:'flex',justifyContent:'space-between',borderBottom:'1px solid #E1E1E1',padding:'10px 0px'}}>
-              <span>Enter Card details</span>
+              <span>Payment Interface</span>
             </div>
-
-            <div style={{display:'flex',justifyContent:'space-between',padding:'10px 0px',width:'100%',gap:'15px',marginTop:'5px',}}>
-              <div style={{width:'100%'}}>
-                <span>Card Number</span>
-                <div style={{display:'flex',justifyContent:'space-between',padding:'10px 15px',backgroundColor:'white',borderRadius:'10px',border:'1px solid #E6E6E6',width:'100%',marginTop:'5px'}}>
-                  <span>1234 5678 9101 1213</span>
-                </div>
-              </div>
-              <div style={{width:'100%'}}>
-                <span>Name on Card</span>
-                <div style={{display:'flex',justifyContent:'space-between',padding:'10px 15px',backgroundColor:'white',borderRadius:'10px',border:'1px solid #E6E6E6',width:'100%',marginTop:'5px'}}>
-                  <span>Aditya Kumar</span>
-                </div>
-              </div>
-            </div>
-
-            <div style={{display:'flex',justifyContent:'space-between',padding:'10px 0px',width:'50%',gap:'15px',marginTop:'2px',}}>
-              <div style={{width:'100%'}}>
-                <span>Valid till</span>
-                <div style={{display:'flex',justifyContent:'center',padding:'10px 15px',backgroundColor:'white',borderRadius:'10px',border:'1px solid #E6E6E6',width:'100%',marginTop:'5px'}}>
-                  <input type="text" placeholder="12/34" style={{border:'none',outline:'none',width:'100%'}} />
-                </div>
-              </div>
-              <div style={{width:'100%'}}>
-                <span>CVV</span>
-                <div style={{display:'flex',justifyContent:'center',padding:'10px 15px',backgroundColor:'white',borderRadius:'10px',border:'1px solid #E6E6E6',width:'100%',marginTop:'5px'}}>
-                  <input type="text" placeholder="999" style={{border:'none',outline:'none',width:'100%'}} />
-                </div>
-              </div>
-            </div>
-
-            <div style={{display:'flex',justifyContent:'space-between',marginTop:'5px',marginBottom:'8px'}}>
-              <div></div>
-              <div style={{padding:'3px 10px',backgroundColor:'white',border:'2px solid #E6E6E6',borderRadius:'8px',color:'#676767'}}>
-                <span>Send OTP</span>
-              </div>
-            </div>
-
-            <div style={{display:'flex',justifyContent:'space-between',marginTop:'20px',marginBottom:'8px'}}>
-              <div></div>
-              <div style={{padding:'3px 10px',backgroundColor:'#1368EC',border:'2px solid #E6E6E6',borderRadius:'8px',color:'white'}}>
-                <span>Proceed to Pay</span>
-              </div>
-            </div>
-
             
           </div>
         </div>
         </>
       )}
 
-      {/* transaction popup */}
+      {/* transaction details popup */}
       {transactionpopup && (
         <>
         <div style={{
@@ -1396,6 +1458,413 @@ const fetchCustomers = async () => {
         </div>
         </>
       )}
+
+      {/* add customer popup */}
+      {addcustomerpopup && (
+        <>
+        <div style={{
+            position: 'fixed',
+            top: '0',
+            left: '0',
+            width: '100%',
+            height: '100%',
+            backgroundColor: 'rgba(199, 197, 197, 0.4)',
+            backdropFilter: 'blur(1px)',
+            display: 'flex',
+            justifyContent: 'center',
+            zIndex: '10',
+            overflowY: 'auto',
+            alignItems:'center',
+          }}
+          >
+          <div ref={AddCustomerRef} style={{width:'70vw',height:'auto',padding:'10px 16px',overflowY:'auto',backgroundColor:'#fff',border:'1px solid #E1E1E1',borderRadius:'8px',position:'relative',}}>
+
+            <div style={{display:'flex',justifyContent:'space-between',borderBottom:'1px solid #E1E1E1',padding:'10px 0px'}}>
+              <span>Add Customers details</span>
+            </div>
+            
+            <div style={{display:'flex',justifyContent:'space-between',padding:'10px 0px',width:'100%',gap:'15px',marginTop:'5px',}}>
+              <div style={{width:'100%'}}>
+                <div>Customer Number <span style={{color:'red'}}>*</span></div>
+                <div style={{display:'flex',justifyContent:'space-between',padding:'10px 15px',backgroundColor:'#F9FAFB',borderRadius:'10px',border:'1px solid #E6E6E6',width:'100%',marginTop:'5px'}}>
+                  <input type="text" placeholder='Enter Customer Name' style={{border:'none',outline:'none',width:'100%',backgroundColor:'#F9FAFB'}} required />
+                </div>
+              </div>
+              <div style={{width:'100%',display:'flex',justifyContent:'space-between',gap:'15px'}}>
+                <div style={{width:'100%'}}>
+                <div>Mobile Number <span style={{color:'red'}}>*</span></div>
+                <div style={{display:'flex',justifyContent:'space-between',padding:'10px 15px',backgroundColor:'#F9FAFB',borderRadius:'10px',border:'1px solid #E6E6E6',width:'100%',marginTop:'5px'}}>
+                  <input type="number" placeholder='Enter Mobile Number' style={{border:'none',outline:'none',width:'100%',backgroundColor:'#F9FAFB'}} required />
+                </div>
+                </div>
+                <div style={{width:'100%'}}>
+                <div>Email Id</div>
+                <div style={{display:'flex',justifyContent:'space-between',padding:'10px 15px',backgroundColor:'#F9FAFB',borderRadius:'10px',border:'1px solid #E6E6E6',width:'100%',marginTop:'5px'}}>
+                  <input type="email" placeholder='Enter Email Id' style={{border:'none',outline:'none',width:'100%',backgroundColor:'#F9FAFB'}} />
+                </div>
+                </div>
+              </div>
+            </div>
+
+            {/* address */}
+            <div style={{display:'flex',justifyContent:'space-between',padding:'10px 0px',width:'100%',gap:'15px',marginTop:'5px',}}>
+              <div style={{width:'100%'}}>
+                <div>Address</div>
+                <div style={{display:'flex',justifyContent:'space-between',padding:'10px 15px',backgroundColor:'#F9FAFB',borderRadius:'10px',border:'1px solid #E6E6E6',width:'100%',marginTop:'5px'}}>
+                  <textarea type="text" placeholder='Enter Customer Address...' style={{border:'none',outline:'none',width:'100%',backgroundColor:'#F9FAFB'}} required ></textarea>
+                </div>
+              </div>
+            </div>
+
+              {/* select country , state, pin */}
+              <div style={{ display: "flex", gap: "16px",marginBottom:'10px' }}>
+                <div style={{ flex: 1 }}>
+                  <label
+                    style={{
+                      color: "#262626",
+                      fontWeight: "400",
+                      fontSize: "16px",
+                      marginBottom: "8px",
+                      display: "block",
+                    }}
+                  >
+                    Country
+                  </label>
+                  <select
+                    value={selectedCountry}
+                    onChange={(e) => {
+                      // setCountry(e.target.value)
+                      const value = e.target.value;
+                      setSelectedCountry(value);
+                      setFormData((prev) => ({
+                        ...prev,
+                        companycountry: value,
+                        companystate: "",
+                        companycity: "",
+                      }));
+
+                      setSelectedState(""), setSelectedCity("");
+                    }}
+                    //
+                    style={{
+                      width: "100%",
+                      padding: "12px",
+                      borderRadius: "8px",
+                      border: "1px solid #D1D5DB",
+                      backgroundColor: "#F9FAFB",
+                      color: "#6B7280",
+                      fontSize: "14px",
+                    }}
+                  >
+                    <option value="">Select Country</option>
+                    {countryList.map((country) => (
+                      <option key={country.isoCode} value={country.isoCode}>
+                        {country.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                {/* {console.log("statelist",stateList)} */}
+                <div style={{ flex: 1 }}>
+                  <label
+                    style={{
+                      color: "#262626",
+                      fontWeight: "400",
+                      fontSize: "16px",
+                      marginBottom: "8px",
+                      display: "block",
+                    }}
+                  >
+                    State
+                  </label>
+                  <select
+                    value={selectedState}
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      setSelectedState(value);
+                      setFormData((prev) => ({
+                        ...prev,
+                        companystate: value,
+                        companycity: "",
+                      }));
+                      setSelectedCity("");
+                    }}
+                    disabled={!selectedCountry}
+                    style={{
+                      width: "100%",
+                      padding: "12px",
+                      borderRadius: "8px",
+                      border: "1px solid #D1D5DB",
+                      backgroundColor: "#F9FAFB",
+                      color: "#6B7280",
+                      fontSize: "14px",
+                    }}
+                  >
+                    <option value="">Select State</option>
+
+                    {stateList.map((state) => (
+                      <option key={state.isoCode} value={state.isoCode}>
+                        {state.name}
+                      </option>
+                    ))}
+                    {/* <option value="California">California</option>
+              <option value="Maharashtra">Maharashtra</option> */}
+                  </select>
+                </div>
+                <div style={{ flex: 1 }}>
+                  <label
+                    style={{
+                      color: "#262626",
+                      fontWeight: "400",
+                      fontSize: "16px",
+                      marginBottom: "8px",
+                      display: "block",
+                    }}
+                  >
+                    City
+                  </label>
+                  <select
+                    // value={city}
+                    // onChange={(e) => setCity(e.target.value)}
+                    value={selectedCity}
+                    onChange={(e) => setSelectedCity(e.target.value)}
+                    style={{
+                      width: "100%",
+                      padding: "12px",
+                      borderRadius: "8px",
+                      border: "1px solid #D1D5DB",
+                      backgroundColor: "#F9FAFB",
+                      color: "#6B7280",
+                      fontSize: "14px",
+                    }}
+                  >
+                    <option value="">Select City</option>
+                    {/* <option value="Los Angeles">Los Angeles</option>
+              <option value="Mumbai">Mumbai</option> */}
+                    {cityList.map((city) => (
+                      <option key={city.name} value={city.name}>
+                        {city.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div style={{ flex: 1 }}>
+                  <label
+                    style={{
+                      color: "#262626",
+                      fontWeight: "400",
+                      fontSize: "16px",
+                      marginBottom: "8px",
+                      display: "block",
+                    }}
+                  >
+                    Pin Code
+                  </label>
+
+                  <input
+                    value={pinCode}
+                    onChange={(e) => setPinCode(e.target.value)}
+                    type="number"
+                    placeholder='123456'
+                    style={{
+                      width: "100%",
+                      padding: "12px",
+                      borderRadius: "8px",
+                      border: "1px solid #D1D5DB",
+                      backgroundColor: "#F9FAFB",
+                      color: "#6B7280",
+                      fontSize: "14px",
+                      outline: "none",
+                    }}
+                  />
+                </div>
+              </div>
+
+          </div>
+        </div>
+        </>
+      )}
+
+      {/* product discount change popup */}
+      {discountpopup && (
+        <>
+        <div style={{
+            position: 'fixed',
+            top: '0',
+            left: '0',
+            width: '100%',
+            height: '100%',
+            backgroundColor: 'rgba(199, 197, 197, 0.4)',
+            backdropFilter: 'blur(1px)',
+            display: 'flex',
+            justifyContent: 'center',
+            zIndex: '10',
+            overflowY: 'auto',
+            alignItems:'center',
+          }}
+          >
+          <div ref={DiscountRef} style={{width:'700px',padding:'10px 16px',overflowY:'auto',backgroundColor:'#fff',border:'1px solid #E1E1E1',borderRadius:'8px'}}>
+            
+            <div style={{display:'flex',justifyContent:'space-between',borderBottom:'1px solid #E1E1E1',padding:'10px 0px'}}>
+              <span>Selected Item</span>
+            </div>
+
+            {/* quantity */}
+            <div style={{width:'100%',display:'flex',justifyContent:'space-between',gap:'50px'}}>
+              <div style={{width:'50%',display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+                <span style={{fontSize:'25px',fontWeight:'500'}}>Quantity</span>
+              </div>
+              <div style={{width:'25%',display:'flex',justifyContent:'center',padding:'10px 0px',gap:'15px',marginTop:'2px',alignItems:'center'}}>
+              </div>
+              <div style={{width:'25%',display:'flex',justifyContent:'center',padding:'10px 0px',gap:'15px',marginTop:'2px',alignItems:'center'}}>
+              <div style={{borderRadius:'8px',border:'1px solid #E6E6E6',backgroundColor:'#F9FAFB',display:'flex',alignItems:'center',justifyContent:'center',padding:'5px 12px',cursor:'pointer'}} >
+                -
+              </div>
+
+              <div><span>1</span></div>
+
+              <div style={{borderRadius:'8px',border:'1px solid #E6E6E6',backgroundColor:'#F9FAFB',display:'flex',alignItems:'center',justifyContent:'center',padding:'5px 12px',cursor:'pointer'}} >
+                +
+              </div>
+              </div>
+            </div>
+
+            {/* discount */}
+            <div style={{width:'100%',display:'flex',justifyContent:'space-between'}}>
+              <div style={{width:'50%',display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+                <span style={{fontSize:'25px',fontWeight:'500'}}>Discount</span>
+              </div>
+              <div style={{display:'flex',justifyContent:'space-between',padding:'10px 0px',width:'50%',gap:'15px',marginTop:'2px',alignItems:'center'}}>
+              <div style={{width:'100%',borderRadius:'8px',border:'1px solid #E6E6E6',backgroundColor:'#F9FAFB',display:'flex',alignItems:'center',}}>
+                <div style={{display:'flex',justifyContent:'center',padding:'10px 15px',backgroundColor:'white',borderRadius:'10px',borderRight:'1px solid #E6E6E6',width:'70%'}}>
+                  <input type="number" placeholder="00.00" style={{border:'none',outline:'none',width:'100%',backgroundColor:'white'}} />
+                </div>
+                <div style={{display:'flex',alignItems:'center',width:'30%',justifyContent:'center',}}>
+                  <span>%</span>
+                </div>
+              </div>
+
+              <div><span>or</span></div>
+
+              <div style={{width:'100%',borderRadius:'8px',border:'1px solid #E6E6E6',backgroundColor:'#F9FAFB',display:'flex',alignItems:'center',}}>
+                <div style={{display:'flex',justifyContent:'center',padding:'10px 15px',backgroundColor:'white',borderRadius:'10px',borderRight:'1px solid #E6E6E6',width:'70%'}}>
+                  <input type="number" placeholder="00.00" style={{border:'none',outline:'none',width:'100%',backgroundColor:'white'}} />
+                </div>
+                <div style={{display:'flex',alignItems:'center',width:'30%',justifyContent:'center',}}>
+                  <span>₹</span>
+                </div>
+              </div>
+              </div>
+            </div>
+
+            <div style={{display:'flex',justifyContent:'space-between',marginTop:'20px',marginBottom:'8px'}}>
+              <div></div>
+              <div style={{padding:'3px 10px',backgroundColor:'#1368EC',border:'2px solid #E6E6E6',borderRadius:'8px',color:'white'}}>
+                <span>Apply</span>
+              </div>
+            </div>
+
+          </div>
+        </div>
+        </>
+      )}
+
+      {/* product discount change popup paymentpopup */}
+      {paymentpopup && (
+        <>
+        <div style={{
+            position: 'fixed',
+            top: '0',
+            left: '0',
+            width: '100%',
+            height: '100%',
+            backgroundColor: 'rgba(199, 197, 197, 0.4)',
+            backdropFilter: 'blur(1px)',
+            display: 'flex',
+            justifyContent: 'center',
+            zIndex: '10',
+            overflowY: 'auto',
+            alignItems:'center',
+          }}
+          >
+          <div ref={PaymentRef} style={{width:'400px',padding:'10px 16px',overflowY:'auto',backgroundColor:'#fff',border:'1px solid #E1E1E1',borderRadius:'8px'}}>
+            
+            <div style={{display:'flex',justifyContent:'center',borderBottom:'1px solid #E1E1E1',padding:'10px 0px',alignContent:'center'}}>
+              <div style={{display:'flex',flexDirection:'column',alignItems:'center',gap:'10px'}}>
+                <img src={PaymentDone} alt="product" style={{width:'150px',height:'150px',objectFit:'cover',borderRadius:'8px'}} />
+                <span>Payment Successful</span>
+              </div>
+            </div>
+
+            {/* invoice & payment mode */}
+            <div style={{width:'100%'}}>
+              <div style={{width:'100%',display:'flex',justifyContent:'space-between',alignItems:'center',marginTop:'10px'}}>
+                <span>Invoice no.</span>
+                <span>IN645248252</span>
+              </div>
+              <div style={{width:'100%',display:'flex',justifyContent:'space-between',alignItems:'center',marginTop:'2px'}}>
+                <span>Payment Mode</span>
+                <span>Cash</span>
+              </div>
+            </div>
+
+            {/* Products summery */}
+            <div style={{width:'108%',marginTop:'20px',background:'linear-gradient(to right, #E3EDFF, #FFFFFF)',marginLeft:'-16px',marginRight:'-16px',padding:'10px 16px',}}>
+              <div style={{width:'100%',display:'flex',justifyContent:'space-between',alignItems:'center',marginTop:'10px'}}>
+                <span style={{fontSize:'20px',fontWeight:'600'}}>Payment Summery</span>
+              </div>
+              <div style={{width:'100%',display:'flex',justifyContent:'space-between',alignItems:'center',marginTop:'10px'}}>
+                <span>Total Amount</span>
+                <span>₹00.00</span>
+              </div>
+              <div style={{width:'100%',display:'flex',justifyContent:'space-between',alignItems:'center',marginTop:'2px'}}>
+                <span>Amount Received</span>
+                <span>₹00.00</span>
+              </div>
+              <div style={{width:'100%',display:'flex',justifyContent:'space-between',alignItems:'center',marginTop:'2px'}}>
+                <span>Amount Returned</span>
+                <span>₹00.00</span>
+              </div>
+            </div>
+
+            {/* customer details */}
+            <div style={{width:'100%',marginTop:'20px'}}>
+              <div style={{width:'100%',display:'flex',justifyContent:'space-between',alignItems:'center',marginTop:'10px'}}>
+                <span style={{fontSize:'20px',fontWeight:'600'}}>Customer </span>
+              </div>
+              <div style={{width:'100%',display:'flex',alignItems:'left',marginTop:'10px'}}>
+                <span>Name</span>
+              </div>
+              <div style={{width:'100%',display:'flex',alignItems:'left',marginTop:'2px',gap:'5px'}}>
+                <span style={{color:'#676767'}}>Number</span>
+              </div>
+            </div>
+
+            <div style={{display:'flex',justifyContent:'center',marginTop:'20px',marginBottom:'8px',gap:'20px'}}>
+              <div style={{padding:'3px 10px',backgroundColor:'#E3F3FF',border:'2px solid #BBE1FF',borderRadius:'8px',color:'#1368EC',display:'flex',gap:'5px',alignItems:'center'}}>
+                <span><MdPrint/></span>
+                <span>Print</span>
+              </div>
+              <div style={{padding:'3px 10px',backgroundColor:'#1368EC',border:'2px solid #E6E6E6',borderRadius:'8px',color:'white',display:'flex',gap:'5px',alignItems:'center'}}>
+                <span><AiOutlineDownload/></span>
+                <span>Download</span>
+              </div>
+            </div>
+
+            {/* create new invoice */}
+            <div style={{width:'108%',marginTop:'20px',marginLeft:'-16px',marginRight:'-16px',padding:'15px 16px',borderTop:'1px solid #E1E1E1',display:'flex',justifyContent:'center'}}>
+              <div style={{padding:'3px 10px',backgroundColor:'#E3F3FF',border:'2px solid #BBE1FF',borderRadius:'8px',color:'#1368EC',display:'flex',gap:'5px',alignItems:'center',}}>
+                <span><IoMdAdd/></span>
+                <span>Create New Invoice</span>
+              </div>
+            </div>
+
+          </div>
+        </div>
+        </>
+      )}
+
+
 
     </div>
   )
