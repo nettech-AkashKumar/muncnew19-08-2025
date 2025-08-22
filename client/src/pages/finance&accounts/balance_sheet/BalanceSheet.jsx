@@ -532,6 +532,7 @@ const handlePreview = () => {
     ["Deposit", values.deposit],
     ["Total Assets", totalAssets],
   ];
+  
 
   const liabilityRows = [
     ["Account Payable", valuesSecond.accountpayable],
@@ -662,6 +663,12 @@ const handleDownload = () => {
   const [totalAssets, setTotalAssets] = useState(0);
   const [totalLiabilities, setTotalLiabilities] = useState(0);
   const [totalequities, setTotalEquities] = useState(0);
+  // New subtotal states
+const [totalCurrentAssets, setTotalCurrentAssets] = useState(0);
+const [totalNonCurrentAssets, setTotalNonCurrentAssets] = useState(0);
+const [totalCurrentLiabilities, setTotalCurrentLiabilities] = useState(0);
+const [totalNonCurrentLiabilities, setTotalNonCurrentLiabilities] = useState(0);
+
 
   // recalc totals
   useEffect(() => {
@@ -675,6 +682,30 @@ const handleDownload = () => {
   useEffect(() => {
     setTotalEquities(Object.values(valuesThird).reduce((a, b) => a + b, 0));
   }, [valuesThird]);
+  // Current Assets subtotal
+useEffect(() => {
+  const { bankBalance, accountReceivable, cashInHand, prepaidExpenses } = values;
+  setTotalCurrentAssets(bankBalance + accountReceivable + cashInHand + prepaidExpenses);
+}, [values]);
+
+// Non-Current Assets subtotal
+useEffect(() => {
+  const { property, officeEquipment, software, deposit } = values;
+  setTotalNonCurrentAssets(property + officeEquipment + software + deposit);
+}, [values]);
+
+// Current Liabilities subtotal
+useEffect(() => {
+  const { accountpayable, outstanding, shorttermLoan } = valuesSecond;
+  setTotalCurrentLiabilities(accountpayable + outstanding + shorttermLoan);
+}, [valuesSecond]);
+
+// Non-Current Liabilities subtotal
+useEffect(() => {
+  const { longtermLoan, lease } = valuesSecond;
+  setTotalNonCurrentLiabilities(longtermLoan + lease);
+}, [valuesSecond]);
+
 
   // input change handler
   const handleInputChange = (e) => {
@@ -737,6 +768,7 @@ const handleDownload = () => {
                   onChange={handleInputChange} placeholder='---' style={{textAlign:"right",border:"none", outline:"none",  backgroundColor: "transparent"}}/></span></li>
               <li className='li-balancesheet' style={{borderBottom:"1px solid #E6E6E6"}}>(a) Prepaid Expenses <span><input type="number" name="prepaidExpenses"  onChange={handleInputChange} placeholder='---' style={{textAlign:"right",border:"none", outline:"none",  backgroundColor: "transparent"}}/></span></li>
               <li className='li-balancesheet' style={{borderBottom:"1px solid #E6E6E6"}}>(a) Advance to Suppliers <span>xxxx</span></li>
+              <div className="total-row-balancesheet" style={{borderBottom:"1px solid grey",backgroundColor:"transparent",fontFamily:'"Roboto", sans-serif', fontWeight:"500", fontSize:"16px", color:"#262626"}}>Total Current Assets - <span>₹{totalCurrentAssets}</span></div>
             </ul>
             <p className='m-0' style={{borderBottom:"1px solid #E6E6E6"}}><strong style={{fontFamily:'"Roboto", sans-serif', fontWeight:"500", fontSize:"16px", color:"#262626"}}>2. Non-Current Assets</strong></p>
             <ul className='ul-balancesheet' style={{fontFamily:'"Roboto", sans-serif', fontWeight:"400", fontSize:"16px", color:"#262626"}}>
@@ -744,6 +776,7 @@ const handleDownload = () => {
               <li className='li-balancesheet' style={{borderBottom:"1px solid #E6E6E6"}}>(b) Office Equipment <span><input type="number" name='officeEquipment' onChange={handleInputChange} placeholder='---' style={{textAlign:"right",border:"none", outline:"none",  backgroundColor: "transparent"}}/></span></li>
               <li className='li-balancesheet' style={{borderBottom:"1px solid #E6E6E6"}}>(c) Software License / ERP Cost <span><input type="number" name='software' onChange={handleInputChange} placeholder='---' style={{textAlign:"right",border:"none", outline:"none",  backgroundColor: "transparent"}}/></span></li>
               <li className='li-balancesheet' style={{borderBottom:"1px solid #E6E6E6"}}>(d) Security Deposit <span><input type="number" name='deposit' onChange={handleInputChange} placeholder='---' style={{textAlign:"right",border:"none", outline:"none",  backgroundColor: "transparent"}}/></span></li>
+               <div className="total-row-balancesheet" style={{borderBottom:"1px solid grey",backgroundColor:"transparent",fontFamily:'"Roboto", sans-serif', fontWeight:"500", fontSize:"16px", color:"#262626"}}>Total Non-Current Assets - <span>₹{totalNonCurrentAssets}</span></div>
             </ul>
           </div>
           <div className="total-row-balancesheet" style={{fontFamily:'"Roboto", sans-serif', fontWeight:"500", fontSize:"16px", color:"#262626"}}>Total Assets - <span>₹{totalAssets}</span></div>
@@ -761,11 +794,13 @@ const handleDownload = () => {
               <li className='li-balancesheet' style={{borderBottom:"1px solid #E6E6E6"}}>(a) GST Payable <span>xxxx</span></li>
               <li className='li-balancesheet' style={{borderBottom:"1px solid #E6E6E6"}}>(a) TDS Payable <span>xxxx</span></li>
               <li className='li-balancesheet' style={{borderBottom:"1px solid #E6E6E6"}}>(a) Short-Term Loans <span><input type="number" name='shorttermLoan' onChange={handleInputChange} placeholder='---' style={{textAlign:"right",border:"none", outline:"none",  backgroundColor: "transparent"}}/></span></li>
+               <div className="total-row-balancesheet" style={{borderBottom:"1px solid grey",backgroundColor:"transparent",fontFamily:'"Roboto", sans-serif', fontWeight:"500", fontSize:"16px", color:"#262626"}}>Total Current Liabilites - <span>₹{totalCurrentLiabilities}</span></div>
             </ul>
             <p className='m-0' style={{borderBottom:"1px solid #E6E6E6"}}><strong style={{fontFamily:'"Roboto", sans-serif', fontWeight:"500", fontSize:"16px", color:"#262626"}}>2. Non-Current Liabilities</strong></p>
             <ul className='ul-balancesheet' style={{fontFamily:'"Roboto", sans-serif', fontWeight:"400", fontSize:"16px", color:"#262626"}}>
               <li className='li-balancesheet' style={{borderBottom:"1px solid #E6E6E6"}}>(a) Long-Term Loan <span><input type="number" name='longtermLoan' onChange={handleInputChange} placeholder='---' style={{textAlign:"right",border:"none", outline:"none",  backgroundColor: "transparent"}}/></span></li>
               <li className='li-balancesheet' style={{borderBottom:"1px solid #E6E6E6"}}>(b) Lease Liabilities <span><input type="number" name='lease' onChange={handleInputChange} placeholder='---' style={{textAlign:"right",border:"none", outline:"none",  backgroundColor: "transparent"}}/></span></li>
+               <div className="total-row-balancesheet" style={{borderBottom:"1px solid grey",backgroundColor:"transparent",fontFamily:'"Roboto", sans-serif', fontWeight:"500", fontSize:"16px", color:"#262626"}}>Total Non-Current Liabilites - <span>₹{totalNonCurrentLiabilities}</span></div>
             </ul>
           </div>
           <div className="total-row-balancesheet" style={{fontFamily:'"Roboto", sans-serif', fontWeight:"500", fontSize:"16px", color:"#262626"}}>Total Liabilities - <span>₹{totalLiabilities}</span></div>
