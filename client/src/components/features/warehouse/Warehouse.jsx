@@ -1092,7 +1092,22 @@ function Warehouse() {
   const [warehouses, setWarehouses] = useState([]);
     const [loading, setLoading] = useState(false);
      const [error, setError] = useState(null);
+     const [favourites, setFavourites] = useState([]);
 
+
+
+     const toggleFavourite = (warehouse) => {
+  setFavourites((prev) => {
+    const exists = prev.find((fav) => fav._id === warehouse._id);
+    if (exists) {
+      // remove if already in favourites
+      return prev.filter((fav) => fav._id !== warehouse._id);
+    } else {
+      // add if not already in favourites
+      return [...prev, warehouse];
+    }
+  });
+};
 
   const fetchWarehouses = useCallback(async () => {
         setLoading(true);
@@ -1235,13 +1250,23 @@ function Warehouse() {
                       width: "fit-content",
                     }}
                   >
-                    <FaHeart
+                    {/* <FaHeart
                       style={{
                         color: "#1368EC",
                         fontWeight: "500",
                         fontSize: "26px",
                       }}
-                    />
+                    /> */}
+                    <FaHeart
+  onClick={() => toggleFavourite(item)}
+  style={{
+    cursor: "pointer",
+    color: favourites.some(fav => fav._id === item._id) ? "red" : "#1368EC",
+    fontWeight: "500",
+    fontSize: "26px",
+  }}
+/>
+
                   </div>
                 </div>
 
@@ -1285,216 +1310,111 @@ function Warehouse() {
 
       </div>
 
-      {/* favourite */}
+
+      {/* favrouite */}
 
       <div
-        style={{
-          fontWeight: "500",
-          fontSize: "16px",
-          color: "#262626",
-          marginTop: "10px",
-          paddingBottom: "4px",
-        }}
-      >
-        <span>Favouite</span>
+  style={{
+    fontWeight: "500",
+    fontSize: "16px",
+    color: "#262626",
+    marginTop: "10px",
+    paddingBottom: "4px",
+  }}
+>
+  <span>Favourite</span>
 
-        {/* Cards */}
-
-        <div style={{ marginTop: "2px" }}>
-          <div className="row">
-            <div className="col">
+  <div style={{ marginTop: "2px" }}>
+    <div className="row">
+      {favourites.length === 0 && <p>No favourites yet.</p>}
+      {favourites.map((fav) => (
+        <div className="col-3" key={fav._id}>
+          <div
+            style={{
+              backgroundColor: "#f9f9f9",
+              padding: "10px",
+              borderRadius: "8px",
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "flex-start",
+              height: "150px",
+              position: "relative",
+            }}
+          >
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                width: "100%",
+                marginBottom: "10px",
+              }}
+            >
               <div
                 style={{
-                  backgroundColor: "#f9f9f9",
-                  padding: "10px",
+                  backgroundColor: "#f1f1f1",
+                  border: "1px solid #e6e6e6",
                   borderRadius: "8px",
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "flex-start",
-                  height: "150px", // Set a fixed or min height
-                  position: "relative", // for absolute positioning inside
+                  padding: "10px ",
+                  alignItems: "center",
                 }}
               >
-                {/* WH-006 and Heart - Left Side */}
-                <div
+                <span>
+                  <PiWarehouseFill style={{ color: "#1368EC", fontSize: "20px", fontWeight: "bold" }} />
+                  {fav.warehouseName}
+                </span>
+              </div>
+              <div
+                style={{
+                  padding: "10px",
+                  backgroundColor: "#f1f1f1",
+                  borderRadius: "8px",
+                  width: "fit-content",
+                }}
+              >
+                <FaHeart
+                  onClick={() => toggleFavourite(fav)}
                   style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    width: "100%",
-                    marginBottom: "10px",
+                    cursor: "pointer",
+                    color: "red",
+                    fontWeight: "500",
+                    fontSize: "26px",
                   }}
-                >
-                  {/* Left: WH-006 */}
-                  <div
-                    style={{
-                      backgroundColor: "#f1f1f1",
-                      border: "1px solid #e6e6e6",
-                      borderRadius: "8px",
-                      padding: "10px ",
-                      alignItems: "center",
-                    }}
-                  >
-                    <span>
-                      <PiWarehouseFill
-                        style={{
-                          color: "#1368EC",
-                          fontSize: "20px",
-                          fontWeight: "bold",
-                        }}
-                      />{" "}
-                      Warehouse Delhi
-                    </span>
-                  </div>
-
-                  {/* Right: Heart icon */}
-                  <div
-                    style={{
-                      padding: "10px",
-                      backgroundColor: "#f1f1f1",
-                      borderRadius: "8px",
-                      width: "fit-content",
-                    }}
-                  >
-                    <FaHeart
-                      style={{
-                        color: "#1368EC",
-                        fontWeight: "500",
-                        fontSize: "26px",
-                      }}
-                    />
-                  </div>
-                </div>
-
-                {/* Bottom Section (Address + Arrow) */}
-                <div
-                  style={{
-                    position: "absolute",
-                    bottom: "10px",
-                    left: "10px",
-                    right: "10px",
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "flex-end",
-                  }}
-                >
-                  {/* Address */}
-                  <div>
-                    <p style={{ margin: "0", fontWeight: "500" }}>
-                      Delhi - Ram Prashad
-                    </p>
-                    <span style={{ color: "#1368EC" }}>$76,986 </span>
-                    <span style={{ marginLeft: "4px" }}>Stock Valuation</span>
-                  </div>
-
-                  {/* Arrow */}
-                  <div>
-                    <Link to="/WarehouseDetails">
-                      <FaArrowRight />
-                    </Link>
-                  </div>
-                </div>
+                />
               </div>
             </div>
 
-            {/* Other Columns (2nd) */}
-            <div className="col">
-              <div
-                style={{
-                  backgroundColor: "#f9f9f9",
-                  padding: "10px",
-                  borderRadius: "8px",
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "flex-start",
-                  height: "150px", // Set a fixed or min height
-                  position: "relative", // for absolute positioning inside
-                }}
-              >
-                {/* WH-006 and Heart - Left Side */}
-                <div
-                  style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    width: "100%",
-                    marginBottom: "10px",
-                  }}
-                >
-                  {/* Left: WH-001 */}
-                  <div
-                    style={{
-                      backgroundColor: "#f1f1f1",
-                      border: "1px solid #e6e6e6",
-                      borderRadius: "8px",
-                      padding: "10px ",
-                      alignItems: "center",
-                    }}
-                  >
-                    <span>
-                      <PiWarehouseFill
-                        style={{
-                          color: "#1368EC",
-                          fontSize: "20px",
-                          fontWeight: "bold",
-                        }}
-                      />{" "}
-                      WareHouse Ranchi
-                    </span>
-                  </div>
+            <div
+              style={{
+                position: "absolute",
+                bottom: "10px",
+                left: "10px",
+                right: "10px",
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "flex-end",
+              }}
+            >
+              <div>
+                <p style={{ margin: "0", fontWeight: "500" }}>
+                  {fav.city} - {fav.warehouseOwner}
+                </p>
+                <span style={{ color: "#1368EC" }}>$76,000</span>
+                <span style={{ marginLeft: "4px" }}>Stock Valuation</span>
+              </div>
 
-                  {/* Right: Heart icon */}
-                  <div
-                    style={{
-                      padding: "10px",
-                      backgroundColor: "#f1f1f1",
-                      borderRadius: "8px",
-                      width: "fit-content",
-                    }}
-                  >
-                    <FaHeart
-                      style={{
-                        color: "#1368EC",
-                        fontWeight: "500",
-                        fontSize: "26px",
-                      }}
-                    />
-                  </div>
-                </div>
-
-                {/* Bottom Section (Address + Arrow) */}
-                <div
-                  style={{
-                    position: "absolute",
-                    bottom: "10px",
-                    left: "10px",
-                    right: "10px",
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "flex-end",
-                  }}
-                >
-                  {/* Address */}
-                  <div>
-                    <p style={{ margin: "0", fontWeight: "500" }}>
-                      Ranchi - Abhay Kumar
-                    </p>
-                    <span style={{ color: "#1368EC" }}>$76,986 </span>
-                    <span style={{ marginLeft: "4px" }}>Stock Valuation</span>
-                  </div>
-
-                  {/* Arrow */}
-                  <div>
-                    <Link to="/WarehouseDetails">
-                      <FaArrowRight />
-                    </Link>
-                  </div>
-                </div>
+              <div>
+                <Link to={`/WarehouseDetails/${fav._id}`}>
+                  <FaArrowRight />
+                </Link>
               </div>
             </div>
-            <div className="col"></div>
-            <div className="col"></div>
           </div>
         </div>
-      </div>
+      ))}
+    </div>
+  </div>
+</div>
+      
 
       {/* Owened Warehouse */}
 
@@ -1513,7 +1433,7 @@ function Warehouse() {
 
         <div style={{ marginTop: "2px" }}>
           <div className="row">
-            <div className="col">
+            <div className="col-3">
               <div
                 style={{
                   backgroundColor: "#f9f9f9",
@@ -1522,7 +1442,7 @@ function Warehouse() {
                   display: "flex",
                   justifyContent: "space-between",
                   alignItems: "flex-start",
-                  height: "150px", // Set a fixed or min height
+                  height: "150px", 
                   position: "relative", // for absolute positioning inside
                 }}
               >
@@ -1608,288 +1528,7 @@ function Warehouse() {
             </div>
 
             {/* Other Columns (2nd) */}
-            <div className="col">
-              <div
-                style={{
-                  backgroundColor: "#f9f9f9",
-                  padding: "10px",
-                  borderRadius: "8px",
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "flex-start",
-                  height: "150px", // Set a fixed or min height
-                  position: "relative", // for absolute positioning inside
-                }}
-              >
-                {/* WH-006 and Heart - Left Side */}
-                <div
-                  style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    width: "100%",
-                    marginBottom: "10px",
-                  }}
-                >
-                  {/* Left: WH-001 */}
-                  <div
-                    style={{
-                      backgroundColor: "#f1f1f1",
-                      border: "1px solid #e6e6e6",
-                      borderRadius: "8px",
-                      padding: "10px ",
-                      alignItems: "center",
-                    }}
-                  >
-                    <span>
-                      <PiWarehouseFill
-                        style={{
-                          color: "#1368EC",
-                          fontSize: "20px",
-                          fontWeight: "bold",
-                        }}
-                      />{" "}
-                      WH - Noida
-                    </span>
-                  </div>
-
-                  {/* Right: Heart icon */}
-                  <div
-                    style={{
-                      padding: "10px",
-                      backgroundColor: "#f1f1f1",
-                      borderRadius: "8px",
-                      width: "fit-content",
-                    }}
-                  >
-                    <FaHeart
-                      style={{
-                        color: "#1368EC",
-                        fontWeight: "500",
-                        fontSize: "26px",
-                      }}
-                    />
-                  </div>
-                </div>
-
-                {/* Bottom Section (Address + Arrow) */}
-                <div
-                  style={{
-                    position: "absolute",
-                    bottom: "10px",
-                    left: "10px",
-                    right: "10px",
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "flex-end",
-                  }}
-                >
-                  {/* Address */}
-                  <div>
-                    <p style={{ margin: "0", fontWeight: "500" }}>
-                      Noida - Suraj Kumar
-                    </p>
-                    <span style={{ color: "#1368EC" }}>$76,986 </span>
-                    <span style={{ marginLeft: "4px" }}>Stock Valuation</span>
-                  </div>
-
-                  {/* Arrow */}
-                  <div>
-                    <Link to="/WarehouseDetails">
-                      <FaArrowRight />
-                    </Link>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Owned Warehouse */}
-
-            <div className="col">
-              <div
-                style={{
-                  backgroundColor: "#f9f9f9",
-                  padding: "10px",
-                  borderRadius: "8px",
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "flex-start",
-                  height: "150px", // Set a fixed or min height
-                  position: "relative", // for absolute positioning inside
-                }}
-              >
-                {/* WH-006 and Heart - Left Side */}
-                <div
-                  style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    width: "100%",
-                    marginBottom: "10px",
-                  }}
-                >
-                  {/* Left: WH-001 */}
-                  <div
-                    style={{
-                      backgroundColor: "#f1f1f1",
-                      border: "1px solid #e6e6e6",
-                      borderRadius: "8px",
-                      padding: "10px ",
-                      alignItems: "center",
-                    }}
-                  >
-                    <span>
-                      <PiWarehouseFill
-                        style={{
-                          color: "#1368EC",
-                          fontSize: "20px",
-                          fontWeight: "bold",
-                        }}
-                      />{" "}
-                      WH-001
-                    </span>
-                  </div>
-
-                  {/* Right: Heart icon */}
-                  <div
-                    style={{
-                      padding: "10px",
-                      backgroundColor: "#f1f1f1",
-                      borderRadius: "8px",
-                      width: "fit-content",
-                    }}
-                  >
-                    <FaHeart
-                      style={{
-                        color: "#1368EC",
-                        fontWeight: "500",
-                        fontSize: "26px",
-                      }}
-                    />
-                  </div>
-                </div>
-
-                {/* Bottom Section (Address + Arrow) */}
-                <div
-                  style={{
-                    position: "absolute",
-                    bottom: "10px",
-                    left: "10px",
-                    right: "10px",
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "flex-end",
-                  }}
-                >
-                  {/* Address */}
-                  <div>
-                    <p style={{ margin: "0", fontWeight: "500" }}>
-                      Pune - Ajay Kumar
-                    </p>
-                    <span style={{ color: "#1368EC" }}>$76,986 </span>
-                    <span style={{ marginLeft: "4px" }}>Stock Valuation</span>
-                  </div>
-
-                  {/* Arrow */}
-                  <div>
-                    <Link to="/WarehouseDetails">
-                      <FaArrowRight />
-                    </Link>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div className="col">
-              <div
-                style={{
-                  backgroundColor: "#f9f9f9",
-                  padding: "10px",
-                  borderRadius: "8px",
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "flex-start",
-                  height: "150px", // Set a fixed or min height
-                  position: "relative", // for absolute positioning inside
-                }}
-              >
-                {/* WH-006 and Heart - Left Side */}
-                <div
-                  style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    width: "100%",
-                    // marginBottom: "10px",
-                  }}
-                >
-                  {/* Left: WH-001 */}
-                  <div
-                    style={{
-                      backgroundColor: "#f1f1f1",
-                      border: "1px solid #e6e6e6",
-                      borderRadius: "8px",
-                      padding: "10px ",
-                      alignItems: "center",
-                    }}
-                  >
-                    <span>
-                      <PiWarehouseFill
-                        style={{
-                          color: "#1368EC",
-                          fontSize: "20px",
-                          fontWeight: "bold",
-                        }}
-                      />{" "}
-                      WareHouse Meerut
-                    </span>
-                  </div>
-
-                  {/* Right: Heart icon */}
-                  <div
-                    style={{
-                      padding: "10px",
-                      backgroundColor: "#f1f1f1",
-                      borderRadius: "8px",
-                      width: "fit-content",
-                    }}
-                  >
-                    <FaHeart
-                      style={{
-                        color: "#1368EC",
-                        fontWeight: "500",
-                        fontSize: "26px",
-                      }}
-                    />
-                  </div>
-                </div>
-
-                {/* Bottom Section (Address + Arrow) */}
-                <div
-                  style={{
-                    position: "absolute",
-                    bottom: "10px",
-                    left: "10px",
-                    right: "10px",
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "flex-end",
-                  }}
-                >
-                  {/* Address */}
-                  <div>
-                    <p style={{ margin: "0", fontWeight: "500" }}>
-                      Ranchi - Abhay Kumar
-                    </p>
-                    <span style={{ color: "#1368EC" }}>$76,986 </span>
-                    <span style={{ marginLeft: "4px" }}>Stock Valuation</span>
-                  </div>
-
-                  {/* Arrow */}
-                  <div>
-                    <Link to="/WarehouseDetails">
-                      <FaArrowRight />
-                    </Link>
-                  </div>
-                </div>
-              </div>
-            </div>
+           
           </div>
         </div>
       </div>
@@ -1911,7 +1550,7 @@ function Warehouse() {
 
         <div style={{ marginTop: "2px" }}>
           <div className="row">
-            <div className="col">
+            <div className="col-3">
               <div
                 style={{
                   backgroundColor: "#f9f9f9",
@@ -2005,103 +1644,9 @@ function Warehouse() {
               </div>
             </div>
 
-            {/* Other Columns (2nd) */}
-            <div className="col">
-              <div
-                style={{
-                  backgroundColor: "#f9f9f9",
-                  padding: "10px",
-                  borderRadius: "8px",
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "flex-start",
-                  height: "150px", // Set a fixed or min height
-                  position: "relative", // for absolute positioning inside
-                }}
-              >
-                {/* WH-006 and Heart - Left Side */}
-                <div
-                  style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    width: "100%",
-                    marginBottom: "10px",
-                  }}
-                >
-                  {/* Left: WH-001 */}
-                  <div
-                    style={{
-                      backgroundColor: "#f1f1f1",
-                      border: "1px solid #e6e6e6",
-                      borderRadius: "8px",
-                      padding: "10px ",
-                      alignItems: "center",
-                    }}
-                  >
-                    <span>
-                      <PiWarehouseFill
-                        style={{
-                          color: "#1368EC",
-                          fontSize: "20px",
-                          fontWeight: "bold",
-                        }}
-                      />{" "}
-                      WareHouse Ranchi
-                    </span>
-                  </div>
+           
 
-                  {/* Right: Heart icon */}
-                  <div
-                    style={{
-                      padding: "10px",
-                      backgroundColor: "#f1f1f1",
-                      borderRadius: "8px",
-                      width: "fit-content",
-                    }}
-                  >
-                    <FaHeart
-                      style={{
-                        color: "#1368EC",
-                        fontWeight: "500",
-                        fontSize: "26px",
-                      }}
-                    />
-                  </div>
-                </div>
-
-                {/* Bottom Section (Address + Arrow) */}
-                <div
-                  style={{
-                    position: "absolute",
-                    bottom: "10px",
-                    left: "10px",
-                    right: "10px",
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "flex-end",
-                  }}
-                >
-                  {/* Address */}
-                  <div>
-                    <p style={{ margin: "0", fontWeight: "500" }}>
-                      Ranchi - Abhay Kumar
-                    </p>
-                    <span style={{ color: "#1368EC" }}>$76,986 </span>
-                    <span style={{ marginLeft: "4px" }}>Stock Valuation</span>
-                  </div>
-
-                  {/* Arrow */}
-                  <div>
-                    <Link to="/WarehouseDetails">
-                      <FaArrowRight />
-                    </Link>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div className="col"></div>
-            <div className="col"></div>
+           
           </div>
         </div>
       </div>
