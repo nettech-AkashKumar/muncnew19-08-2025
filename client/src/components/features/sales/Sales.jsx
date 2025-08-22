@@ -21,6 +21,8 @@ const Sales = () => {
       const res = await axios.get(`${BASE_URL}/api/sales`, {
         params: { search, page, limit }
       });
+      console.log('sales8788', res.data);
+      
       setSales(res.data.sales);
       setTotal(res.data.total);
       setPages(res.data.pages);
