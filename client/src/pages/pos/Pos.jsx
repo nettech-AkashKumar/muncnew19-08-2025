@@ -180,7 +180,7 @@ function Pos() {
   const [transactionpopup, setTransactionPopup] = useState(false);
   const TransactionRef = useRef(null);
   const handleTransactionPopupChange = () => {
-    setTransactionPopup(!upipopup);
+    setTransactionPopup(!transactionpopup);
   }
   const closeTransaction = () => {
     setTransactionPopup(false);
@@ -220,12 +220,62 @@ function Pos() {
 
   //discount popup
   const [discountpopup, setDiscountPopup] = useState(false);
+  const [selectedItemForDiscount, setSelectedItemForDiscount] = useState(null);
+  const [discountQuantity, setDiscountQuantity] = useState(1);
+  const [discountPercentage, setDiscountPercentage] = useState(0);
+  const [discountFixed, setDiscountFixed] = useState(0);
+  const [discountType, setDiscountType] = useState('Fixed');
+  
   const DiscountRef = useRef(null);
-  const handleProductDiscountClick = () => {
-    setDiscountPopup(!discountpopup);
+  const handleProductDiscountClick = (item) => {
+    setSelectedItemForDiscount(item);
+    setDiscountQuantity(item.quantity);
+    setDiscountPercentage(item.discountType === 'Percentage' ? item.discountValue : 0);
+    setDiscountFixed(item.discountType === 'Fixed' ? item.discountValue : 0);
+    setDiscountType(item.discountType || 'Fixed');
+    setDiscountPopup(true);
   }
   const closeDiscount = () => {
     setDiscountPopup(false);
+    setSelectedItemForDiscount(null);
+  };
+
+  const handleQuantityChange = (newQuantity) => {
+    if (newQuantity > 0) {
+      setDiscountQuantity(newQuantity);
+    }
+  };
+
+  const handleDiscountPercentageChange = (value) => {
+    setDiscountPercentage(Number(value) || 0);
+    setDiscountType('Percentage');
+  };
+
+  const handleDiscountFixedChange = (value) => {
+    setDiscountFixed(Number(value) || 0);
+    setDiscountType('Fixed');
+  };
+
+  const applyDiscountChanges = () => {
+    if (selectedItemForDiscount) {
+      const updatedItems = selectedItems.map(item => 
+        item._id === selectedItemForDiscount._id 
+          ? {
+              ...item,
+              quantity: discountQuantity,
+              discountValue: discountType === 'Percentage' ? discountPercentage : discountFixed,
+              discountType: discountType,
+              totalPrice: discountQuantity * item.sellingPrice,
+              totalTax: (item.tax * discountQuantity * item.sellingPrice) / 100,
+              totalDiscount: discountType === 'Percentage' 
+                ? (discountQuantity * item.sellingPrice * discountPercentage) / 100
+                : discountFixed * discountQuantity
+            }
+          : item
+      );
+      setSelectedItems(updatedItems);
+      closeDiscount();
+    }
   };
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -270,30 +320,61 @@ function Pos() {
   const [products, setProducts] = useState([]);
   const [allProducts, setAllProducts] = useState([]); // Store all products for filtering
   const [activeTabs, setActiveTabs] = useState({});
-    useEffect(() => {
-      const fetchProducts = async () => {
-        try {
-          const res = await axios.get(`${BASE_URL}/api/products`);
-          setProducts(res.data);
-          setAllProducts(res.data); // Store all products
-          console.log("Products right:", res.data);
-          // Log first product to see image structure
-          if (res.data.length > 0) {
-            console.log("First product structure:", res.data[0]);
-            console.log("First product images:", res.data[0].images);
-          }
-          // Initialize all to "general"
-          const initialTabs = res.data.reduce((acc, product) => {
-            acc[product._id] = "general";
-            return acc;
-          }, {});
-          setActiveTabs(initialTabs);
-        } catch (err) {
-          console.error("Failed to fetch products", err);
+  
+  // Search functionality
+  const [productSearchQuery, setProductSearchQuery] = useState('');
+  const [transactionSearchQuery, setTransactionSearchQuery] = useState('');
+      // Product search functionality
+  const handleProductSearch = (query) => {
+    setProductSearchQuery(query);
+    
+    if (!query.trim()) {
+      setProducts(allProducts);
+      return;
+    }
+
+    const searchTerm = query.toLowerCase();
+    const filteredProducts = allProducts.filter(product => {
+      return (
+        product.productName?.toLowerCase().includes(searchTerm) ||
+        (product.brand && typeof product.brand === 'object' && product.brand.name?.toLowerCase().includes(searchTerm)) ||
+        (product.brand && typeof product.brand === 'string' && product.brand.toLowerCase().includes(searchTerm)) ||
+        product.seoTitle?.toLowerCase().includes(searchTerm) ||
+        product.seoDescription?.toLowerCase().includes(searchTerm) ||
+        (product.category && typeof product.category === 'object' && product.category.name?.toLowerCase().includes(searchTerm)) ||
+        (product.category && typeof product.category === 'string' && product.category.toLowerCase().includes(searchTerm)) ||
+        (product.subcategory && typeof product.subcategory === 'object' && product.subcategory.name?.toLowerCase().includes(searchTerm)) ||
+        (product.subcategory && typeof product.subcategory === 'string' && product.subcategory.toLowerCase().includes(searchTerm))
+      );
+    });
+    
+    setProducts(filteredProducts);
+  };
+
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        const res = await axios.get(`${BASE_URL}/api/products`);
+        setProducts(res.data);
+        setAllProducts(res.data); // Store all products
+        console.log("Products right:", res.data);
+        // Log first product to see image structure
+        if (res.data.length > 0) {
+          console.log("First product structure:", res.data[0]);
+          console.log("First product images:", res.data[0].images);
         }
-      };
-      fetchProducts();
-    }, []);
+        // Initialize all to "general"
+        const initialTabs = res.data.reduce((acc, product) => {
+          acc[product._id] = "general";
+          return acc;
+        }, {});
+        setActiveTabs(initialTabs);
+      } catch (err) {
+        console.error("Failed to fetch products", err);
+      }
+    };
+    fetchProducts();
+  }, []);
   
 
 
@@ -350,10 +431,18 @@ function Pos() {
   const [selectedItems, setSelectedItems] = useState([]);
   const [subTotal, setSubTotal] = useState(0);
   const [totalAmount, setTotalAmount] = useState(0);
+  const [roundedAmount, setRoundedAmount] = useState(0);
   const [totalTax, setTotalTax] = useState('');
   const [totalItems, setTotalItems] = useState(0);
   const [totalQuantity, setTotalQuantity] = useState(0);
   const [discount, setDiscount] = useState(0);
+  const [bagCharge, setBagCharge] = useState(0);
+  const [posSales, setPosSales] = useState([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalSales, setTotalSales] = useState(0);
+  const [loading, setLoading] = useState(false);
+  const [selectedSale, setSelectedSale] = useState(null);
 
   const handleProductClick = (product) => {
     const existingItemIndex = selectedItems.findIndex(item => item._id === product._id);
@@ -410,12 +499,23 @@ function Pos() {
     setTotalTax(tax);
     setTotalItems(items);
     setTotalQuantity(quantity);
-    setTotalAmount((subtotal - discount) + tax);
-  }, [selectedItems]);
+    
+    const calculatedTotal = (subtotal - discount) + tax + bagCharge;
+    setTotalAmount(calculatedTotal);
+    
+    // Calculate rounded amount based on decimal part
+    const decimalPart = calculatedTotal - Math.floor(calculatedTotal);
+    if (decimalPart <= 0.49) {
+      setRoundedAmount(Math.floor(calculatedTotal));
+    } else {
+      setRoundedAmount(Math.ceil(calculatedTotal));
+    }
+  }, [selectedItems, bagCharge]);
 
 const [amountReceived, setAmountReceived] = useState("");
 
-const changeToReturn = Math.max((Number(amountReceived) || 0) - totalAmount, 0);
+const changeToReturn = Math.max((Number(amountReceived) || 0) - roundedAmount, 0);
+const dueAmount = Math.max(roundedAmount - (Number(amountReceived) || 0), 0);
 
 
 
@@ -460,6 +560,7 @@ const fetchCustomers = async () => {
 
   useEffect(() => {
     fetchCustomers();
+    fetchPosSales();
   }, []);
 
   // Customer search functionality
@@ -489,7 +590,7 @@ const fetchCustomers = async () => {
 
   const handleCustomerSelect = (customer) => {
     setSelectedCustomer(customer);
-    setSearchQuery(customer.customerName || '');
+    setSearchQuery(customer.name || '');
     setShowDropdown(false);
     setPopup(false); // Close popup after selection
   };
@@ -499,6 +600,122 @@ const fetchCustomers = async () => {
     setSearchQuery('');
     setSearchResults([]);
     setShowDropdown(false);
+  };
+
+  // Fetch POS sales transactions
+  const fetchPosSales = async (page = 1, searchQuery = '') => {
+    try {
+      setLoading(true);
+      const token = localStorage.getItem("token");
+      const params = new URLSearchParams({
+        page: page,
+        limit: 10
+      });
+      
+      if (searchQuery.trim()) {
+        params.append('search', searchQuery);
+      }
+      
+      const response = await axios.get(`${BASE_URL}/api/pos-sales/transactions?${params}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setPosSales(response.data.data);
+      setTotalPages(response.data.pagination.totalPages);
+      setTotalSales(response.data.pagination.totalSales);
+      setCurrentPage(page);
+    } catch (error) {
+      console.error('Error fetching POS sales:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Transaction search functionality
+  const handleTransactionSearch = (query) => {
+    setTransactionSearchQuery(query);
+    fetchPosSales(1, query);
+  };
+
+  // Create POS sale
+  const createPosSale = async (paymentMethod, amountReceived = 0, changeReturned = 0) => {
+    try {
+      if (!selectedCustomer || selectedItems.length === 0) {
+        alert('Please select a customer and items before proceeding');
+        return;
+      }
+
+      // Ensure numeric values are numbers and map to correct property names
+      const saleData = {
+        customerId: selectedCustomer._id,
+        items: selectedItems.map(item => ({
+          productId: item._id,
+          quantity: Number(item.quantity),
+          sellingPrice: Number(item.sellingPrice),
+          totalPrice: Number(item.totalPrice),
+          discountValue: Number(item.totalDiscount || 0), // Map totalDiscount to discountValue
+          discountType: 'Fixed', // Default to Fixed
+          tax: Number(item.totalTax || 0) // Map totalTax to tax
+        })),
+        paymentMethod,
+        amountReceived: Number(amountReceived || 0),
+        changeReturned: Number(changeReturned || 0),
+        bagCharge: Number(bagCharge || 0),
+        subtotal: Number(subTotal || 0),
+        discount: Number(discount || 0),
+        tax: Number(totalTax || 0),
+        totalAmount: Number(roundedAmount || 0)
+      };
+
+      console.log('Frontend sending sale data:', saleData);
+      console.log('Data types:', {
+        customerId: typeof saleData.customerId,
+        itemsLength: saleData.items.length,
+        paymentMethod: typeof saleData.paymentMethod,
+        subtotal: typeof saleData.subtotal,
+        totalAmount: typeof saleData.totalAmount
+      });
+
+      const token = localStorage.getItem("token");
+      const response = await axios.post(`${BASE_URL}/api/pos-sales/create`, saleData, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      
+      if (response.data.success) {
+        // Clear cart and show payment success
+        setSelectedItems([]);
+        setSelectedCustomer(null);
+        setBagCharge(0);
+        setAmountReceived('');
+        setSelectedSale(response.data.data);
+        handlePaymentPopupChange();
+        // Refresh transactions
+        fetchPosSales(1, transactionSearchQuery);
+      }
+    } catch (error) {
+      console.error('Error creating POS sale:', error);
+      
+      // Show detailed validation errors if available
+      if (error.response?.data?.details) {
+        const errorDetails = error.response.data.details;
+        if (typeof errorDetails === 'object') {
+          const errorMessages = Object.entries(errorDetails)
+            .map(([field, message]) => `${field}: ${message}`)
+            .join('\n');
+          alert('Validation Error:\n' + errorMessages);
+        } else {
+          alert('Error creating sale: ' + errorDetails);
+        }
+      } else {
+        alert('Error creating sale: ' + (error.response?.data?.message || error.message));
+      }
+    }
+  };
+
+  // Handle pagination
+  const handlePageChange = (newPage) => {
+    if (newPage >= 1 && newPage <= totalPages) {
+      fetchPosSales(newPage, transactionSearchQuery);
+    }
   };
 
   //set address
@@ -551,7 +768,13 @@ const fetchCustomers = async () => {
         {/* search bar */}
         <div style={{width:'70%',display:'flex',alignItems:'center',borderRight:'1px solid #ccc',}}>
           <IoSearch style={{fontSize:'24px',marginLeft:'10px',color:'#C2C2C2'}} />
-          <input type="text" placeholder="Search by its name, sku, hsn code, mrp, sale price, purchase price..." style={{width:'95%',padding:'8px',fontSize:'16px',border:'none',outline:'none',color:'#C2C2C2'}} />
+          <input 
+            type="text" 
+            placeholder="Search any product by its name, brand, category..." 
+            value={productSearchQuery}
+            onChange={(e) => handleProductSearch(e.target.value)}
+            style={{width:'95%',padding:'8px',fontSize:'16px',border:'none',outline:'none',color:'#333'}} 
+          />
         </div>
 
         {/* cart */}
@@ -560,7 +783,26 @@ const fetchCustomers = async () => {
             Cart
           </div>
           <div style={{display:'flex',gap:'15px',alignItems:'center'}}>
-            <div style={{display:'flex',flexDirection:'column',alignItems:'center',cursor:'pointer',borderRight:'1px solid #ccc',paddingRight:'15px'}}>
+              <div 
+                style={{
+                  display:'flex',
+                  flexDirection:'column',
+                  alignItems:'center',
+                  cursor:'pointer',
+                  borderRight:'1px solid #ccc',
+                  paddingRight:'15px',
+                  backgroundColor: bagCharge > 0 ? '#E3F3FF' : 'transparent',
+                  borderRadius: bagCharge > 0 ? '8px' : '0px',
+                  padding: '5px 15px'
+                }}
+                onClick={() => {
+                  if (bagCharge === 0) {
+                    setBagCharge(10);
+                  } else {
+                    setBagCharge(0);
+                  }
+                }}
+              >
               <SlHandbag/> 
               <span style={{fontSize:'10px'}}>Add Bag</span>
             </div>
@@ -568,7 +810,119 @@ const fetchCustomers = async () => {
               <GoPersonAdd/> 
               <span style={{fontSize:'10px'}} >Customer</span>
             </div>
-            <div style={{display:'flex',flexDirection:'column',alignItems:'center',cursor:'pointer'}} onClick={() => setSelectedItems([])}>
+            <div 
+              style={{
+                display:'flex',
+                flexDirection:'column',
+                alignItems:'center',
+                cursor:'pointer'
+              }} 
+              onClick={() => {
+                setSelectedItems([]);
+                setSelectedCustomer(null);
+                setBagCharge(0);
+                setAmountReceived('');
+                setSearchQuery('');
+                setSearchResults([]);
+                setShowDropdown(false);
+                // Reset totals
+                setSubTotal(0);
+                setTotalAmount(0);
+                setRoundedAmount(0);
+                setTotalTax(0);
+                setTotalItems(0);
+                setTotalQuantity(0);
+                setDiscount(0);
+                                    // Close all popups
+                    setCashPopup(false);
+                    setCardPopup(false);
+                    setUpiPopup(false);
+                    // Refresh transactions
+                    fetchPosSales();
+                    // Reset category filter
+                    setSelectedCategory(null);
+                    setProducts(allProducts);
+                    // Reset updown state
+                    setUpdown(false);
+                    // Reset search drop state
+                    setSearchDrop(false);
+                    // Reset filter values
+                    setCategoryValue('');
+                    setSocketValue('');
+                    setWarehouseValue('');
+                    setExprationValue('');
+                    // Reset OTP state
+                    setOtp(['', '', '', '']);
+                    // Reset address fields
+                    setCountry('');
+                    setState('');
+                    setCity('');
+                    setPinCode('');
+                    setSelectedCountry('');
+                    setSelectedState('');
+                    setSelectedCity('');
+                    // Reset form data
+                    if (formRef.current) {
+                      formRef.current.reset();
+                    }
+                    // Reset active tabs
+                    const initialTabs = allProducts.reduce((acc, product) => {
+                      acc[product._id] = "general";
+                      return acc;
+                    }, {});
+                    setActiveTabs(initialTabs);
+                    // Reset search query
+                    setSearchQuery('');
+                    // Reset search results
+                    setSearchResults([]);
+                    setShowDropdown(false);
+                    // Reset popup states
+                    setPopup(false);
+                    setAddCustomerPopup(false);
+                    setDiscountPopup(false);
+                    // Reset transaction popup
+                    setTransactionPopup(false);
+                    // Reset selected sale
+                    setSelectedSale(null);
+                    // Reset current page
+                    setCurrentPage(1);
+                    // Reset total pages
+                    setTotalPages(1);
+                    // Reset total sales
+                    setTotalSales(0);
+                    // Reset loading state
+                    setLoading(false);
+                    // Reset pos sales
+                    setPosSales([]);
+                    // Reset amount received
+                    setAmountReceived('');
+                    // Reset search query
+                    setSearchQuery('');
+                    // Reset search results
+                    setSearchResults([]);
+                    setShowDropdown(false);
+                    // Reset popup states
+                    setPopup(false);
+                    setAddCustomerPopup(false);
+                    setDiscountPopup(false);
+                    // Reset transaction popup
+                    setTransactionPopup(false);
+                    // Reset selected sale
+                    setSelectedSale(null);
+                    // Reset current page
+                    setCurrentPage(1);
+                    // Reset total pages
+                    setTotalPages(1);
+                    // Reset total sales
+                    setTotalSales(0);
+                    // Reset loading state
+                    setLoading(false);
+                    // Reset pos sales
+                    setPosSales([]);
+                    // Reset amount received
+                    setAmountReceived('');
+                  }}
+            >
               <RiDeleteBinLine/>
               <span style={{fontSize:'10px'}}>Remove All</span>
             </div>
@@ -577,10 +931,10 @@ const fetchCustomers = async () => {
 
       </div>
 
-      {/* products & customer billing */}
+      {/* pos area */}
       <div style={{display:'flex',justifyContent:'space-between',borderTop:'1px solid white',borderBottom:'1px solid #ccc',borderRight:'1px solid #ccc',height:'83vh'}}>
         
-        {/* products */}
+        {/* products section */}
         <div style={{position:"relative",width:'70%',display:'flex',borderRight:'1px solid #ccc',}}>
 
             {/* category */}
@@ -757,7 +1111,7 @@ const fetchCustomers = async () => {
 
         </div>
       
-        {/* billing */}
+        {/* billing section */}
         <div style={{position:'relative',width:'30%',}}>
           
           {/* customer */}
@@ -831,7 +1185,7 @@ const fetchCustomers = async () => {
                   >
                     <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'8px'}}>
                       
-                    <div style={{display:'flex',justifyContent:'center',backgroundColor:'white',width:'50px',height:'50px',alignItems:'center',borderRadius:'8px',overflow:'hidden'}} onClick={handleProductDiscountClick}>
+                    <div style={{display:'flex',justifyContent:'center',backgroundColor:'white',width:'50px',height:'50px',alignItems:'center',borderRadius:'8px',overflow:'hidden',cursor:'pointer'}} onClick={() => handleProductDiscountClick(item)}>
                     {item.images && item.images.length > 0 && item.images[0] ? (
                       <img
                         src={item.images[0].url || item.images[0]}
@@ -863,7 +1217,7 @@ const fetchCustomers = async () => {
                     </div>
                   </div>
 
-                      <div style={{flex:1,gap:'10px',display:'flex',flexDirection:'column',marginLeft:'10px'}} onClick={handleProductDiscountClick}>
+                      <div style={{flex:1,gap:'10px',display:'flex',flexDirection:'column',marginLeft:'10px',cursor:'pointer'}} onClick={() => handleProductDiscountClick(item)}>
                         <div style={{fontWeight:'600',fontSize:'14px',color:'#333'}}>
                           {item.productName}
                         </div>
@@ -896,47 +1250,11 @@ const fetchCustomers = async () => {
                       </button>
                     </div>
                     
-                    <div style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+                    <div style={{display:'flex',justifyContent:'space-between',alignItems:'center'}} onClick={() => handleProductDiscountClick(item)}>
                       <div style={{display:'flex',alignItems:'center',gap:'8px'}}>
-                        <button
-                          onClick={() => updateItemQuantity(item._id, item.quantity - 1)}
-                          style={{
-                            background:'#f8f9fa',
-                            border:'1px solid #dee2e6',
-                            borderRadius:'4px',
-                            width:'24px',
-                            height:'24px',
-                            display:'flex',
-                            alignItems:'center',
-                            justifyContent:'center',
-                            cursor:'pointer',
-                            fontSize:'16px',
-                            fontWeight:'bold'
-                          }}
-                        >
-                          -
-                        </button>
-                        <span style={{fontWeight:'600',minWidth:'30px',textAlign:'center'}}>
-                          {item.quantity}
+                        <span style={{fontWeight:'600',color:'#666'}}>
+                          Qty: {item.quantity}
                         </span>
-                        <button
-                          onClick={() => updateItemQuantity(item._id, item.quantity + 1)}
-                          style={{
-                            background:'#f8f9fa',
-                            border:'1px solid #dee2e6',
-                            borderRadius:'4px',
-                            width:'24px',
-                            height:'24px',
-                            display:'flex',
-                            alignItems:'center',
-                            justifyContent:'center',
-                            cursor:'pointer',
-                            fontSize:'16px',
-                            fontWeight:'bold'
-                          }}
-                        >
-                          +
-                        </button>
                       </div>
                       <div style={{fontWeight:'600',color:'#1368EC'}}>
                         ₹{item.totalPrice.toFixed(2)}
@@ -975,10 +1293,26 @@ const fetchCustomers = async () => {
               <span>Tax</span>
               <span>₹{totalTax}</span>
             </div>
+            {bagCharge > 0 && (
+              <div style={{display:'flex',justifyContent:'space-between',color:'#676767'}}>
+                <span>Bag Charge</span>
+                <span>₹{bagCharge}</span>
+              </div>
+            )}
+            <div style={{display:'flex',justifyContent:'space-between',color:'#676767'}}>
+              <span>Actual Amount</span>
+              <span>₹{((subTotal - discount) + totalTax + bagCharge).toFixed(2)}</span>
+            </div>
             <div style={{display:'flex',justifyContent:'space-between',color:'#676767'}}>
               <span>Round Off</span>
-              <span>₹{totalAmount.toFixed(2)}</span>
+              <span>₹{roundedAmount}</span>
             </div>
+            {/* {Math.abs(roundedAmount - totalAmount) > 0 && (
+              <div style={{display:'flex',justifyContent:'space-between',color:'#676767',fontSize:'12px',fontStyle:'italic'}}>
+                <span>Rounding Difference</span>
+                <span>₹{(roundedAmount - totalAmount).toFixed(2)}</span>
+              </div>
+            )} */}
             </div>
             </>
             )}
@@ -996,10 +1330,23 @@ const fetchCustomers = async () => {
                 <span style={{color:'#1368EC',fontSize:'20px',fontWeight:'600'}}>Total</span>
                 <span style={{fontSize:'15px',fontWeight:'500'}}>(items - {totalItems}, Qty - {totalQuantity})</span>
               </div>
-              <span style={{color:'#1368EC',fontSize:'20px',fontWeight:'600'}}>₹{totalAmount.toFixed(2)}</span>
+              <span style={{color:'#1368EC',fontSize:'20px',fontWeight:'600'}}>₹{roundedAmount}</span>
             </div>
 
-            <div style={{display:'flex',justifyContent:'space-between',padding:'10px 15px',backgroundColor:'#1368EC',borderRadius:'8px',color:'white',marginTop:'5px',cursor:'pointer'}} onClick={handleCashPopupChange}>
+
+            <div 
+              style={{
+                display:'flex',
+                justifyContent:'space-between',
+                padding:'10px 15px',
+                backgroundColor: (selectedCustomer && selectedItems.length > 0) ? '#1368EC' : '#ccc',
+                borderRadius:'8px',
+                color:'white',
+                marginTop:'5px',
+                cursor: (selectedCustomer && selectedItems.length > 0) ? 'pointer' : 'not-allowed'
+              }} 
+              onClick={(selectedCustomer && selectedItems.length > 0) ? handleCashPopupChange : undefined}
+            >
               <span>Cash</span>
               <span>[F1]</span>
             </div>
@@ -1171,7 +1518,7 @@ const fetchCustomers = async () => {
             
             <div style={{display:'flex',justifyContent:'space-between',borderBottom:'1px solid #E1E1E1',padding:'10px 0px'}}>
               <span>Cash details</span>
-              <span>₹{totalAmount}</span>
+              <span>₹{roundedAmount}</span>
             </div>
 
             <div style={{display:'flex',justifyContent:'space-between',padding:'10px 0px',width:'100%',gap:'15px',marginTop:'5px',}}>
@@ -1189,9 +1536,36 @@ const fetchCustomers = async () => {
               </div>
             </div>
 
+            {dueAmount > 0 && (
+              <div style={{display:'flex',justifyContent:'space-between',padding:'10px 0px',width:'100%',gap:'15px',marginTop:'5px',}}>
+                <div style={{width:'100%'}}>
+                  <span style={{color: '#dc3545', fontWeight: '600'}}>Due Amount</span>
+                  <div style={{display:'flex',justifyContent:'space-between',padding:'10px 15px',backgroundColor:'#fff5f5',borderRadius:'10px',border:'1px solid #dc3545',width:'100%',marginTop:'5px'}}>
+                    <span style={{color: '#dc3545', fontWeight: '600'}}>₹{dueAmount.toFixed(2)}</span>
+                  </div>
+                </div>
+              </div>
+            )}
+
             <div style={{display:'flex',justifyContent:'space-between',marginTop:'5px',marginBottom:'8px'}}>
               <div></div>
-              <div style={{padding:'6px 15px',backgroundColor:'#1368EC',borderRadius:'8px',color:'white'}} onClick={handlePaymentPopupChange}>
+              <div 
+                style={{
+                  padding:'6px 15px',
+                  backgroundColor:'#1368EC',
+                  borderRadius:'8px',
+                  color:'white',
+                  cursor:'pointer'
+                }} 
+                onClick={() => {
+                  if (amountReceived && Number(amountReceived) > 0) {
+                    createPosSale('Cash', Number(amountReceived), changeToReturn);
+                    setCashPopup(false);
+                  } else {
+                    alert('Please enter a valid amount received');
+                  }
+                }}
+              >
                 <span>Record Payment</span>
               </div>
             </div>
@@ -1285,7 +1659,20 @@ const fetchCustomers = async () => {
 
             <div style={{display:'flex',justifyContent:'space-between',marginTop:'20px',marginBottom:'8px'}}>
               <div></div>
-              <div style={{padding:'3px 10px',backgroundColor:'#1368EC',border:'2px solid #E6E6E6',borderRadius:'8px',color:'white'}}>
+              <div 
+                style={{
+                  padding:'3px 10px',
+                  backgroundColor:'#1368EC',
+                  border:'2px solid #E6E6E6',
+                  borderRadius:'8px',
+                  color:'white',
+                  cursor:'pointer'
+                }}
+                onClick={() => {
+                  createPosSale('Card');
+                  setCardPopup(false);
+                }}
+              >
                 <span>Proceed to Pay</span>
               </div>
             </div>
@@ -1316,7 +1703,33 @@ const fetchCustomers = async () => {
           <div ref={UpiRef} style={{width:'500px',padding:'10px 16px',overflowY:'auto',backgroundColor:'#fff',border:'1px solid #E1E1E1',borderRadius:'8px'}}>
             
             <div style={{display:'flex',justifyContent:'space-between',borderBottom:'1px solid #E1E1E1',padding:'10px 0px'}}>
-              <span>Payment Interface</span>
+              <span>UPI Payment</span>
+            </div>
+            
+            <div style={{display:'flex',justifyContent:'center',alignItems:'center',padding:'40px 0px'}}>
+              <div style={{textAlign:'center'}}>
+                <div style={{fontSize:'24px',fontWeight:'600',marginBottom:'20px'}}>UPI Payment</div>
+                <div style={{fontSize:'16px',color:'#666',marginBottom:'30px'}}>Scan QR code or enter UPI ID</div>
+                <div style={{padding:'20px',border:'2px dashed #ccc',borderRadius:'8px',marginBottom:'30px'}}>
+                  <div style={{fontSize:'14px',color:'#999'}}>QR Code Placeholder</div>
+                </div>
+                <div 
+                  style={{
+                    padding:'12px 24px',
+                    backgroundColor:'#1368EC',
+                    color:'white',
+                    borderRadius:'8px',
+                    cursor:'pointer',
+                    display:'inline-block'
+                  }}
+                  onClick={() => {
+                    createPosSale('UPI');
+                    setUpiPopup(false);
+                  }}
+                >
+                  Complete UPI Payment
+                </div>
+              </div>
             </div>
             
           </div>
@@ -1352,7 +1765,13 @@ const fetchCustomers = async () => {
                       <>
                         <div style={{ border: 'none', marginLeft: '10px', alignItems: 'center', display: 'flex', width: '400px' }}>
                           <IoIosSearch style={{ fontSize: '25px' }} />
-                          <input type='text' placeholder='Search Here' style={{ border: 'none', outline: 'none', fontSize: '20px', width: '100%' }} />
+                          <input 
+                            type='text' 
+                            placeholder='Search by invoice ID, customer name, phone, or item name' 
+                            value={transactionSearchQuery}
+                            onChange={(e) => handleTransactionSearch(e.target.value)}
+                            style={{ border: 'none', outline: 'none', fontSize: '20px', width: '100%', color: '#333' }} 
+                          />
                         </div>
                       </>
                     ) : (
@@ -1362,7 +1781,19 @@ const fetchCustomers = async () => {
                           <div style={{ color: 'black', padding: '5px 8px', }}>Recents</div>
                           <div style={{ color: 'black', padding: '5px 8px', }}>Paid</div>
                           <div style={{ color: 'black', padding: '5px 8px', }}>Due</div>
-                          <div style={{ color: 'black', padding: '5px 8px', }}>+</div>
+                    <div 
+                      style={{ 
+                        color: 'black', 
+                        padding: '5px 8px', 
+                        cursor: 'pointer',
+                        backgroundColor: '#f0f0f0',
+                        borderRadius: '4px'
+                      }}
+                      onClick={() => fetchPosSales(currentPage, transactionSearchQuery)}
+                      title="Refresh"
+                    >
+                      ↻
+                    </div>
                         </div>
                       </>
                     )}
@@ -1441,27 +1872,108 @@ const fetchCustomers = async () => {
 
               </div>
 
-            <div style={{border:'1px solid #ccc',marginTop:'10px',borderRadius:'8px',height:'50vh',overflowY:'auto'}}>
+            <div style={{border:'1px solid #ccc',marginTop:'10px',borderRadius:'8px',height:'65vh',overflowY:'auto'}}>
                 <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                   <thead style={{ backgroundColor: '#E6E6E6' }}>
                     <tr style={{ color: "#676767", }}>
-                      <th style={{ padding: '8px', borderTopLeftRadius: '8px' }}><input type="checkbox" /> Customer</th>
+                      <th style={{ padding: '8px', borderTopLeftRadius: '8px' }}>Invoice ID</th>
+                      <th>Customer</th>
                       <th>Sold Items</th>
                       <th>Date & Time</th>
                       <th>Status</th>
                       <th>Total Amount</th>
-                      <th style={{ borderTopRightRadius: '8px' }}>Due Amount</th>
+                      <th>Due Amount</th>
+                      <th style={{ borderTopRightRadius: '8px' }}>Payment Method</th>
                     </tr>
                   </thead>
                   <tbody>
-                    <tr style={{ borderTop: '1px solid #E6E6E6' }}>
-                      <td style={{ padding: '8px' }}><input type="checkbox" /> name</td>
-                      <td>item</td>
-                      <td>31-05-2025</td>
-                      <td>sold</td>
-                      <td>₹00.00</td>
-                      <td>₹00.00</td>
+                    {loading ? (
+                      <tr>
+                        <td colSpan="8" style={{ textAlign: 'center', padding: '20px' }}>
+                          Loading...
+                        </td>
                     </tr>
+                    ) : posSales.length === 0 ? (
+                      <tr>
+                        <td colSpan="8" style={{ textAlign: 'center', padding: '20px' }}>
+                          No transactions found
+                        </td>
+                      </tr>
+                    ) : (
+                      posSales.map((sale) => (
+                        <tr key={sale._id} style={{ borderTop: '1px solid #E6E6E6' }}>
+                          <td style={{ padding: '8px' }}>
+                            <div style={{ fontSize: '12px', fontWeight: '600', color: '#1368EC' }}>
+                              {sale.invoiceNumber || 'N/A'}
+                            </div>
+                          </td>
+                          <td style={{ padding: '8px' }}>
+                            <div>
+                              <div style={{ fontWeight: '600' }}>{sale.customer?.name || 'N/A'}</div>
+                              <div style={{ fontSize: '12px', color: '#666' }}>{sale.customer?.phone || 'N/A'}</div>
+                            </div>
+                          </td>
+                          <td style={{ padding: '8px' }}>
+                            <div style={{ fontSize: '12px' }}>
+                              {sale.items?.map((item, index) => (
+                                <div key={index} style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+                                  {item.images && item.images.length > 0 ? (
+                                    <img 
+                                      src={item.images[0]} 
+                                      alt={item.productName} 
+                                      style={{ 
+                                        width: '30px', 
+                                        height: '30px', 
+                                        objectFit: 'cover', 
+                                        borderRadius: '4px',
+                                        border: '1px solid #ddd'
+                                      }} 
+                                    />
+                                  ) : null}
+                                  <div>
+                                    <div style={{ fontWeight: '500' }}>{item.productName || 'N/A'}</div>
+                                    <div style={{ fontSize: '11px', color: '#666' }}>
+                                      Qty: {item.quantity} × ₹{item.unitPrice?.toFixed(2) || '0.00'}
+                                    </div>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </td>
+                          <td>
+                            {new Date(sale.saleDate).toLocaleDateString('en-IN')}
+                            <br />
+                            <span style={{ fontSize: '12px', color: '#666' }}>
+                              {new Date(sale.saleDate).toLocaleTimeString('en-IN')}
+                            </span>
+                          </td>
+                          <td>
+                            <span style={{
+                              padding: '4px 8px',
+                              borderRadius: '4px',
+                              backgroundColor: sale.status === 'Paid' ? '#d4edda' : 
+                                               sale.status === 'Due' ? '#fff3cd' : '#f8d7da',
+                              color: sale.status === 'Paid' ? '#155724' : 
+                                     sale.status === 'Due' ? '#856404' : '#721c24',
+                              fontSize: '12px'
+                            }}>
+                              {sale.status}
+                            </span>
+                          </td>
+                          <td>₹{sale.totals?.totalAmount?.toFixed(2) || '0.00'}</td>
+                          <td>
+                            {sale.paymentDetails?.dueAmount > 0 ? (
+                              <span style={{ color: '#dc3545', fontWeight: '600' }}>
+                                ₹{sale.paymentDetails.dueAmount.toFixed(2)}
+                              </span>
+                            ) : (
+                              <span style={{ color: '#28a745' }}>₹0.00</span>
+                            )}
+                          </td>
+                          <td>{sale.paymentDetails?.paymentMethod || 'N/A'}</td>
+                        </tr>
+                      ))
+                    )}
                   </tbody>
                 </table>
             </div>
@@ -1492,10 +2004,22 @@ const fetchCustomers = async () => {
                 boxShadow: "0px 0px 5px rgba(0, 0, 0, 0.1)",
               }}
               >
-                <span>1 - 25 of 369</span> 
+                <span>{((currentPage - 1) * 10) + 1} - {Math.min(currentPage * 10, totalSales)} of {totalSales}</span> 
                 <span style={{color:'#ccc'}}>|</span> 
-                <IoIosArrowBack style={{color:'#ccc',cursor: "pointer",}} /> 
-                <IoIosArrowForward style={{color:'#ccc',cursor: "pointer",}} /> 
+                <IoIosArrowBack 
+                  style={{
+                    color: currentPage > 1 ? '#333' : '#ccc',
+                    cursor: currentPage > 1 ? "pointer" : "not-allowed"
+                  }} 
+                  onClick={() => currentPage > 1 && handlePageChange(currentPage - 1)}
+                /> 
+                <IoIosArrowForward 
+                  style={{
+                    color: currentPage < totalPages ? '#333' : '#ccc',
+                    cursor: currentPage < totalPages ? "pointer" : "not-allowed"
+                  }}
+                  onClick={() => currentPage < totalPages && handlePageChange(currentPage + 1)}
+                />
               </div>
             </div>
 
@@ -1751,7 +2275,7 @@ const fetchCustomers = async () => {
           <div ref={DiscountRef} style={{width:'700px',padding:'10px 16px',overflowY:'auto',backgroundColor:'#fff',border:'1px solid #E1E1E1',borderRadius:'8px'}}>
             
             <div style={{display:'flex',justifyContent:'space-between',borderBottom:'1px solid #E1E1E1',padding:'10px 0px'}}>
-              <span>Selected Item</span>
+              <span>Selected Item: {selectedItemForDiscount?.productName || 'N/A'}</span>
             </div>
 
             {/* quantity */}
@@ -1762,13 +2286,19 @@ const fetchCustomers = async () => {
               <div style={{width:'25%',display:'flex',justifyContent:'center',padding:'10px 0px',gap:'15px',marginTop:'2px',alignItems:'center'}}>
               </div>
               <div style={{width:'25%',display:'flex',justifyContent:'center',padding:'10px 0px',gap:'15px',marginTop:'2px',alignItems:'center'}}>
-              <div style={{borderRadius:'8px',border:'1px solid #E6E6E6',backgroundColor:'#F9FAFB',display:'flex',alignItems:'center',justifyContent:'center',padding:'5px 12px',cursor:'pointer'}} >
+              <div 
+                style={{borderRadius:'8px',border:'1px solid #E6E6E6',backgroundColor:'#F9FAFB',display:'flex',alignItems:'center',justifyContent:'center',padding:'5px 12px',cursor:'pointer'}}
+                onClick={() => handleQuantityChange(discountQuantity - 1)}
+              >
                 -
               </div>
 
-              <div><span>1</span></div>
+              <div><span>{discountQuantity}</span></div>
 
-              <div style={{borderRadius:'8px',border:'1px solid #E6E6E6',backgroundColor:'#F9FAFB',display:'flex',alignItems:'center',justifyContent:'center',padding:'5px 12px',cursor:'pointer'}} >
+              <div 
+                style={{borderRadius:'8px',border:'1px solid #E6E6E6',backgroundColor:'#F9FAFB',display:'flex',alignItems:'center',justifyContent:'center',padding:'5px 12px',cursor:'pointer'}}
+                onClick={() => handleQuantityChange(discountQuantity + 1)}
+              >
                 +
               </div>
               </div>
@@ -1782,7 +2312,13 @@ const fetchCustomers = async () => {
               <div style={{display:'flex',justifyContent:'space-between',padding:'10px 0px',width:'50%',gap:'15px',marginTop:'2px',alignItems:'center'}}>
               <div style={{width:'100%',borderRadius:'8px',border:'1px solid #E6E6E6',backgroundColor:'#F9FAFB',display:'flex',alignItems:'center',}}>
                 <div style={{display:'flex',justifyContent:'center',padding:'10px 15px',backgroundColor:'white',borderRadius:'10px',borderRight:'1px solid #E6E6E6',width:'70%'}}>
-                  <input type="number" placeholder="00.00" style={{border:'none',outline:'none',width:'100%',backgroundColor:'white'}} />
+                  <input 
+                    type="number" 
+                    placeholder="00.00" 
+                    value={discountPercentage}
+                    onChange={(e) => handleDiscountPercentageChange(e.target.value)}
+                    style={{border:'none',outline:'none',width:'100%',backgroundColor:'white'}} 
+                  />
                 </div>
                 <div style={{display:'flex',alignItems:'center',width:'30%',justifyContent:'center',}}>
                   <span>%</span>
@@ -1793,7 +2329,13 @@ const fetchCustomers = async () => {
 
               <div style={{width:'100%',borderRadius:'8px',border:'1px solid #E6E6E6',backgroundColor:'#F9FAFB',display:'flex',alignItems:'center',}}>
                 <div style={{display:'flex',justifyContent:'center',padding:'10px 15px',backgroundColor:'white',borderRadius:'10px',borderRight:'1px solid #E6E6E6',width:'70%'}}>
-                  <input type="number" placeholder="00.00" style={{border:'none',outline:'none',width:'100%',backgroundColor:'white'}} />
+                  <input 
+                    type="number" 
+                    placeholder="00.00" 
+                    value={discountFixed}
+                    onChange={(e) => handleDiscountFixedChange(e.target.value)}
+                    style={{border:'none',outline:'none',width:'100%',backgroundColor:'white'}} 
+                  />
                 </div>
                 <div style={{display:'flex',alignItems:'center',width:'30%',justifyContent:'center',}}>
                   <span>₹</span>
@@ -1804,7 +2346,10 @@ const fetchCustomers = async () => {
 
             <div style={{display:'flex',justifyContent:'space-between',marginTop:'20px',marginBottom:'8px'}}>
               <div></div>
-              <div style={{padding:'3px 10px',backgroundColor:'#1368EC',border:'2px solid #E6E6E6',borderRadius:'8px',color:'white'}}>
+              <div 
+                style={{padding:'3px 10px',backgroundColor:'#1368EC',border:'2px solid #E6E6E6',borderRadius:'8px',color:'white',cursor:'pointer'}}
+                onClick={applyDiscountChanges}
+              >
                 <span>Apply</span>
               </div>
             </div>
@@ -1845,44 +2390,58 @@ const fetchCustomers = async () => {
             <div style={{width:'100%'}}>
               <div style={{width:'100%',display:'flex',justifyContent:'space-between',alignItems:'center',marginTop:'10px'}}>
                 <span>Invoice no.</span>
-                <span>IN645248252</span>
+                <span>{selectedSale?.invoiceNumber || 'N/A'}</span>
               </div>
               <div style={{width:'100%',display:'flex',justifyContent:'space-between',alignItems:'center',marginTop:'2px'}}>
                 <span>Payment Mode</span>
-                <span>Cash</span>
+                <span>{selectedSale?.paymentDetails?.paymentMethod || 'N/A'}</span>
               </div>
             </div>
 
             {/* Products summery */}
             <div style={{width:'108%',marginTop:'20px',background:'linear-gradient(to right, #E3EDFF, #FFFFFF)',marginLeft:'-16px',marginRight:'-16px',padding:'10px 16px',}}>
               <div style={{width:'100%',display:'flex',justifyContent:'space-between',alignItems:'center',marginTop:'10px'}}>
-                <span style={{fontSize:'20px',fontWeight:'600'}}>Payment Summery</span>
+                <span style={{fontSize:'20px',fontWeight:'600'}}>Payment Summary</span>
               </div>
               <div style={{width:'100%',display:'flex',justifyContent:'space-between',alignItems:'center',marginTop:'10px'}}>
                 <span>Total Amount</span>
-                <span>₹00.00</span>
+                <span>₹{selectedSale?.totals?.totalAmount || '0.00'}</span>
               </div>
               <div style={{width:'100%',display:'flex',justifyContent:'space-between',alignItems:'center',marginTop:'2px'}}>
                 <span>Amount Received</span>
-                <span>₹00.00</span>
+                <span>₹{selectedSale?.paymentDetails?.amountReceived?.toFixed(2) || '0.00'}</span>
               </div>
               <div style={{width:'100%',display:'flex',justifyContent:'space-between',alignItems:'center',marginTop:'2px'}}>
                 <span>Amount Returned</span>
-                <span>₹00.00</span>
+                <span>₹{selectedSale?.paymentDetails?.changeReturned?.toFixed(2) || '0.00'}</span>
               </div>
+              {selectedSale?.paymentDetails?.bagCharge > 0 && (
+                <div style={{width:'100%',display:'flex',justifyContent:'space-between',alignItems:'center',marginTop:'2px'}}>
+                  <span>Bag Charge</span>
+                  <span>₹{selectedSale?.paymentDetails?.bagCharge?.toFixed(2) || '0.00'}</span>
+                </div>
+              )}
             </div>
 
             {/* customer details */}
             <div style={{width:'100%',marginTop:'20px'}}>
               <div style={{width:'100%',display:'flex',justifyContent:'space-between',alignItems:'center',marginTop:'10px'}}>
-                <span style={{fontSize:'20px',fontWeight:'600'}}>Customer </span>
+                <span style={{fontSize:'20px',fontWeight:'600'}}>Customer</span>
               </div>
-              <div style={{width:'100%',display:'flex',alignItems:'left',marginTop:'10px'}}>
-                <span>Name</span>
+              <div style={{width:'100%',display:'flex',justifyContent:'space-between',alignItems:'center',marginTop:'10px'}}>
+                <span>Name:</span>
+                <span style={{fontWeight:'600'}}>{selectedSale?.customer?.name || 'N/A'}</span>
               </div>
-              <div style={{width:'100%',display:'flex',alignItems:'left',marginTop:'2px',gap:'5px'}}>
-                <span style={{color:'#676767'}}>Number</span>
+              <div style={{width:'100%',display:'flex',justifyContent:'space-between',alignItems:'center',marginTop:'2px'}}>
+                <span style={{color:'#676767'}}>Phone:</span>
+                <span style={{fontWeight:'600'}}>{selectedSale?.customer?.phone || 'N/A'}</span>
               </div>
+              {selectedSale?.customer?.email && (
+                <div style={{width:'100%',display:'flex',justifyContent:'space-between',alignItems:'center',marginTop:'2px'}}>
+                  <span style={{color:'#676767'}}>Email:</span>
+                  <span style={{fontWeight:'600'}}>{selectedSale?.customer?.email}</span>
+                </div>
+              )}
             </div>
 
             <div style={{display:'flex',justifyContent:'center',marginTop:'20px',marginBottom:'8px',gap:'20px'}}>
@@ -1898,7 +2457,127 @@ const fetchCustomers = async () => {
 
             {/* create new invoice */}
             <div style={{width:'108%',marginTop:'20px',marginLeft:'-16px',marginRight:'-16px',padding:'15px 16px',borderTop:'1px solid #E1E1E1',display:'flex',justifyContent:'center'}}>
-              <div style={{padding:'3px 10px',backgroundColor:'#E3F3FF',border:'2px solid #BBE1FF',borderRadius:'8px',color:'#1368EC',display:'flex',gap:'5px',alignItems:'center',}}>
+              <div 
+                style={{
+                  padding:'3px 10px',
+                  backgroundColor:'#E3F3FF',
+                  border:'2px solid #BBE1FF',
+                  borderRadius:'8px',
+                  color:'#1368EC',
+                  display:'flex',
+                  gap:'5px',
+                  alignItems:'center',
+                  cursor:'pointer'
+                }}
+                                  onClick={() => {
+                    setPaymentPopup(false);
+                    setSelectedSale(null);
+                    // Reset all form data
+                    setSelectedItems([]);
+                    setSelectedCustomer(null);
+                    setBagCharge(0);
+                    setAmountReceived('');
+                    setSearchQuery('');
+                    setSearchResults([]);
+                    setShowDropdown(false);
+                    // Reset totals
+                    setSubTotal(0);
+                    setTotalAmount(0);
+                    setRoundedAmount(0);
+                    setTotalTax(0);
+                    setTotalItems(0);
+                    setTotalQuantity(0);
+                    setDiscount(0);
+                    // Close all popups
+                    setCashPopup(false);
+                    setCardPopup(false);
+                    setUpiPopup(false);
+                    // Refresh transactions
+                    fetchPosSales();
+                    // Reset category filter
+                    setSelectedCategory(null);
+                    setProducts(allProducts);
+                    // Reset updown state
+                    setUpdown(false);
+                    // Reset search drop state
+                    setSearchDrop(false);
+                    // Reset filter values
+                    setCategoryValue('');
+                    setSocketValue('');
+                    setWarehouseValue('');
+                    setExprationValue('');
+                    // Reset OTP state
+                    setOtp(['', '', '', '']);
+                    // Reset address fields
+                    setCountry('');
+                    setState('');
+                    setCity('');
+                    setPinCode('');
+                    setSelectedCountry('');
+                    setSelectedState('');
+                    setSelectedCity('');
+                    // Reset form data
+                    if (formRef.current) {
+                      formRef.current.reset();
+                    }
+                    // Reset active tabs
+                    const initialTabs = allProducts.reduce((acc, product) => {
+                      acc[product._id] = "general";
+                      return acc;
+                    }, {});
+                    setActiveTabs(initialTabs);
+                    // Reset search query
+                    setSearchQuery('');
+                    // Reset search results
+                    setSearchResults([]);
+                    setShowDropdown(false);
+                    // Reset popup states
+                    setPopup(false);
+                    setAddCustomerPopup(false);
+                    setDiscountPopup(false);
+                    // Reset transaction popup
+                    setTransactionPopup(false);
+                    // Reset selected sale
+                    setSelectedSale(null);
+                    // Reset current page
+                    setCurrentPage(1);
+                    // Reset total pages
+                    setTotalPages(1);
+                    // Reset total sales
+                    setTotalSales(0);
+                    // Reset loading state
+                    setLoading(false);
+                    // Reset pos sales
+                    setPosSales([]);
+                    // Reset amount received
+                    setAmountReceived('');
+                    // Reset search query
+                    setSearchQuery('');
+                    // Reset search results
+                    setSearchResults([]);
+                    setShowDropdown(false);
+                    // Reset popup states
+                    setPopup(false);
+                    setAddCustomerPopup(false);
+                    setDiscountPopup(false);
+                    // Reset transaction popup
+                    setTransactionPopup(false);
+                    // Reset selected sale
+                    setSelectedSale(null);
+                    // Reset current page
+                    setCurrentPage(1);
+                    // Reset total pages
+                    setTotalPages(1);
+                    // Reset total sales
+                    setTotalSales(0);
+                    // Reset loading state
+                    setLoading(false);
+                    // Reset pos sales
+                    setPosSales([]);
+                    // Reset amount received
+                    setAmountReceived('');
+                  }}
+              >
                 <span><IoMdAdd/></span>
                 <span>Create New Invoice</span>
               </div>
