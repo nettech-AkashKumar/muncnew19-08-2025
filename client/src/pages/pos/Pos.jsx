@@ -1272,7 +1272,7 @@ const fetchCustomers = async () => {
             {/* sales summary */}
             {updown && (
             <>
-            <div style={{width:'100%',textAlign:'center',marginTop:'-5px'}} onClick={() => handleUpDown(false)} >
+            <div style={{width:'100%',textAlign:'center',marginTop:'-5px',cursor:'pointer'}} onClick={() => handleUpDown(false)} >
               <span style={{color:'#676767',borderTop:'2px solid #676767',padding:'0px 10px'}}><RiArrowDownWideLine style={{color:'#676767'}} /></span>
             </div>
             <div style={{marginTop:'20px',marginBottom:'10px'}}>
@@ -1319,7 +1319,7 @@ const fetchCustomers = async () => {
             
             {!updown && (
             <>
-            <div style={{width:'100%',textAlign:'center',marginTop:'-5px'}} onClick={() => handleUpDown(true)}>
+            <div style={{width:'100%',textAlign:'center',marginTop:'-5px',cursor:'pointer'}} onClick={() => handleUpDown(true)}>
               <span style={{color:'#676767',borderTop:'2px solid #676767',padding:'0px 10px'}}><RiArrowUpWideLine  style={{color:'#676767'}}  /></span>
             </div>
             </>
@@ -2415,12 +2415,12 @@ const fetchCustomers = async () => {
                 <span>Amount Returned</span>
                 <span>₹{selectedSale?.paymentDetails?.changeReturned?.toFixed(2) || '0.00'}</span>
               </div>
-              {selectedSale?.paymentDetails?.bagCharge > 0 && (
+              {/* {selectedSale?.paymentDetails?.bagCharge > 0 && (
                 <div style={{width:'100%',display:'flex',justifyContent:'space-between',alignItems:'center',marginTop:'2px'}}>
                   <span>Bag Charge</span>
                   <span>₹{selectedSale?.paymentDetails?.bagCharge?.toFixed(2) || '0.00'}</span>
                 </div>
-              )}
+              )} */}
             </div>
 
             {/* customer details */}
@@ -2428,20 +2428,20 @@ const fetchCustomers = async () => {
               <div style={{width:'100%',display:'flex',justifyContent:'space-between',alignItems:'center',marginTop:'10px'}}>
                 <span style={{fontSize:'20px',fontWeight:'600'}}>Customer</span>
               </div>
-              <div style={{width:'100%',display:'flex',justifyContent:'space-between',alignItems:'center',marginTop:'10px'}}>
+              <div style={{width:'100%',display:'flex',alignItems:'center',marginTop:'10px',gap:'5px'}}>
                 <span>Name:</span>
                 <span style={{fontWeight:'600'}}>{selectedSale?.customer?.name || 'N/A'}</span>
               </div>
-              <div style={{width:'100%',display:'flex',justifyContent:'space-between',alignItems:'center',marginTop:'2px'}}>
+              <div style={{width:'100%',display:'flex',alignItems:'center',marginTop:'2px',gap:'5px'}}>
                 <span style={{color:'#676767'}}>Phone:</span>
                 <span style={{fontWeight:'600'}}>{selectedSale?.customer?.phone || 'N/A'}</span>
               </div>
-              {selectedSale?.customer?.email && (
+              {/* {selectedSale?.customer?.email && (
                 <div style={{width:'100%',display:'flex',justifyContent:'space-between',alignItems:'center',marginTop:'2px'}}>
                   <span style={{color:'#676767'}}>Email:</span>
                   <span style={{fontWeight:'600'}}>{selectedSale?.customer?.email}</span>
                 </div>
-              )}
+              )} */}
             </div>
 
             <div style={{display:'flex',justifyContent:'center',marginTop:'20px',marginBottom:'8px',gap:'20px'}}>
