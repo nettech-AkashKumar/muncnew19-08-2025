@@ -18,17 +18,13 @@ import BASE_URL from "../../../../pages/config/config";
 import { useLocation } from "react-router-dom";
 import Alk from "../../../../assets/images/alk.jpg"
 
-const formatRecipients = (list = []) =>
-  list.map(r =>
-    r.firstName || r.lastName
-      ? `${r.firstName || ""} ${r.lastName || ""} <${r.email}>`
-      : r.email
-  ).join(", ");
 
 
 const EmailMessages = ({
   filteredEmails,
   handleToggleStar: externalToggleStar,
+  isDraftPage,
+  onDraftClick,
   isDeletedPage,
 
 }) => {
@@ -47,6 +43,9 @@ const EmailMessages = ({
 
   const menuRef = useRef();
   const [users, setUsers] = useState([]);
+  const [inboxEmails, setInboxEmails] = useState([]);
+  const [sentEmails, setSentEmails] = useState([]);
+
 
 
   const fetchUsers = async () => {
@@ -73,114 +72,205 @@ const EmailMessages = ({
     fetchUsers();
   }, []);
 
+  // useEffect(() => {
+  //   if (users.length === 0) return;
+  //   const fetchEmail = async () => {
+  //     try {
+  //       const token = localStorage.getItem("token");
+  //       const res = await axios.get(`${BASE_URL}/api/email/mail/receive`, {
+  //         headers: {
+  //           Authorization: `Bearer ${token}`,
+  //         },
+  //       });
+  //       console.log("📩 EMAILS RECEIVED FROM BACKEND:", res.data.data);
+
+  //       const formattedData = res.data.data.map((email) => {
+  //         const senderName = email.from?.firstName
+  //           ? `${email.from.firstName} ${email.from.lastName || ''}`.trim()
+  //           : "Unknown";
+  //         const profileImage = email.from?.profileImage?.url || email.from?.profileImage || null;
+  //         const initials = senderName.split(" ").map((w) => w[0]).join("").toUpperCase().slice(0, 2);
+  //         return {
+  //           ...email,
+  //           sender: {
+  //             name: senderName,
+  //             profileImage,
+  //             initials,
+  //             backgroundColor: "#5e35b1",
+  //           },
+  //           subject: email.subject,
+  //           messagePreview: (email.body || "").slice(0, 140) + "...", //trim preview
+  //           time:
+  //             email.createdAt && !isNaN(new Date(email.createdAt))
+  //               ? new Intl.DateTimeFormat("en-GB", {
+  //                 day: "2-digit",
+  //                 month: "short",
+  //                 year: "numeric",
+  //                 hour: "2-digit",
+  //                 minute: "2-digit",
+  //                 hour12: true,
+  //               }).format(new Date(email.createdAt))
+  //               : "Invalid Date",
+  //           status: { dotColor: "red" },
+  //           folders: {
+  //             galleryCount: email.attachments?.length || 0,
+  //           },
+  //           tags: {
+  //             starred: email.starred,
+  //             extraLabelCount: 0,
+  //           },
+  //         };
+  //       });
+
+  //       console.log("✅ FINAL FORMATTED EMAILS FOR STATE:", formattedData);
+  //       setEmails(formattedData);
+  //     } catch (error) {
+  //       console.error("❌ Failed to fetch emails", error);
+  //     }
+  //   };
+  //   fetchEmail();
+  // }, [users]);
+
+  const formatEmails = (emailsArray, mailboxType) => {
+    return emailsArray.map(email => {
+      const isSent = mailboxType === "sent";
+      const displayUser = isSent
+        ? email.to?.[0]   // show recipient in Sent
+        : email.from;     // show sender in Inbox
+      const senderName = displayUser?.firstName
+        ? `${displayUser.firstName} ${displayUser.lastName || ""}`.trim()
+        : "Unknown";
+
+      const profileImage = displayUser?.profileImage?.url || displayUser?.profileImage || null;
+      const initials = senderName.split(" ").map((w) => w[0]).join("").toUpperCase().slice(0, 2);
+
+      return {
+        ...email,
+        type: mailboxType,
+        sender: {
+          name: senderName,
+          profileImage,
+          initials,
+          backgroundColor: "#5e35b1",
+        },
+        subject: email.subject,
+        messagePreview: (email.body || "").slice(0, 140) + "...",
+        time:
+          email.createdAt && !isNaN(new Date(email.createdAt))
+            ? new Intl.DateTimeFormat("en-GB", {
+              day: "2-digit",
+              month: "short",
+              year: "numeric",
+              hour: "2-digit",
+              minute: "2-digit",
+              hour12: true,
+            }).format(new Date(email.createdAt))
+            : "Invalid Date",
+        tags: { starred: email.starred || false },
+        folders: {
+          galleryCount: email.attachments?.length || 0,
+        },
+      };
+    });
+  };
+
 
 
   useEffect(() => {
     if (users.length === 0) return;
-    const fetchEmail = async () => {
-      try {
-        const res = await axios.get(`${BASE_URL}/api/email/mail/receive`);
-        console.log("📩 EMAILS RECEIVED FROM BACKEND:", res.data.data);
 
-        const formattedData = res.data.data.map((email) => {
-          console.log("🔎 CHECKING EMAIL.FROM VALUE:", email.from, "TYPE:", typeof email.from);
-          console.log("   Raw FROM (full):", JSON.stringify(email.from, null, 2));
+    const token = localStorage.getItem("token");
 
+    // Inbox
+    axios.get(`${BASE_URL}/api/email/mail/receive`, { headers: { Authorization: `Bearer ${token}` } })
+      .then(res => setInboxEmails(formatEmails(res.data.data, "inbox")))
+      .catch(err => console.error(err));
 
-          let matchedUser = null;
-          if (typeof email.from === "string") {
-            matchedUser = users.find((user) => user.email?.toLowerCase() === email.from?.toLowerCase());
-          } else if (email.from?.email) {
-            matchedUser = users.find((user) => user.email?.toLowerCase() === email.from.email?.toLowerCase());
-          } else if (email.from?._id) {
-            matchedUser = users.find((user) => user._id === email.from._id);
-          }
+    // Sent
+    axios.get(`${BASE_URL}/api/email/mail/getsentemail`, { headers: { Authorization: `Bearer ${token}` } })
+      .then(res => setSentEmails(formatEmails(res.data.data, "sent")))  // ✅ use formatEmails here too
+      .catch(err => console.error(err));
 
-          const senderName = matchedUser
-            ? `${matchedUser.firstName || ""} ${matchedUser.lastName || ""}`.trim()
-            : email.from?.firstName || email.from?.lastName
-              ? `${email.from?.firstName || ""} ${email.from?.lastName || ""}`.trim()
-              : typeof email.from === "string"
-                ? email.from
-                : "Unknown User";
-
-          const profileImage =
-            matchedUser?.profileImage?.url ||
-            (Array.isArray(matchedUser?.profileImage) && matchedUser.profileImage[0]?.url) ||
-            email.from?.profileImage?.url ||
-            (Array.isArray(email.from?.profileImage) && email.from.profileImage[0]?.url) ||
-            (typeof email.from?.profileImage === "string" ? email.from.profileImage : null);
-
-          // ✅ Debug log for each email
-          console.log("➡️ EMAIL DEBUG:");
-          console.log("   ID:", email._id);
-          console.log("   Raw FROM:", email.from);
-          console.log("   Matched User:", matchedUser);
-          console.log("   Final Sender Name:", senderName);
-          console.log("   Final Profile Image:", profileImage);
-
-          return {
-            ...email,
-            sender: {
-              name: senderName,
-              profileImage,
-            },
-            subject: email.subject,
-            messagePreview: (email.body || "").slice(0, 140) + "...", //trim preview
-            time:
-              email.createdAt && !isNaN(new Date(email.createdAt))
-                ? new Intl.DateTimeFormat("en-GB", {
-                  day: "2-digit",
-                  month: "short",
-                  year: "numeric",
-                  hour: "2-digit",
-                  minute: "2-digit",
-                  hour12: true,
-                }).format(new Date(email.createdAt))
-                : "Invalid Date",
-            status: { dotColor: "red" },
-            folders: {
-              galleryCount: email.attachments?.length || 0,
-            },
-            tags: {
-              starred: email.starred,
-              extraLabelCount: 0,
-            },
-          };
-        });
-
-        console.log("✅ FINAL FORMATTED EMAILS FOR STATE:", formattedData);
-        setEmails(formattedData);
-      } catch (error) {
-        console.error("❌ Failed to fetch emails", error);
-      }
-    };
-    fetchEmail();
   }, [users]);
 
+  // const emailsToShow = displayMailboxName.toLowerCase() === "sent" ? sentEmails : inboxEmails;
+  const emailsToShow = isDraftPage
+    ? filteredEmails || []
+    // : isDeletedPage
+    //   ? filteredEmails || []
+    : displayMailboxName.toLowerCase() === "sent"
+      ? sentEmails : displayMailboxName.toLowerCase() === "allemails" ? [...inboxEmails, ...sentEmails].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)) : inboxEmails;
 
+
+  console.log("emailsToShow", emailsToShow);
+
+
+  const setEmailsState = (updateFn) => {
+    if (displayMailboxName.toLowerCase() === "sent") {
+      setSentEmails(updateFn);
+    }
+    else if (displayMailboxName.toLowerCase() === "allemails") {
+      setInboxEmails(updateFn);
+      setSentEmails(updateFn);
+    }
+    else {
+      setInboxEmails(updateFn);
+    }
+  };
 
   const handleDeleteSelected = async () => {
-    try {
-      await axios.post(`${BASE_URL}/api/email/mail/delete`, {
-        ids: selectedEmails,
-      });
-      setEmails((prev) =>
-        prev.filter((email) => !selectedEmails.includes(email._id))
-      );
+    if (isDraftPage) {
+      let drafts = JSON.parse(localStorage.getItem("emailDrafts")) || [];
+      drafts = drafts.filter((d) => !selectedEmails.includes(d._id));
+      localStorage.setItem("emailDrafts", JSON.stringify(drafts));
+      // Update parent state so UI re-renders automatically
+      if (onDraftsChange) onDraftsChange(drafts);
+      setEmailsState(prev => prev.filter(email => !selectedEmails.includes(email._id)));
       setSelectedEmails([]);
-    } catch (error) {
-      console.error("Failed to delete emails", error);
+    } else {
+      try {
+        const token = localStorage.getItem("token");
+        await axios.post(`${BASE_URL}/api/email/mail/delete`,
+          { ids: selectedEmails },
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          });
+        setEmailsState((prev) =>
+          prev.filter((email) => !selectedEmails.includes(email._id))
+        );
+        setSelectedEmails([]);
+      } catch (error) {
+        console.error("Failed to delete emails", error);
+      }
     }
   };
 
   const handleDelete = async (id) => {
-    try {
-      await axios.post(`${BASE_URL}/api/email/mail/delete`, { ids: [id] });
-      setEmails((prev) => prev.filter((email) => email._id !== id));
+    if (isDraftPage) {
+      let drafts = JSON.parse(localStorage.getItem("emailDrafts")) || [];
+      drafts = drafts.filter(d => d._id !== id);
+      localStorage.setItem("emailDrafts", JSON.stringify(drafts));
+      // Update parent state so UI re-renders automatically
+      if (onDraftsChange) onDraftsChange(drafts);
+      setEmailsState(prev => prev.filter(email => email._id !== id));
       setMenuOpenId(null);
-    } catch (error) {
-      console.error("Failed to delete email", error);
+    } else {
+      try {
+        const token = localStorage.getItem("token");
+        await axios.post(`${BASE_URL}/api/email/mail/delete`,
+          { ids: [id] },
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          });
+        setEmailsState((prev) => prev.filter((email) => email._id !== id));
+        setMenuOpenId(null);
+      } catch (error) {
+        console.error("Failed to delete email", error);
+      }
     }
   };
 
@@ -200,13 +290,17 @@ const EmailMessages = ({
 
   const handleToggleStar = async (id, currentStarred) => {
     try {
+      const token = localStorage.getItem("token");
       const updated = await axios.put(
         `${BASE_URL}/api/email/mail/star/${id}`,
+        { starred: !currentStarred },
         {
-          starred: !currentStarred,
-        }
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
       );
-      setEmails((prevEmails) =>
+      setEmailsState((prevEmails) =>
         prevEmails.map((email) =>
           email._id === id
             ? { ...email, tags: { ...email.tags, starred: !currentStarred } }
@@ -232,10 +326,15 @@ const EmailMessages = ({
   // for delete permanently via delete page code
   const handlePermanentDelete = async () => {
     try {
-      await axios.post(`${BASE_URL}/api/email/mail/permanent-delete`, {
-        ids: selectedEmails,
-      });
-      setEmails((prev) =>
+      const token = localStorage.getItem("token");
+      await axios.post(`${BASE_URL}/api/email/mail/permanent-delete`,
+        { ids: selectedEmails },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+      setEmailsState((prev) =>
         prev.filter((email) => !selectedEmails.includes(email._id))
       );
       setSelectedEmails([]);
@@ -256,9 +355,9 @@ const EmailMessages = ({
   const handleReply = () => {
     setModalData({
       show: true,
-      to: emails.from,
+      to: selectedEmail?.sender?.name || "",
       // subject: `Re: ${email.subject}`,
-      body: `\n\n------------------ Original Message ------------------\n${emails.body}`,
+      body: `\n\n------------------ Original Message ------------------\n${selectedEmail?.body || ""}`,
     });
   };
 
@@ -353,16 +452,13 @@ const EmailMessages = ({
             handleToggleStar={handleToggleStar}
           />
         ) : (
-          (filteredEmails || emails)
+
+          emailsToShow
             .filter(
               (email) =>
-                email.sender.name
-                  .toLowerCase()
-                  .includes(search.toLowerCase()) ||
+                email.sender.name.toLowerCase().includes(search.toLowerCase()) ||
                 email.subject.toLowerCase().includes(search.toLowerCase()) ||
-                email.messagePreview
-                  .toLowerCase()
-                  .includes(search.toLowerCase())
+                email.messagePreview.toLowerCase().includes(search.toLowerCase())
             )
             .map((email) => (
               <div
@@ -451,7 +547,7 @@ const EmailMessages = ({
                     {/* </div> */}
                     <div
                       style={{ display: "flex", flexDirection: 'column' }}
-                      onClick={() => setSelectedEmail(email)}
+                      onClick={() => { if (isDraftPage && onDraftClick) { onDraftClick(email); } else { setSelectedEmail(email) } }}
                     >
                       <span
                         style={{

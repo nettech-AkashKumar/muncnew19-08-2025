@@ -48,16 +48,33 @@ const Sidebar = () => {
 
   const fetchEmails = async () => {
     try {
-      const res = await axios.get(`${BASE_URL}/api/email/mail/receive`);
-      setEmails(res.data.data);
-    } catch (error) {
-      console.error("Failed to fetch emails", error);
-    }
+      const token = localStorage.getItem("token");
+       // Fetch received emails
+    const resInbox = await axios.get(`${BASE_URL}/api/email/mail/receive`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
+    // Fetch sent emails
+    const resSent = await axios.get(`${BASE_URL}/api/email/mail/getsentemail`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+     // Merge both arrays
+    const allEmails = [...resInbox.data.data, ...resSent.data.data];
+
+    setEmails(allEmails);
+  } catch (error) {
+    console.error("Failed to fetch emails", error);
+  }
   };
   // for deleted
   const fetchDeletedCount = async () => {
     try {
-      const res = await axios.get(`${BASE_URL}/api/email/mail/deleted`);
+      const token = localStorage.getItem("token");
+      const res = await axios.get(`${BASE_URL}/api/email/mail/deleted`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
       setDeletedCount(res.data.data.length);
     } catch (error) {
       console.error("Failed to fetch deleted emails", error);

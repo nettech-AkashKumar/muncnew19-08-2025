@@ -18,10 +18,12 @@ import Ma from "../../../../assets/images/sewc.png"
 const EmailModal = ({
   show,
   onClose,
+  draft = {},
   to: initialTo = "",
   subject: initialSubject = "",
   body: initialBody = "",
-  onSent
+  onSent,
+  onDelete
 }) => {
   const [showCc, setShowCc] = useState(false);
   const [showBcc, setShowBcc] = useState(false);
@@ -40,11 +42,36 @@ const EmailModal = ({
   const [loading, setLoading] = useState(false);
 
   // sync when props change for (reply and forward)
+  //   useEffect(() => {
+  //     setTo(initialTo);
+  //     setSubject(initialSubject);
+  //     setBody(initialBody);
+  //   }, [initialTo, initialSubject, initialBody]);
+
+  //   useEffect(() => {
+  //   if (draft) {
+  //     setTo(draft.to || initialTo);
+  //     setSubject(draft.subject || initialSubject);
+  //     setBody(draft.body || initialBody);
+  //   }
+  // }, [draft, initialTo, initialSubject, initialBody]);
+
   useEffect(() => {
-    setTo(initialTo);
-    setSubject(initialSubject);
-    setBody(initialBody);
-  }, [initialTo, initialSubject, initialBody]);
+    if (!show) return; // do nothing if modal closed
+
+    if (draft && Object.keys(draft).length > 0) {
+      setTo(draft.to || "");
+      setSubject(draft.subject || "");
+      setBody(draft.body || "");
+    } else {
+      setTo(initialTo);
+      setSubject(initialSubject);
+      setBody(initialBody);
+    }
+  }, [show]); // <-- only depend on `show`
+
+
+
 
   const fileInputRef = useRef();
   const imageInputRef = useRef();
@@ -79,13 +106,14 @@ const EmailModal = ({
   const handleSend = async () => {
     try {
       setLoading(true);
+      const token = localStorage.getItem("token"); // get token
       const formData = new FormData();
-      formData.append("to", to);
-      formData.append("from", ""); // use default or actual
+      to.split(",").map(t => t.trim()).forEach(email => formData.append("to", email));
+      cc.split(",").map(t => t.trim()).forEach(email => formData.append("cc", email));
+      bcc.split(",").map(t => t.trim()).forEach(email => formData.append("bcc", email));
+      // formData.append("from", ""); // use default or actual
       formData.append("subject", subject);
       formData.append("body", body);
-      formData.append("cc", cc);
-      formData.append("bcc", bcc);
       formData.append("name", "You");
       formData.append("starred", false);
       formData.append("bin", false);
@@ -102,6 +130,7 @@ const EmailModal = ({
       await axios.post(`${BASE_URL}/api/email/mail/send`, formData, {
         headers: {
           "Content-Type": "multipart/form-data",
+          Authorization: `Bearer ${token}` // ✅ include token here
         },
       });
       toast.success("Email sent successfully!", {
@@ -168,16 +197,21 @@ const EmailModal = ({
         bcc,
         attachments: [], // Don't save File objects, just names or empty
         images: [],
-        timestamp: new Date().toISOString(),
+        timestamp: draft?.timestamp || new Date().toISOString(),
         type: "draft",
       };
 
-      const existingDrafts =
+          let existingDrafts =
         JSON.parse(localStorage.getItem("emailDrafts")) || [];
-      existingDrafts.push(newDraft);
+      if (draft?.timestamp) {
+        existingDrafts = existingDrafts.map(d =>
+          d.timestamp === draft.timestamp ? newDraft : d
+        );
+      } else {
+        existingDrafts.push(newDraft);
+      }
       localStorage.setItem("emailDrafts", JSON.stringify(existingDrafts));
     }
-
     // Reset all fields
     setTo("");
     setSubject("");
@@ -212,13 +246,12 @@ const EmailModal = ({
         </div>
 
         <div className="mailmdl-modal-body" style={{ margin: '10px' }}>
-          <div className="mailmdl-to-field"  style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-            <label style={{ color: '#676767', fontWeight: 400, fontSize: '16px', lineHeight: '10px', letterSpacing: '0', marginTop:'10px' }}>To:</label>
+          <div className="mailmdl-to-field" style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+            <label style={{ color: '#676767', fontWeight: 400, fontSize: '16px', lineHeight: '10px', letterSpacing: '0', marginTop: '10px' }}>To:</label>
             {/* <hr style={{width:'100%', height:'1px'}} /> */}
             <input
-            className="mailmdl"
+              className="mailmdl"
               type="email"
-              defaultValue="Angela Thomas"
               value={to}
               onChange={(e) => setTo(e.target.value)}
               style={{
@@ -227,7 +260,7 @@ const EmailModal = ({
                 outline: 'none',
                 background: 'transparent',
                 fontSize: '16px',
-                marginLeft:'-10px',
+                marginLeft: '-10px',
                 padding: '4px 0',
                 width: '100%',
               }}
@@ -248,7 +281,7 @@ const EmailModal = ({
             <div className="mailmdl-to-field">
               <label style={{ color: '#676767', fontWeight: 400, fontSize: '16px', lineHeight: '10px', letterSpacing: '0' }} htmlFor="">Cc:</label>
               <input
-              className="mailmdl"
+                className="mailmdl"
                 type="email"
                 // placeholder="Add Cc"
                 value={cc}
@@ -270,7 +303,7 @@ const EmailModal = ({
             <div className="mailmdl-to-field">
               <label style={{ color: '#676767', fontWeight: 400, fontSize: '16px', lineHeight: '10px', letterSpacing: '0' }} htmlFor="">Bcc:</label>
               <input
-              className="mailmdl"
+                className="mailmdl"
                 type="email"
                 // placeholder="Add Bcc"
                 value={bcc}
@@ -365,7 +398,7 @@ const EmailModal = ({
 
               {/* for handle input */}
               <input
-              className="mailmdl"
+                className="mailmdl"
                 type="file"
                 multiple
                 style={{ display: "none" }}
@@ -391,11 +424,11 @@ const EmailModal = ({
           </div>
           <div>
             {/* <button
-              className="btns"
-              onClick={() => setShowCalendar((prev) => !prev)}
-            >
-              <MdOutlineEditCalendar />
-            </button> */}
+                className="btns"
+                onClick={() => setShowCalendar((prev) => !prev)}
+              >
+                <MdOutlineEditCalendar />
+              </button> */}
             <button onClick={handleDelete} className="mailmdl-btns">
               <RiDeleteBinLine />
             </button>
@@ -439,3 +472,4 @@ const EmailModal = ({
 };
 
 export default EmailModal;
+
