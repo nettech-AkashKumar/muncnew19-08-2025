@@ -23,6 +23,8 @@ import { IoMdAdd } from "react-icons/io";
 
 //images
 import PaymentDone from '../../assets/img/payment-done.png';
+import Upi from '../../assets/img/upi.png';
+import Banks from '../../assets/img/banks.png';
 
 function Pos() {
 
@@ -1352,11 +1354,37 @@ const fetchCustomers = async () => {
             </div>
 
             <div style={{display:'flex',justifyContent:'space-between',padding:'10px 0px',width:'100%',gap:'15px',marginTop:'5px',}}>
-              <div style={{display:'flex',justifyContent:'space-between',padding:'10px 15px',backgroundColor:'white',borderRadius:'10px',border:'1px solid #E6E6E6',width:'100%',cursor:'pointer'}} onClick={handleCardPopupChange}>
+              <div 
+                style={{
+                  display:'flex',
+                  justifyContent:'space-between',
+                  padding:'10px 15px',
+                  backgroundColor:'white',
+                  borderRadius:'10px',
+                  border:'1px solid #E6E6E6',
+                  width:'100%',
+                  color: (selectedCustomer && selectedItems.length > 0) ? '#1368EC' : '#ccc',
+                  cursor: (selectedCustomer && selectedItems.length > 0) ? 'pointer' : 'not-allowed',
+                }} 
+                onClick={(selectedCustomer && selectedItems.length > 0) ? handleCardPopupChange : undefined}
+              >
                 <span>Card</span>
                 <span>[F2]</span>
               </div>
-              <div style={{display:'flex',justifyContent:'space-between',padding:'10px 15px',backgroundColor:'white',borderRadius:'10px',border:'1px solid #E6E6E6',width:'100%',cursor:'pointer'}} onClick={handleUpiPopupChange}>
+              <div 
+                style={{
+                  display:'flex',
+                  justifyContent:'space-between',
+                  padding:'10px 15px',
+                  backgroundColor:'white',
+                  borderRadius:'10px',
+                  border:'1px solid #E6E6E6',
+                  width:'100%',
+                  color: (selectedCustomer && selectedItems.length > 0) ? '#1368EC' : '#ccc',
+                  cursor: (selectedCustomer && selectedItems.length > 0) ? 'pointer' : 'not-allowed',
+                }} 
+                onClick={(selectedCustomer && selectedItems.length > 0) ? handleUpiPopupChange : undefined}
+              >
                 <span>UPI</span>
                 <span>[F3]</span>
               </div>
@@ -1700,18 +1728,25 @@ const fetchCustomers = async () => {
             alignItems:'center',
           }}
           >
-          <div ref={UpiRef} style={{width:'500px',padding:'10px 16px',overflowY:'auto',backgroundColor:'#fff',border:'1px solid #E1E1E1',borderRadius:'8px'}}>
-            
-            <div style={{display:'flex',justifyContent:'space-between',borderBottom:'1px solid #E1E1E1',padding:'10px 0px'}}>
-              <span>UPI Payment</span>
-            </div>
+          <div ref={UpiRef} style={{width:'400px',padding:'10px 16px',overflowY:'auto',backgroundColor:'#fff',border:'1px solid #E1E1E1',borderRadius:'8px'}}>
             
             <div style={{display:'flex',justifyContent:'center',alignItems:'center',padding:'40px 0px'}}>
               <div style={{textAlign:'center'}}>
-                <div style={{fontSize:'24px',fontWeight:'600',marginBottom:'20px'}}>UPI Payment</div>
-                <div style={{fontSize:'16px',color:'#666',marginBottom:'30px'}}>Scan QR code or enter UPI ID</div>
-                <div style={{padding:'20px',border:'2px dashed #ccc',borderRadius:'8px',marginBottom:'30px'}}>
+                <div>
+                  <img src={Upi} alt="UPI" style={{width:'200px',marginTop:'10px'}} />
+                </div>
+                <div style={{width:'108%',marginTop:'10px',background:'linear-gradient(to right, #E3EDFF, #FFFFFF)',marginLeft:'-24px',marginRight:'-24px',padding:'10px 16px',}}>
+                  <div style={{width:'100%',display:'flex',justifyContent:'center',alignItems:'center',}}>
+                    <span style={{fontSize:'20px',fontWeight:'600'}}>Company Name</span>
+                  </div>
+                </div>
+                <div style={{fontSize:'24px',fontWeight:'600',marginBottom:'20px',marginTop:'10px',color:'#1368EC'}}>
+                  ₹{roundedAmount}.00
+                </div>
+                <div style={{margin:'auto',width:'50%',}}>
+                <div style={{padding:'50px',border:'2px dashed #ccc',borderRadius:'8px',marginBottom:'20px'}}>
                   <div style={{fontSize:'14px',color:'#999'}}>QR Code Placeholder</div>
+                </div>
                 </div>
                 <div 
                   style={{
@@ -1727,7 +1762,10 @@ const fetchCustomers = async () => {
                     setUpiPopup(false);
                   }}
                 >
-                  Complete UPI Payment
+                  Complete
+                </div>
+                <div>
+                  <img src={Banks} alt="UPI" style={{width:'350px',marginTop:'20px'}} />
                 </div>
               </div>
             </div>
@@ -2411,10 +2449,18 @@ const fetchCustomers = async () => {
                 <span>Amount Received</span>
                 <span>₹{selectedSale?.paymentDetails?.amountReceived?.toFixed(2) || '0.00'}</span>
               </div>
+              {selectedSale?.paymentDetails?.changeReturned > 0 && (
               <div style={{width:'100%',display:'flex',justifyContent:'space-between',alignItems:'center',marginTop:'2px'}}>
                 <span>Amount Returned</span>
                 <span>₹{selectedSale?.paymentDetails?.changeReturned?.toFixed(2) || '0.00'}</span>
               </div>
+              )}
+              {(selectedSale?.totals?.totalAmount)-(selectedSale?.paymentDetails?.amountReceived?.toFixed(2)) > 0 && (
+              <div style={{width:'100%',display:'flex',justifyContent:'space-between',alignItems:'center',marginTop:'2px'}}>
+                <span>Amount Due</span>
+                <span>₹{(selectedSale?.totals?.totalAmount)-(selectedSale?.paymentDetails?.amountReceived?.toFixed(2))}</span>
+              </div>
+              )}
               {/* {selectedSale?.paymentDetails?.bagCharge > 0 && (
                 <div style={{width:'100%',display:'flex',justifyContent:'space-between',alignItems:'center',marginTop:'2px'}}>
                   <span>Bag Charge</span>
