@@ -2,6 +2,10 @@
 import React, { useEffect, useRef, useState } from 'react'
 import { Country, State, City } from "country-state-city";
 import QRCode from 'qrcode';
+import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
+import { toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 //host
 import BASE_URL from "../../pages/config/config";
@@ -815,6 +819,217 @@ const fetchCustomers = async () => {
         });
     }
   }, [roundedAmount, companyData]);
+
+//invoice popup----------------------------------------------------------------------------------------------------------------------
+
+const [invoicepopup, setInvoicePopup] = useState(false);
+const InvoiceRef = useRef(null);
+
+  const handleInvoicePopupChange = () => {
+    setInvoicePopup(!invoicepopup);
+  }
+  const closeInvoice = () => {
+    setInvoicePopup(false);
+  };
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (InvoiceRef.current && !InvoiceRef.current.contains(event.target)) {
+        closeInvoice();
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    }
+  }, []);
+
+  
+const totalDiscountinvoice = selectedSale?.items?.reduce(
+  (acc, item) => acc + (item.discount || 0),
+  0
+);
+
+const totalTaxinvoice = selectedSale?.items?.reduce(
+  (acc, item) => acc + (item.tax || 0),
+  0
+);
+
+//print and download invoice----------------------------------------------------------------------------------------------------------------------
+
+const [isGenerating, setIsGenerating] = useState(false);
+
+// Download PDF function
+const handleDownloadPDF = async () => {
+  if (isGenerating) return;
+  
+  // Ensure invoicepopup is open
+  setInvoicePopup(true);
+
+  // Wait for the DOM to update (small delay to ensure rendering)
+  setTimeout(async () => {
+    if (!InvoiceRef.current) {
+      console.error('InvoiceRef is null or undefined');
+      toast.error('Cannot generate PDF: Invoice content is not available');
+      setIsGenerating(false);
+      return;
+    }
+
+    setIsGenerating(true);
+    const element = InvoiceRef.current;
+    const doc = new jsPDF({
+      orientation: 'portrait',
+      unit: 'mm',
+      format: [80, 297],
+    });
+
+    try {
+      const canvas = await html2canvas(element, {
+        scale: 2,
+        useCORS: true,
+        backgroundColor: '#ffffff',
+        logging: true,
+      });
+      const imgData = canvas.toDataURL('image/png');
+      const imgWidth = 70;
+      const pageHeight = 297;
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+      let heightLeft = imgHeight;
+
+      let position = 5;
+      doc.addImage(imgData, 'PNG', 5, position, imgWidth, imgHeight);
+      heightLeft -= pageHeight - 10;
+      while (heightLeft > 0) {
+        doc.addPage();
+        position = heightLeft - imgHeight + 5;
+        doc.addImage(imgData, 'PNG', 5, position, imgWidth, imgHeight);
+        heightLeft -= pageHeight - 10;
+      }
+
+      doc.save('invoice.pdf');
+    } catch (error) {
+      console.error('Error generating PDF:', error);
+      toast.error('Failed to generate PDF: ' + error.message);
+    } finally {
+      setIsGenerating(false);
+      // Optionally close invoicepopup after generating
+      setInvoicePopup(false);
+    }
+  }, 100); // Small delay to ensure DOM rendering
+};
+
+// Print Preview function
+const handleInvoicePrint = async () => {
+  if (isGenerating) return;
+
+  // Ensure invoicepopup is open
+  setInvoicePopup(true);
+
+  // Wait for the DOM to update
+  setTimeout(async () => {
+    if (!InvoiceRef.current) {
+      console.error('InvoiceRef is null or undefined');
+      toast.error('Cannot print: Invoice content is not available');
+      setIsGenerating(false);
+      return;
+    }
+
+    setIsGenerating(true);
+    try {
+      const canvas = await html2canvas(InvoiceRef.current, {
+        scale: 2,
+        useCORS: true,
+        backgroundColor: '#ffffff',
+      });
+      const imgData = canvas.toDataURL('image/png');
+
+      const printWindow = window.open('', '_blank');
+      printWindow.document.write(`
+        <html>
+          <head>
+            <title>Print Invoice</title>
+            <style>
+              body {
+                margin: 5mm;
+                padding: 0;
+                font-family: Arial, sans-serif;
+                font-size: 10px;
+                color: #333;
+              }
+              .invoice-container {
+                max-width: 70mm;
+                margin: 0 auto;
+                background-color: #fff;
+                padding: 5mm;
+              }
+              table {
+                width: 100%;
+                border-collapse: collapse;
+                margin-top: 5px;
+                margin-bottom: 5px;
+              }
+              th, td {
+                padding: 3px;
+                text-align: left;
+                font-size: 10px;
+              }
+              th {
+                border-bottom: 1px solid #E1E1E1;
+              }
+              .text-right {
+                text-align: right;
+              }
+              .text-center {
+                text-align: center;
+              }
+              .section-title {
+                font-size: 14px;
+                font-weight: 600;
+                margin-top: 5px;
+              }
+              .border-bottom {
+                border-bottom: 1px solid #E1E1E1;
+              }
+              @media print {
+                @page {
+                  size: A5;
+                  margin: 5mm;
+                }
+                .invoice-container {
+                  box-shadow: none;
+                  max-width: 70mm;
+                }
+                body {
+                  margin: 0;
+                }
+              }
+            </style>
+          </head>
+          <body>
+            <div class="invoice-container">
+              <img src="${imgData}" style="width: 100%; height: auto;" />
+            </div>
+            <script>
+              window.onload = function() {
+                window.print();
+                window.onafterprint = function() {
+                  window.close();
+                };
+              };
+            </script>
+          </body>
+        </html>
+      `);
+      printWindow.document.close();
+    } catch (error) {
+      console.error('Error generating print preview:', error);
+      toast.error('Failed to generate print preview: ' + error.message);
+    } finally {
+      setIsGenerating(false);
+      // Optionally close invoicepopup after printing
+      setInvoicePopup(false);
+    }
+  }, 100); // Small delay to ensure DOM rendering
+};
 
   return ( //page code starts from here-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     <div style={{marginLeft:'-21px',backgroundColor:'#fff'}}>
@@ -1866,11 +2081,11 @@ const fetchCustomers = async () => {
                   <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
                     {searchdrop ? (
                       <>
-                        <div style={{ border: 'none', marginLeft: '10px', alignItems: 'center', display: 'flex', width: '400px' }}>
+                        <div style={{ border: 'none', marginLeft: '10px', alignItems: 'center', display: 'flex', width: '600px' }}>
                           <IoIosSearch style={{ fontSize: '25px' }} />
                           <input 
                             type='text' 
-                            placeholder='Search by invoice ID, customer name, phone, or item name' 
+                            placeholder='Search by invoice ID, customer name, phone, or item name...' 
                             value={transactionSearchQuery}
                             onChange={(e) => handleTransactionSearch(e.target.value)}
                             style={{ border: 'none', outline: 'none', fontSize: '20px', width: '100%', color: '#333' }} 
@@ -1905,12 +2120,12 @@ const fetchCustomers = async () => {
                   <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
                     {searchdrop ? (
                       <></>) : (<>
-                        <div style={{ color: 'black', padding: '3px 8px', borderRadius: '6px', border: '2px solid #ccc', display: 'flex', gap: '10px', alignItems: 'center' }} value={searchdrop} onClick={handleSearchDropChange}>
+                        <div style={{ color: 'black', padding: '3px 8px', borderRadius: '6px', border: '2px solid #ccc', display: 'flex', gap: '10px', alignItems: 'center', cursor:'pointer' }} value={searchdrop} onClick={handleSearchDropChange}>
                           <IoSearch />
                           <CgSortAz style={{ fontSize: '25px' }} />
                         </div>
                       </>)}
-                    <div style={{ color: 'black', padding: '7px 8px', borderRadius: '6px', border: '2px solid #ccc', display: 'flex', gap: '10px', alignItems: 'center' }} onClick={handleClear}><TbArrowsSort /></div>
+                    <div style={{ color: 'black', padding: '7px 8px', borderRadius: '6px', border: '2px solid #ccc', display: 'flex', gap: '10px', alignItems: 'center', cursor:'pointer' }} onClick={handleClear}><TbArrowsSort /></div>
                   </div>
                 </div>
 
@@ -1965,7 +2180,7 @@ const fetchCustomers = async () => {
                         </div>
                       </div>
 
-                      <div style={{ color: 'black', padding: '2px 8px', borderRadius: '6px', border: '2px solid #ccc', display: 'flex', alignItems: 'center', }}>
+                      <div style={{ color: 'black', padding: '2px 8px', borderRadius: '6px', border: '2px solid #ccc', display: 'flex', alignItems: 'center', cursor:'pointer' }}>
                         <span>Clear</span>
                       </div>
 
@@ -1975,7 +2190,7 @@ const fetchCustomers = async () => {
 
               </div>
 
-            <div style={{border:'1px solid #ccc',marginTop:'10px',borderRadius:'8px',height:'65vh',overflowY:'auto'}}>
+            <div style={{border:'1px solid #ccc',marginTop:'10px',borderRadius:'8px',height:'60vh',overflowY:'auto'}}>
                 <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                   <thead style={{ backgroundColor: '#E6E6E6' }}>
                     <tr style={{ color: "#676767", }}>
@@ -2555,14 +2770,46 @@ const fetchCustomers = async () => {
               )} */}
             </div>
 
-            <div style={{display:'flex',justifyContent:'center',marginTop:'20px',marginBottom:'8px',gap:'20px'}}>
-              <div style={{padding:'3px 10px',backgroundColor:'#E3F3FF',border:'2px solid #BBE1FF',borderRadius:'8px',color:'#1368EC',display:'flex',gap:'5px',alignItems:'center'}}>
-                <span><MdPrint/></span>
-                <span>Print</span>
+            <div style={{ display: 'flex', justifyContent: 'center', marginTop: '20px', marginBottom: '8px', gap: '20px' }}>
+              <div
+                style={{
+                  padding: '3px 10px',
+                  backgroundColor: isGenerating ? '#ccc' : '#E3F3FF',
+                  border: '2px solid #BBE1FF',
+                  borderRadius: '8px',
+                  color: isGenerating ? '#666' : '#1368EC',
+                  display: 'flex',
+                  gap: '5px',
+                  alignItems: 'center',
+                  cursor: isGenerating ? 'not-allowed' : 'pointer',
+                }}
+                onClick={isGenerating ? null : () => {
+                  setInvoicePopup(true); // Open invoice popup
+                  setTimeout(() => handleInvoicePrint(), 100); // Delay to ensure DOM rendering
+                }}
+              >
+                <span><MdPrint /></span>
+                <span>{isGenerating ? 'Generating...' : 'Print'}</span>
               </div>
-              <div style={{padding:'3px 10px',backgroundColor:'#1368EC',border:'2px solid #E6E6E6',borderRadius:'8px',color:'white',display:'flex',gap:'5px',alignItems:'center'}}>
-                <span><AiOutlineDownload/></span>
-                <span>Download</span>
+              <div
+                style={{
+                  padding: '3px 10px',
+                  backgroundColor: isGenerating ? '#ccc' : '#1368EC',
+                  border: '2px solid #E6E6E6',
+                  borderRadius: '8px',
+                  color: 'white',
+                  display: 'flex',
+                  gap: '5px',
+                  alignItems: 'center',
+                  cursor: isGenerating ? 'not-allowed' : 'pointer',
+                }}
+                onClick={isGenerating ? null : () => {
+                  setInvoicePopup(true); // Open invoice popup
+                  setTimeout(() => handleDownloadPDF(), 100); // Delay to ensure DOM rendering
+                }}
+              >
+                <span><AiOutlineDownload /></span>
+                <span>{isGenerating ? 'Generating...' : 'Download'}</span>
               </div>
             </div>
 
@@ -2699,7 +2946,150 @@ const fetchCustomers = async () => {
         </>
       )}
 
+      {/* paymentpopup */}
+      {invoicepopup && (
+        <>
+        <div style={{
+            position: 'fixed',
+            top: '0',
+            left: '0',
+            width: '100%',
+            height: '100%',
+            backgroundColor: 'rgba(199, 197, 197, 0.4)',
+            backdropFilter: 'blur(1px)',
+            display: 'flex',
+            justifyContent: 'center',
+            zIndex: '10',
+            overflowY: 'auto',
+            alignItems:'center',
+          }}
+          >
+          <div ref={InvoiceRef} style={{width:'450px',padding:'10px 16px',overflowY:'auto',backgroundColor:'#fff',border:'1px solid #E1E1E1',borderRadius:'8px',fontSize:'13px'}}>
+            
+            <div style={{display:'flex',justifyContent:'center',padding:'10px 0px',alignContent:'center'}}>
+              <div style={{display:'flex',flexDirection:'column',alignItems:'center',gap:'2px'}}>
+                <span>{companyData.companyName}</span>
+                <span>{companyData.companyaddress}</span>
+                <span>Phone - {companyData.companyphone}</span>
+                <span>{companyData.companyemail}</span>
+                <span>GST No. - {companyData.gstin}</span>
+              </div>
+            </div>
+            
+            <div style={{display:'flex',justifyContent:'center',padding:'10px 0px',alignContent:'center',borderBottom:'1px solid #E1E1E1'}}>
+              <div style={{display:'flex',flexDirection:'column',alignItems:'center',gap:'2px'}}>
+                <span>Tax Invoice</span>
+                <span>Customer Copy</span>
+                <span>TAKEAWAY</span>
+              </div>
+            </div>
+
+            {/* invoice & payment mode */}
+            <div style={{width:'100%',borderBottom:'1px solid #E1E1E1',paddingBottom:'10px',marginTop:'10px'}}>
+              <div style={{width:'100%',display:'flex',justifyContent:'space-between',alignItems:'center',marginTop:'10px',}}>
+                <span>Invoice - {selectedSale?.invoiceNumber || 'N/A'}</span>
+                <span>{selectedSale?.saleDate || 'N/A'}</span>
+              </div>
+              <div style={{width:'100%',display:'flex',justifyContent:'space-between',alignItems:'center',marginTop:'2px'}}>
+                <span>Payment Mode - {selectedSale?.paymentDetails?.paymentMethod || 'N/A'}</span>
+                <span>Status - {selectedSale?.status || 'N/A'}</span>
+              </div>
+            </div>
+
+            <div style={{width:'100%',marginTop:'10px',padding:'10px 16px',borderBottom:'1px solid #E1E1E1',}}>
+              <table style={{width:'100%',marginTop:'10px',borderCollapse:'collapse',marginBottom:'10px'}}>
+                <thead>
+                  <tr>
+                    <th style={{borderBottom:'1px solid #E1E1E1',textAlign:'left',paddingBottom:'5px'}}>Name</th>
+                    <th style={{borderBottom:'1px solid #E1E1E1',textAlign:'left',paddingBottom:'5px'}}>Quantity</th>
+                    <th style={{borderBottom:'1px solid #E1E1E1',textAlign:'left',paddingBottom:'5px'}}>Price / unit</th>
+                    <th style={{borderBottom:'1px solid #E1E1E1',textAlign:'right',paddingBottom:'5px'}}>Total</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {selectedSale?.items?.map((item, index) => (
+                <tr key={index} style={{ }}>
+                  <td style={{textAlign:'left'}}>{item.productName}</td>
+                  <td style={{textAlign:'left'}}>{item.quantity} {item.unit}</td>
+                  <td style={{textAlign:'left'}}>₹{item.unitPrice}</td>
+                  <td style={{textAlign:'right'}}>₹{item.totalPrice?.toFixed(2)}</td>
+                </tr>
+                ))}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Products summery */}
+            <div style={{width:'100%',marginTop:'10px',padding:'10px 16px',}}>
+              <div style={{width:'100%',display:'flex',justifyContent:'space-between',alignItems:'center',marginTop:'10px'}}>
+                <span style={{fontSize:'20px',fontWeight:'600'}}>Payment Summary</span>
+              </div>
+              {selectedSale?.paymentDetails?.bagCharge > 0 && (
+                <div style={{width:'100%',display:'flex',justifyContent:'space-between',alignItems:'center',marginTop:'2px'}}>
+                  <span>Bag Charge</span>
+                  <span>₹{selectedSale?.paymentDetails?.bagCharge?.toFixed(2) || '0.00'}</span>
+                </div>
+              )}
+              <div style={{width:'100%',display:'flex',justifyContent:'space-between',alignItems:'center',marginTop:'2px'}}>
+                <span>Total Discount</span>
+                <span>₹{totalDiscountinvoice.toFixed(2)}</span>
+              </div>
+              <div style={{width:'100%',display:'flex',justifyContent:'space-between',alignItems:'center',marginTop:'2px'}}>
+                <span>Total Tax</span>
+                <span>₹{totalTaxinvoice.toFixed(2)}</span>
+              </div>
+              <div style={{width:'100%',display:'flex',justifyContent:'space-between',alignItems:'center',marginTop:'2px'}}>
+                <span>Total Amount</span>
+                <span>₹{selectedSale?.totals?.totalAmount || '0.00'}</span>
+              </div>
+              <div style={{width:'100%',display:'flex',justifyContent:'space-between',alignItems:'center',marginTop:'5px'}}>
+                <span>Amount Received</span>
+                <span>₹{selectedSale?.paymentDetails?.amountReceived?.toFixed(2) || '0.00'}</span>
+              </div>
+              {selectedSale?.paymentDetails?.changeReturned > 0 && (
+              <div style={{width:'100%',display:'flex',justifyContent:'space-between',alignItems:'center',marginTop:'2px'}}>
+                <span>Amount Returned</span>
+                <span>₹{selectedSale?.paymentDetails?.changeReturned?.toFixed(2) || '0.00'}</span>
+              </div>
+              )}
+              {(selectedSale?.totals?.totalAmount)-(selectedSale?.paymentDetails?.amountReceived?.toFixed(2)) > 0 && (
+              <div style={{width:'100%',display:'flex',justifyContent:'space-between',alignItems:'center',marginTop:'2px'}}>
+                <span>Amount Due</span>
+                <span>₹{(selectedSale?.totals?.totalAmount)-(selectedSale?.paymentDetails?.amountReceived?.toFixed(2))}</span>
+              </div>
+              )}
+            </div>
+
+            {/* customer details */}
+            <div style={{width:'100%',marginTop:'10px',borderBottom:'1px solid #E1E1E1',padding:'10px 16px',marginBottom:'0px'}}>
+              <div style={{width:'100%',display:'flex',justifyContent:'space-between',alignItems:'center',marginTop:'10px'}}>
+                <span style={{fontSize:'20px',fontWeight:'600'}}>Customer Details</span>
+              </div>
+              <div style={{width:'100%',display:'flex',alignItems:'center',marginTop:'10px',gap:'5px',display:'flex',justifyContent:'space-between'}}>
+                <span>Name:</span>
+                <span style={{fontWeight:'600'}}>{selectedSale?.customer?.name || 'N/A'}</span>
+              </div>
+              <div style={{width:'100%',display:'flex',alignItems:'center',marginTop:'2px',gap:'5px',marginBottom:'20px',display:'flex',justifyContent:'space-between'}}>
+                <span>Phone:</span>
+                <span style={{fontWeight:'600'}}>{selectedSale?.customer?.phone || 'N/A'}</span>
+              </div>
+            </div>
+
+            
+            <div style={{display:'flex',justifyContent:'center',borderBottom:'1px solid #E1E1E1',padding:'10px 0px',alignContent:'center',marginBottom:'10px'}}>
+              <div style={{display:'flex',flexDirection:'column',alignItems:'center',gap:'2px'}}>
+                <span>Thank You for Visiting {companyData.companyName}</span>
+                <span>Have a Nice Day</span>
+              </div>
+            </div>
+
+          </div>
+        </div>
+        </>
+      )}
+
     </div>
+    
   )
 }
 
