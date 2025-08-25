@@ -1,5 +1,7 @@
+//packages
 import React, { useEffect, useRef, useState } from 'react'
 import { Country, State, City } from "country-state-city";
+import QRCode from 'qrcode';
 
 //host
 import BASE_URL from "../../pages/config/config";
@@ -61,7 +63,7 @@ function Pos() {
         setExprationValue('');
     };
 
-  //customer popup
+  //customer popup-------------------------------------------------------------------------------------------------------------
   const [popup, setPopup] = useState(false);
   const formRef = useRef(null);
   const handlePopupChange = () => {
@@ -82,7 +84,7 @@ function Pos() {
     };
   }, []);
 
-  //cash popup
+  //cash popup------------------------------------------------------------------------------------------------------------------
   const [cashpopup, setCashPopup] = useState(false);
   const CashRef = useRef(null);
   const handleCashPopupChange = () => {
@@ -114,7 +116,7 @@ function Pos() {
     };
   }, []);
 
-  //card popup
+  //card popup-----------------------------------------------------------------------------------------------------------------------
   const [cardpopup, setCardPopup] = useState(false);
   const CardRef = useRef(null);
   const handleCardPopupChange = () => {
@@ -146,7 +148,7 @@ function Pos() {
     };
   }, []);
 
-  //upi popup
+//upi popup--------------------------------------------------------------------------------------------------------------------------
   const [upipopup, setUpiPopup] = useState(false);
   const UpiRef = useRef(null);
   const handleUpiPopupChange = () => {
@@ -178,7 +180,7 @@ function Pos() {
     };
   }, []);
 
-  //transaction popup 
+//transaction popup---------------------------------------------------------------------------------------------------------------
   const [transactionpopup, setTransactionPopup] = useState(false);
   const TransactionRef = useRef(null);
   const handleTransactionPopupChange = () => {
@@ -199,7 +201,7 @@ function Pos() {
     };
   }, []);
 
-  //add customer popup
+//add customer popup--------------------------------------------------------------------------------------------------------------
   const [addcustomerpopup, setAddCustomerPopup] = useState(false);
   const AddCustomerRef = useRef(null);
   const handleAddCustomerPopupChange = () => {
@@ -220,7 +222,7 @@ function Pos() {
     };
   }, []);
 
-  //discount popup
+//discount popup--------------------------------------------------------------------------------------------------------------------
   const [discountpopup, setDiscountPopup] = useState(false);
   const [selectedItemForDiscount, setSelectedItemForDiscount] = useState(null);
   const [discountQuantity, setDiscountQuantity] = useState(1);
@@ -291,7 +293,7 @@ function Pos() {
     }
   }, []);
 
-  //payment done popup
+//payment done popup-------------------------------------------------------------------------------------------------------
   const [paymentpopup, setPaymentPopup] = useState(false);
   const PaymentRef = useRef(null);
   const handlePaymentPopupChange = () => {
@@ -312,18 +314,12 @@ function Pos() {
     }
   }, []);
 
-
-
-
-
-
-
-  //fetch products
+//fetch products details---------------------------------------------------------------------------------------------------------
   const [products, setProducts] = useState([]);
   const [allProducts, setAllProducts] = useState([]); // Store all products for filtering
   const [activeTabs, setActiveTabs] = useState({});
   
-  // Search functionality
+// Search functionality
   const [productSearchQuery, setProductSearchQuery] = useState('');
   const [transactionSearchQuery, setTransactionSearchQuery] = useState('');
       // Product search functionality
@@ -359,11 +355,11 @@ function Pos() {
         const res = await axios.get(`${BASE_URL}/api/products`);
         setProducts(res.data);
         setAllProducts(res.data); // Store all products
-        console.log("Products right:", res.data);
+        // console.log("Products right:", res.data);
         // Log first product to see image structure
         if (res.data.length > 0) {
-          console.log("First product structure:", res.data[0]);
-          console.log("First product images:", res.data[0].images);
+          // console.log("First product structure:", res.data[0]);
+          // console.log("First product images:", res.data[0].images);
         }
         // Initialize all to "general"
         const initialTabs = res.data.reduce((acc, product) => {
@@ -379,10 +375,7 @@ function Pos() {
   }, []);
   
 
-
-
-
-  //fetch category
+//fetch category of products----------------------------------------------------------------------------------------------------
   const [categories, setCategories] = useState([]);
   const fetchCategories = async () => {
     try {
@@ -396,11 +389,6 @@ function Pos() {
   useEffect(() => {
     fetchCategories();
   }, []);
-
-
-
-
-
 
   // Category filtering functionality
   const [selectedCategory, setSelectedCategory] = useState(null);
@@ -426,10 +414,7 @@ function Pos() {
   };
 
 
-
-
-
-  // Product selection and cart functionality
+// Product selection and cart functionality---------------------------------------------------------------------------------
   const [selectedItems, setSelectedItems] = useState([]);
   const [subTotal, setSubTotal] = useState(0);
   const [totalAmount, setTotalAmount] = useState(0);
@@ -519,15 +504,13 @@ const [amountReceived, setAmountReceived] = useState("");
 const changeToReturn = Math.max((Number(amountReceived) || 0) - roundedAmount, 0);
 const dueAmount = Math.max(roundedAmount - (Number(amountReceived) || 0), 0);
 
-
-
-  //bill details up down arrow
+//bill details up down arrow-----------------------------------------------------------------------------------------------------
   const [updown, setUpdown] = useState(false);
   const handleUpDown = (value) => {
     setUpdown(value)
   };
 
-  //opt
+//opt structure-----------------------------------------------------------------------------------------------------------------
   const otpRefs = [useRef(), useRef(), useRef(), useRef()];
   const [otp, setOtp] = useState(["", "", "", ""]);
   const handleOtpChange = (index, value) => {
@@ -543,7 +526,7 @@ const dueAmount = Math.max(roundedAmount - (Number(amountReceived) || 0), 0);
     }
   };
 
-  //customers
+//customers selection--------------------------------------------------------------------------------------------------------------
   const [customers, setCustomers] = useState([]);
   const [selectedCustomer, setSelectedCustomer] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
@@ -604,7 +587,7 @@ const fetchCustomers = async () => {
     setShowDropdown(false);
   };
 
-  // Fetch POS sales transactions
+// Fetch sales transactions-------------------------------------------------------------------------------------------------
   const fetchPosSales = async (page = 1, searchQuery = '') => {
     try {
       setLoading(true);
@@ -632,13 +615,13 @@ const fetchCustomers = async () => {
     }
   };
 
-  // Transaction search functionality
+// Transaction search functionality
   const handleTransactionSearch = (query) => {
     setTransactionSearchQuery(query);
     fetchPosSales(1, query);
   };
 
-  // Create POS sale
+// Create POS sale---------------------------------------------------------------------------------------------------------------------
   const createPosSale = async (paymentMethod, amountReceived = 0, changeReturned = 0) => {
     try {
       if (!selectedCustomer || selectedItems.length === 0) {
@@ -713,7 +696,7 @@ const fetchCustomers = async () => {
     }
   };
 
-  // Handle pagination
+// Handle pagination
   const handlePageChange = (newPage) => {
     if (newPage >= 1 && newPage <= totalPages) {
       fetchPosSales(newPage, transactionSearchQuery);
@@ -751,7 +734,89 @@ const fetchCustomers = async () => {
       }
     }, [selectedState]);
 
-  return (
+//company details-----------------------------------------------------------------------------------------------------------------
+
+  const [companyData , setCompanyData] = useState({
+    companyName: "",
+    companyemail: "",
+    companyphone: "",
+    companyfax: "",
+    companywebsite: "",
+    companyaddress: "",
+    companycountry: "",
+    companystate: "",
+    companycity: "",
+    companypostalcode: "",
+    gstin: "",
+    cin: "",
+    companydescription: "",
+    upiId: "",
+  });
+
+  const fetchCompanyProfile = async () => {
+    try {
+      const res = await axios.get(`${BASE_URL}/api/companyprofile/get`);
+      console.log("Fetched company profile data:", res.data);
+      const profile = res.data.data;
+      if (profile) {
+        setCompanyData({
+          companyName: profile.companyName || "",
+          companyemail: profile.companyemail || "",
+          companyphone: profile.companyphone || "",
+          companyfax: profile.companyfax || "",
+          companywebsite: profile.companywebsite || "",
+          companyaddress: profile.companyaddress || "",
+          companycountry: profile.companycountry || "",
+          companystate: profile.companystate || "",
+          companycity: profile.companycity || "",
+          companypostalcode: profile.companypostalcode || "",
+          gstin: profile.gstin || "",
+          cin: profile.cin || "",
+          companydescription: profile.companydescription || "",
+          upiId: profile.upiId || "adityasng420.ak@okicici", //company upi id
+        });
+
+      }
+    } catch (error) {
+      toast.error("No existing company profile or error fetching it:", error);
+    }
+  };
+  useEffect(() => {
+    fetchCompanyProfile();
+  }, []);
+
+//upi qr code generation----------------------------------------------------------------------------------------------------------
+
+  const [qrCodeUrl, setQrCodeUrl] = useState("");
+  
+  async function generatePaymentQRCode(paymentData) {
+        try {
+            const qrCodeString = await QRCode.toDataURL(JSON.stringify(paymentData));
+            // You can then display this qrCodeString (Data URL) in an <img> tag or save it as an image.
+            console.log(qrCodeString);
+        } catch (err) {
+            console.error(err);
+        }
+    }
+  useEffect(() => {
+    if (companyData?.companyName && companyData?.upiId && roundedAmount > 0) {
+      // Build UPI Payment String
+      const upiString = `upi://pay?pa=${companyData.upiId}&pn=${encodeURIComponent(
+        companyData.companyName
+      )}&am=${roundedAmount}&cu=INR`;
+
+      // Generate QR Code
+      QRCode.toDataURL(upiString)
+        .then((url) => {
+          setQrCodeUrl(url);
+        })
+        .catch((err) => {
+          console.error("Error generating QR code:", err);
+        });
+    }
+  }, [roundedAmount, companyData]);
+
+  return ( //page code starts from here-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     <div style={{marginLeft:'-21px',backgroundColor:'#fff'}}>
 
       {/* Add CSS for loading animation */}
@@ -1737,15 +1802,15 @@ const fetchCustomers = async () => {
                 </div>
                 <div style={{width:'108%',marginTop:'10px',background:'linear-gradient(to right, #E3EDFF, #FFFFFF)',marginLeft:'-24px',marginRight:'-24px',padding:'10px 16px',}}>
                   <div style={{width:'100%',display:'flex',justifyContent:'center',alignItems:'center',}}>
-                    <span style={{fontSize:'20px',fontWeight:'600'}}>Company Name</span>
+                    <span style={{fontSize:'20px',fontWeight:'600'}}>{companyData.companyName}</span>
                   </div>
                 </div>
                 <div style={{fontSize:'24px',fontWeight:'600',marginBottom:'20px',marginTop:'10px',color:'#1368EC'}}>
                   ₹{roundedAmount}.00
                 </div>
                 <div style={{margin:'auto',width:'50%',}}>
-                <div style={{padding:'50px',border:'2px dashed #ccc',borderRadius:'8px',marginBottom:'20px'}}>
-                  <div style={{fontSize:'14px',color:'#999'}}>QR Code Placeholder</div>
+                <div style={{padding:'0px',border:'2px dashed #ccc',borderRadius:'8px',marginBottom:'20px'}}>
+                  <img src={qrCodeUrl} alt="QR Code" style={{width:'100%',height:'100%'}} />
                 </div>
                 </div>
                 <div 
@@ -1758,7 +1823,7 @@ const fetchCustomers = async () => {
                     display:'inline-block'
                   }}
                   onClick={() => {
-                    createPosSale('UPI');
+                    createPosSale('UPI', Number(roundedAmount), changeToReturn);
                     setUpiPopup(false);
                   }}
                 >
