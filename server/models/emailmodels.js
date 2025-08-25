@@ -5,7 +5,13 @@ const emailSchema = new mongoose.Schema(
     to: { type: [String] },
     cc: { type: [String], default: [] },
     bcc: { type: [String], default: [] },
-    from: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+    // from: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+    from: {
+      email: { type: String, required: true },
+      firstName: { type: String },
+      lastName: { type: String },
+      profileImage: { type: String },
+    },
     subject: { type: String },
     body: { type: String },
     attachments: { type: [String], default: [] }, //stores file names or URLs

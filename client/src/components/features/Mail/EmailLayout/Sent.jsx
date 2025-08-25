@@ -6,69 +6,70 @@ import BASE_URL from "../../../../pages/config/config";
 const Sent = ({ onToggleStar }) => {
   const [emails, setEmails] = useState([]);
 
+const fetchSentEmails = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      const res = await axios.get(`${BASE_URL}/api/email/mail/getsentemail`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      const formatted = res.data.data.map((email) => {
+        const senderName = email.from?.firstName
+          ? `${email.from.firstName} ${email.from.lastName || ""}`.trim()
+          : "Unknown";
+
+        const initials = senderName
+          .split(" ")
+          .map((w) => w[0])
+          .join("")
+          .toUpperCase()
+          .slice(0, 2);
+
+        return {
+          ...email,
+          sender: {
+            name: senderName,
+            profileImage: email.from?.profileImage?.url || email.from?.profileImage || null,
+            initials,
+            backgroundColor: "#5e35b1",
+          },
+          messagePreview: (email.body || "").slice(0, 50) + "...",
+          time:
+            email.createdAt && !isNaN(new Date(email.createdAt))
+              ? new Intl.DateTimeFormat("en-GB", {
+                  day: "2-digit",
+                  month: "short",
+                  year: "numeric",
+                  hour: "2-digit",
+                  minute: "2-digit",
+                  hour12: true,
+                }).format(new Date(email.createdAt))
+              : "Invalid Date",
+          tags: { starred: email.starred || false },
+          folders: { galleryCount: email.attachments?.length || 0 },
+        };
+      });
+
+      setEmails(formatted);
+    } catch (err) {
+      console.error("Failed to fetch sent emails", err);
+    }
+  };
+
   useEffect(() => {
-    const fetchInboxEmails = async () => {
-      try {
-        const res = await axios.get(`${BASE_URL}/api/email/mail/receive`);
-
-        const formatted = res.data.data.map((email) => {
-          const name = email.name;
-          const initials = name
-            .split(" ")
-            .map((word) => word[0])
-            .join("")
-            .toUpperCase()
-            .slice(0, 2);
-
-          return {
-            ...email,
-            sender: {
-              name,
-              initials,
-              backgroundColor: "#5e35b1",
-            },
-            subject: email.subject,
-            messagePreview: (email.body || "").slice(0, 50) + "...",
-            time:
-              email.createdAt && !isNaN(new Date(email.createdAt))
-                ? new Intl.DateTimeFormat("en-GB", {
-                    day: "2-digit",
-                    month: "short",
-                    year: "numeric",
-                    hour: "2-digit",
-                    minute: "2-digit",
-                    hour12: true,
-                  }).format(new Date(email.createdAt))
-                : "Invalid Date",
-            status: { dotColor: "red" },
-            folders: {
-              galleryCount: email.attachments?.length || 0,
-            },
-            tags: {
-              starred: email.starred,
-              extraLabelCount: 0,
-            },
-          };
-        });
-
-        const sentOnly = formatted.filter((email) => email.type === "sent");
-        setEmails(sentOnly);
-      } catch (error) {
-        console.error("Failed to fetch inbox emails", error);
-      }
-    };
-
-    fetchInboxEmails();
-    const interval = setInterval(() => {
-      fetchInboxEmails();
-    }, 1000);
-    return () => clearInterval(interval)
+    fetchSentEmails();
+    const interval = setInterval(fetchSentEmails, 5000); // refresh every 5s
+    return () => clearInterval(interval);
   }, []);
+
+
 
   const handleToggleStar = async (id, currentStarred) => {
     try {
-      await axios.put(`${BASE_URL}/api/email/mail/star/${id}`, {
-        starred: !currentStarred,
+      const token = localStorage.getItem("token");
+      await axios.put(`${BASE_URL}/api/email/mail/star/${id}`, 
+        { starred: !currentStarred },
+      { headers: { Authorization: `Bearer ${token}` }
       });
 
       setEmails((prevEmails) =>

@@ -10,21 +10,24 @@ const Starred = () => {
   useEffect(() => {
     const fetchStarredEmails = async () => {
       try {
-        const res = await axios.get(`${BASE_URL}/api/email/mail/receive`);
+        const token = localStorage.getItem("token");
+        const res = await axios.get(`${BASE_URL}/api/email/mail/receive`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
 
         const formatted = res.data.data.map((email) => {
-          const name = email.name;
-          const initials = name
-            .split(" ")
-            .map((word) => word[0])
-            .join("")
-            .toUpperCase()
-            .slice(0, 2);
-
+          const senderName = email.from?.firstName
+            ? `${email.from.firstName} ${email.from.lastName || ''}`.trim()
+            : "Unknown";
+          const profileImage = email.from?.profileImage?.url || email.from?.profileImage || null;
+          const initials = senderName.split(" ").map((w) => w[0]).join("").toUpperCase().slice(0, 2);
           return {
             ...email,
             sender: {
-              name,
+              name: senderName,
+              profileImage,
               initials,
               backgroundColor: "#5e35b1",
             },

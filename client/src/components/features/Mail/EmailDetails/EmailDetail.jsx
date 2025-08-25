@@ -62,7 +62,13 @@ const EmailDetail = ({ email, onBack, handleToggleStar }) => {
 
   const handleDelete = async (id) => {
     try {
-      await axios.post(`${BASE_URL}/api/email/mail/delete`, { ids: [id] });
+      const token = localStorage.getItem("token");
+      await axios.post(`${BASE_URL}/api/email/mail/delete`, {
+        ids: [id],
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
       setEmails((prev) => prev.filter((email) => email._id !== id));
       setMenuOpenId(null);
     } catch (error) {
@@ -85,13 +91,11 @@ const EmailDetail = ({ email, onBack, handleToggleStar }) => {
       show: true,
       to: "",
       subject: `Fwd: ${email.subject}`,
-      body: `\n\n------------------ Forwarded Message ------------------\nFrom: ${
-        email.from
-      }\nDate: ${new Date(
-        email.createdAt
-      ).toLocaleString()}\nTo: ${email.to.join(", ")}\nSubject: ${
-        email.subject
-      }\n\n${email.body}`,
+      body: `\n\n------------------ Forwarded Message ------------------\nFrom: ${email.from
+        }\nDate: ${new Date(
+          email.createdAt
+        ).toLocaleString()}\nTo: ${email.to.join(", ")}\nSubject: ${email.subject
+        }\n\n${email.body}`,
     });
   };
 
@@ -130,6 +134,31 @@ const EmailDetail = ({ email, onBack, handleToggleStar }) => {
       alert("Failed to download image.");
     }
   };
+  // safely get sender name/email
+  const getSenderDisplay = (sender) => {
+    if (!sender) return "Unknown";
+    if (typeof sender === "string") return sender;
+    if (typeof sender === "object") {
+      return sender.firstName || sender.lastName
+        ? `${sender.firstName || ""} ${sender.lastName || ""}`.trim()
+        : sender.email || "Unknown";
+    }
+    return "Unknown";
+  };
+
+  // safely get recipients list
+  const getRecipientsDisplay = (recipients) => {
+    if (!recipients) return "";
+    if (typeof recipients === "string") return recipients;
+    if (Array.isArray(recipients)) {
+      return recipients
+        .map((r) => (typeof r === "object" ? r.email : r))
+        .join(", ");
+    }
+    if (typeof recipients === "object") return recipients.email || "";
+    return "";
+  };
+
 
   return (
     <div className="email-detail">
@@ -230,34 +259,34 @@ const EmailDetail = ({ email, onBack, handleToggleStar }) => {
                 </div>
               )}
             </span>
-            <div style={{display:'flex', flexDirection:'column', margin:0, padding:0}}> 
-              <span  style={{ display: "block", margin: 0, padding: 0, marginTop:'-20px', marginBottom:'-10px' }}>
-              <span style={{margin:0, paddingRight:'4px', color:'#262626', fontSize:'14px', fontWeight:500, lineHeight:'14px'}}>{email.sender?.name || email.from || "Unknown"}</span>
-              <span style={{margin:0, paddingRight:'4px', fontSize:'12px', fontWeight:400, lineHeight:'14px', color:'#676767'}}>&lt;{email.to}&gt;</span>
-            <button
-              onClick={() => setShowDetails(!showDetails)}
-              className="toggle-meta"
-              style={{paddingTop:'4px'}}
-            >
-              <MdExpandMore />
-            </button>
-            </span>
-            <span style={{margin:'2px 0px 2px 0px', fontSize:'12px', fontWeight:400, lineHeight:'14px', color:'#676767'}}>To: {email.to}</span>
-              <span style={{margin:'2px 0px 2px 0px', fontSize:'12px', fontWeight:400, lineHeight:'14px', color:'#676767'}}>Subject: <span style={{color:'#262626'}}>{email.subject}</span></span>
-              </div>
+            <div style={{ display: 'flex', flexDirection: 'column', margin: 0, padding: 0 }}>
+              <span style={{ display: "block", margin: 0, padding: 0, marginTop: '-20px', marginBottom: '-10px' }}>
+                <span style={{ margin: 0, paddingRight: '4px', color: '#262626', fontSize: '14px', fontWeight: 500, lineHeight: '14px' }}>{email.type === "sent" ? getRecipientsDisplay(email.to) : email.sender?.name || getSenderDisplay(email.from) || "Unknown"}</span>
+                <span style={{ margin: 0, paddingRight: '4px', fontSize: '12px', fontWeight: 400, lineHeight: '14px', color: '#676767' }}>&lt;{email.type === "sent" ? getRecipientsDisplay(email.to) : getRecipientsDisplay(email.from)}&gt;</span>
+                <button
+                  onClick={() => setShowDetails(!showDetails)}
+                  className="toggle-meta"
+                  style={{ paddingTop: '4px' }}
+                >
+                  <MdExpandMore />
+                </button>
+              </span>
+              {/* <span style={{ margin: '2px 0px 2px 0px', fontSize: '12px', fontWeight: 400, lineHeight: '14px', color: '#676767' }}>To: {email.type === "sent" ? getRecipientsDisplay(email.to) : getRecipientsDisplay(email.from)}</span> */}
+              <span style={{ margin: '2px 0px 2px 0px', fontSize: '12px', fontWeight: 400, lineHeight: '14px', color: '#676767' }}>Subject: <span style={{ color: '#262626' }}>{email.subject}</span></span>
+            </div>
           </div>
         </div>
         <div className="subject-right">
           <span className="email-time" style={{ color: "#262626" }}>
             {email.createdAt && !isNaN(new Date(email.createdAt))
               ? new Intl.DateTimeFormat("en-GB", {
-                  day: "2-digit",
-                  month: "short",
-                  year: "numeric",
-                  hour: "2-digit",
-                  minute: "2-digit",
-                  hour12: true,
-                }).format(new Date(email.createdAt))
+                day: "2-digit",
+                month: "short",
+                year: "numeric",
+                hour: "2-digit",
+                minute: "2-digit",
+                hour12: true,
+              }).format(new Date(email.createdAt))
               : "Invalid Date"}
           </span>
           <span
@@ -330,87 +359,89 @@ const EmailDetail = ({ email, onBack, handleToggleStar }) => {
         <div className="email-meta">
           <p
             style={{
-              fontSize:'12px', fontWeight:400, lineHeight:'14px', color:'#676767'
+              fontSize: '12px', fontWeight: 400, lineHeight: '14px', color: '#676767'
             }}
           >
             From:{" "}
             <span style={{
-              fontSize:'14px', fontWeight:400, lineHeight:'14px', color:'#262626'
+              fontSize: '14px', fontWeight: 400, lineHeight: '14px', color: '#262626'
             }}>
-              {email.sender?.name || email.from || "Unknown"}
+              {email.sender?.firstName && email.sender?.lastName
+                ? `${email.sender.firstName} ${email.sender.lastName}`
+                : email.sender?.email || getSenderDisplay(email.from) || "Unknown"}
             </span>
           </p>
           <p
             style={{
-              fontSize:'12px', fontWeight:400, lineHeight:'14px', color:'#676767'
+              fontSize: '12px', fontWeight: 400, lineHeight: '14px', color: '#676767'
             }}
           >
             To:{" "}
             <span style={{
-              fontSize:'14px', fontWeight:400, lineHeight:'14px', color:'#262626'
+              fontSize: '14px', fontWeight: 400, lineHeight: '14px', color: '#262626'
             }}>
-              {Array.isArray(email.to) ? email.to.join(", ") : email.to || "None"}
+              {getRecipientsDisplay(email.to)}
             </span>
           </p>
           <p
             style={{
-              fontSize:'12px', fontWeight:400, lineHeight:'14px', color:'#676767'
+              fontSize: '12px', fontWeight: 400, lineHeight: '14px', color: '#676767'
             }}
           >
             Cc:{" "}
             <span style={{
-              fontSize:'14px', fontWeight:400, lineHeight:'14px', color:'#262626'
+              fontSize: '14px', fontWeight: 400, lineHeight: '14px', color: '#262626'
             }}>
-              {Array.isArray(email.cc) && email.cc.length > 0 ? email.cc.join(", ") : "None"}
+              {getRecipientsDisplay(email.cc)}
             </span>
           </p>
           <p
             style={{
-              fontSize:'12px', fontWeight:400, lineHeight:'14px', color:'#676767'
+              fontSize: '12px', fontWeight: 400, lineHeight: '14px', color: '#676767'
             }}
           >
             Bcc:{" "}
             <span style={{
-              fontSize:'14px', fontWeight:400, lineHeight:'14px', color:'#262626'
+              fontSize: '14px', fontWeight: 400, lineHeight: '14px', color: '#262626'
             }}>
-              {Array.isArray(email.bcc) && email.bcc.length > 0 ? email.bcc.join(", ") : "None"}
+              {getRecipientsDisplay(email.bcc)}
             </span>
           </p>
           <p
             style={{
-              fontSize:'12px', fontWeight:400, lineHeight:'14px', color:'#676767'
+              fontSize: '12px', fontWeight: 400, lineHeight: '14px', color: '#676767'
             }}
           >
             Date:{" "}
             <span style={{
-              fontSize:'14px', fontWeight:400, lineHeight:'14px', color:'#262626'
+              fontSize: '14px', fontWeight: 400, lineHeight: '14px', color: '#262626'
             }}>
               {email.createdAt && !isNaN(new Date(email.createdAt))
                 ? new Intl.DateTimeFormat("en-GB", {
-                    day: "2-digit",
-                    month: "short",
-                    year: "numeric",
-                  }).format(new Date(email.createdAt))
+                  day: "2-digit",
+                  month: "short",
+                  year: "numeric",
+                }).format(new Date(email.createdAt))
                 : "Invalid Date"}
             </span>
           </p>
           <p
             style={{
-              fontSize:'12px', fontWeight:400, lineHeight:'14px', color:'#676767'
+              fontSize: '12px', fontWeight: 400, lineHeight: '14px', color: '#676767'
             }}
           >
             Subject:{" "}
             <span style={{
-              fontSize:'14px', fontWeight:400, lineHeight:'14px', color:'#262626'
+              fontSize: '14px', fontWeight: 400, lineHeight: '14px', color: '#262626'
             }}>
               {email.subject}
             </span>
           </p>
         </div>
       )}
-      <hr style={{color:'#b8b8b8ff', height:'1px', fontWeight:400}}/>
-      <div 
-      style={{border: "none", fontSize:'14px', fontWeight:400, lineHeight:'14px', color:'#262626'}}
+      <hr style={{ color: '#b8b8b8ff', height: '1px', fontWeight: 400 }} />
+      <div
+        style={{ border: "none", fontSize: '14px', fontWeight: 400, lineHeight: '14px', color: '#262626' }}
         className="email-body"
         dangerouslySetInnerHTML={{
           __html: email.body.replace(/\n/g, "<br/>"),
@@ -420,9 +451,9 @@ const EmailDetail = ({ email, onBack, handleToggleStar }) => {
       {/* image and attachment */}
       <div style={{ marginTop: "20px" }}>
         <h4
-        style={{
-              fontSize:'14px', fontWeight:400, lineHeight:'14px', color:'#262626'
-            }}
+          style={{
+            fontSize: '14px', fontWeight: 400, lineHeight: '14px', color: '#262626'
+          }}
         >Attachments</h4>
         <div style={{ display: "flex", flexWrap: "wrap", gap: "20px" }}>
           {/* Images */}
