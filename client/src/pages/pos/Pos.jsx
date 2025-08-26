@@ -13,7 +13,7 @@ import axios from "axios";
 
 //icons
 import { IoSearch } from "react-icons/io5";
-import { SlHandbag } from "react-icons/sl";
+import { SlHandbag , SlBag } from "react-icons/sl";
 import { GoPersonAdd } from "react-icons/go";
 import { RiDeleteBinLine,RiArrowUpWideLine,RiArrowDownWideLine } from "react-icons/ri";
 import { BsPersonSquare } from "react-icons/bs";
@@ -26,6 +26,7 @@ import { IoIosSearch, IoIosArrowBack , IoIosArrowForward } from "react-icons/io"
 import { MdPrint } from "react-icons/md";
 import { AiOutlineDownload } from "react-icons/ai";
 import { IoMdAdd } from "react-icons/io";
+import { PiBagThin,PiShoppingBagThin } from "react-icons/pi";
 
 //images
 import PaymentDone from '../../assets/img/payment-done.png';
@@ -117,6 +118,27 @@ function Pos() {
   return () => {
     document.removeEventListener("mousedown", handleClickOutside);
     document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, []);
+
+//bag popup-------------------------------------------------------------------------------------------------------------------
+  const [bagpopup, setBagPopup] = useState(false);
+  const BagRef = useRef(null);
+  const handleBagPopupChange = () => {
+    setBagPopup(!bagpopup);
+  }
+  const closeBag = () => {
+    setBagPopup(false);
+  };
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (BagRef.current && !BagRef.current.contains(event.target)) {
+        closeBag();
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
     };
   }, []);
 
@@ -1077,13 +1099,7 @@ const handleInvoicePrint = async () => {
                   borderRadius: bagCharge > 0 ? '8px' : '0px',
                   padding: '5px 15px'
                 }}
-                onClick={() => {
-                  if (bagCharge === 0) {
-                    setBagCharge(10);
-                  } else {
-                    setBagCharge(0);
-                  }
-                }}
+                onClick={handleBagPopupChange}
               >
               <SlHandbag/> 
               <span style={{fontSize:'10px'}}>Add Bag</span>
@@ -1983,6 +1999,115 @@ const handleInvoicePrint = async () => {
               >
                 <span>Proceed to Pay</span>
               </div>
+            </div>
+
+          </div>
+        </div>
+        </>
+      )}
+
+      {/* add bag popup */}
+      {bagpopup && (
+        <>
+        <div style={{
+            position: 'fixed',
+            top: '0',
+            left: '0',
+            width: '100%',
+            height: '100%',
+            backgroundColor: 'rgba(199, 197, 197, 0.4)',
+            backdropFilter: 'blur(1px)',
+            display: 'flex',
+            justifyContent: 'center',
+            zIndex: '10',
+            overflowY: 'auto',
+            alignItems:'center',
+          }}
+          >
+          <div ref={BagRef} style={{width:'500px',padding:'10px 16px',overflowY:'auto',backgroundColor:'#fff',border:'1px solid #E1E1E1',borderRadius:'8px'}}>
+            
+            <div style={{display:'flex',justifyContent:'space-between',padding:'10px 0px'}}>
+              <span>Select Bag Type</span>
+            </div>
+
+            <div style={{display:'flex',justifyContent:'space-around',alignItems:'center',marginTop:'20px',gap:'10px',marginBottom:'30px'}}>
+              <div 
+                style={{
+                  display:'flex',
+                  flexDirection:'column',
+                  alignItems:'center',
+                  cursor:'pointer',
+                  gap:'0px',
+                  backgroundColor: bagCharge == 10 ? '#E3F3FF' : '#BCBCBC',
+                  borderRadius: '8px',
+                  padding: '20px 25px',
+                  border: '1px solid #E6E6E6',
+                  color: bagCharge == 10 ? '#1368EC' : 'white',
+                }}
+                onClick={() => {
+                  if (bagCharge === 0) {
+                    setBagCharge(10);
+                  } else {
+                    setBagCharge(0);
+                  }
+                }}
+              >
+              <SlHandbag style={{fontSize:'30px',marginTop:'20px'}} /> 
+              <span style={{fontSize:'15px',marginTop:'15px'}}>₹10</span>
+              <span style={{fontSize:'15px',}}>10Kg Bag</span>
+            </div>
+
+            <div 
+                style={{
+                  display:'flex',
+                  flexDirection:'column',
+                  alignItems:'center',
+                  cursor:'pointer',
+                  gap:'0px',
+                  backgroundColor: bagCharge == 20 ? '#E3F3FF' : '#BCBCBC',
+                  borderRadius: '8px',
+                  padding: '20px 25px',
+                  border: '1px solid #E6E6E6',
+                  color: bagCharge == 20 ? '#1368EC' : 'white',
+                }}
+                onClick={() => {
+                  if (bagCharge === 0) {
+                    setBagCharge(20);
+                  } else {
+                    setBagCharge(0);
+                  }
+                }}
+              >
+              <PiShoppingBagThin style={{fontSize:'50px',marginTop:'10px'}} /> 
+              <span style={{fontSize:'15px',marginTop:'10px'}}>₹20</span>
+              <span style={{fontSize:'15px',}}>15Kg Bag</span>
+            </div>
+
+            <div 
+                style={{
+                  display:'flex',
+                  flexDirection:'column',
+                  alignItems:'center',
+                  cursor:'pointer',
+                  gap:'0px',
+                  backgroundColor: bagCharge == 30 ? '#E3F3FF' : '#BCBCBC',
+                  borderRadius: '8px',
+                  padding: '20px 25px',
+                  border: '1px solid #E6E6E6',
+                  color: bagCharge == 30 ? '#1368EC' : 'white',
+                }}
+                onClick={() => {
+                  if (bagCharge === 0) {
+                    setBagCharge(30);
+                  } else {
+                    setBagCharge(0);
+                  }
+                }}
+              >
+              <PiBagThin style={{fontSize:'50px',marginTop:'10px'}} /> 
+              <span style={{fontSize:'15px',marginTop:'10px'}}>₹30</span>
+              <span style={{fontSize:'15px',}}>20Kg Bag</span>
+            </div>
             </div>
 
           </div>
@@ -3065,11 +3190,11 @@ const handleInvoicePrint = async () => {
               <div style={{width:'100%',display:'flex',justifyContent:'space-between',alignItems:'center',marginTop:'10px'}}>
                 <span style={{fontSize:'20px',fontWeight:'600'}}>Customer Details</span>
               </div>
-              <div style={{width:'100%',display:'flex',alignItems:'center',marginTop:'10px',gap:'5px',display:'flex',justifyContent:'space-between'}}>
+              <div style={{width:'100%',display:'flex',alignItems:'center',marginTop:'10px',gap:'5px',justifyContent:'space-between'}}>
                 <span>Name:</span>
                 <span style={{fontWeight:'600'}}>{selectedSale?.customer?.name || 'N/A'}</span>
               </div>
-              <div style={{width:'100%',display:'flex',alignItems:'center',marginTop:'2px',gap:'5px',marginBottom:'20px',display:'flex',justifyContent:'space-between'}}>
+              <div style={{width:'100%',display:'flex',alignItems:'center',marginTop:'2px',gap:'5px',marginBottom:'20px',justifyContent:'space-between'}}>
                 <span>Phone:</span>
                 <span style={{fontWeight:'600'}}>{selectedSale?.customer?.phone || 'N/A'}</span>
               </div>

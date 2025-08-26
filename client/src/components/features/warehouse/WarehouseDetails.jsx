@@ -738,6 +738,7 @@ function WarehouseDetails() {
                 <th style={{ padding: "12px 24px" }}>
                   <input type="checkbox" />
                 </th>
+                <th></th>
                 <th style={{ padding: "12px 24px" }}>Product</th>
                 <th style={{ padding: "12px 24px" }}>SKU</th>
                 <th style={{ padding: "12px 24px" }}>MRP</th>
@@ -766,13 +767,18 @@ function WarehouseDetails() {
                       >
                         <input type="checkbox" />
                       </td>
+                      <td style={{
+                          // padding: "12px 24px",
+                          borderBottom: "1px solid #e6e6e6",
+                        }}>
+                          <img src={item.images[0]?.url} alt="" style={{width:'35px', borderRadius:'4px', border:'1px solid #f1f1f1', backgroundColor:'#D9D9D9',}} />
+                        </td>
                       <td
                         style={{
-                          padding: "12px 24px",
+                          // padding: "12px 24px",
                           borderBottom: "1px solid #e6e6e6",
                         }}
-                      >
-                        {item.productName}
+                      > {item.productName}
                       </td>
                       <td
                         style={{
@@ -1206,8 +1212,8 @@ function WarehouseDetails() {
                               borderRadius: "20px",
                               fontSize: "13px",
                               fontWeight: "500",
-                              color: purchase.status == "Ordered" ? "#2BAE66" : "#D64550",
-                              backgroundColor: purchase.status == "Ordered" ? "#DFFFE0" : "#FCE4E6",
+                              color: purchase.status == "Ordered" ? "#DFFFE0" : "#FCE4E6",
+                              backgroundColor: purchase.status == "Ordered" ? "#2bAE66" : "#D64550",
                     }}>{purchase.status}</span>
                   </td>
 
@@ -1232,6 +1238,7 @@ function WarehouseDetails() {
             </tbody>
           </table>
         </div>
+        
       </div>
     </div>
   );
