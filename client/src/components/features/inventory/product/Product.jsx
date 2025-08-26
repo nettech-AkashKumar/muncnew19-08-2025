@@ -374,7 +374,7 @@ function ProductList() {
 
       {/* new section is here */}
       <div>
-        hi helo
+      
 
         <div
           style={{
@@ -386,7 +386,7 @@ function ProductList() {
           }}
         >
           <h5 style={{ marginBottom: "15px", fontWeight: "600", color: "#333" }}>
-            Warranty Records
+           Products
           </h5>
           <div style={{ overflowX: "auto" }}>
             <table
@@ -398,6 +398,9 @@ function ProductList() {
             >
               <thead>
                 <tr style={{ background: "#f5f5f5", textAlign: "left" }}>
+                  <th style={{ padding: "12px", borderBottom: "2px solid #ddd" }}>Product Name</th>
+                  <th style={{ padding: "12px", borderBottom: "2px solid #ddd" }}>SKU</th>
+                  <th style={{ padding: "12px", borderBottom: "2px solid #ddd" }}>Available QTY</th>
                   <th style={{ padding: "12px", borderBottom: "2px solid #ddd" }}>Category</th>
                   <th style={{ padding: "12px", borderBottom: "2px solid #ddd" }}>Brands/Manufacturer</th>
                   <th style={{ padding: "12px", borderBottom: "2px solid #ddd" }}>Product Type</th>
@@ -423,19 +426,51 @@ function ProductList() {
                   <th style={{ padding: "12px", borderBottom: "2px solid #ddd" }}>SEO META TITLE</th>
                   <th style={{ padding: "12px", borderBottom: "2px solid #ddd" }}>SEO META Description</th>
                   <th style={{ padding: "12px", borderBottom: "2px solid #ddd" }}>Description</th>
-                  <th style={{ padding: "12px", borderBottom: "2px solid #ddd" }}>Size</th>
-                  <th style={{ padding: "12px", borderBottom: "2px solid #ddd" }}>Expiry</th>
+                  <th style={{ padding: "12px", borderBottom: "2px solid #ddd" }}>Varient</th>
+                  <th style={{ padding: "12px", borderBottom: "2px solid #ddd" }}>Action</th>
+                  
                 </tr>
               </thead>
               <tbody>
-                <tr style={{ borderBottom: "1px solid #eee" }}>
-                  <td style={{ padding: "12px" }}>1</td>
-                  <td style={{ padding: "12px" }}>John Doe</td>
-                  <td style={{ padding: "12px" }}>Laptop</td>
-                  <td style={{ padding: "12px" }}>2 Years</td>
-                  <td style={{ padding: "12px", color: "green", fontWeight: "600" }}>Active</td>
-                  <td style={{ padding: "12px" }}>
-                    <button
+              {products.map((product,idx)=>( 
+                <tr key={product} style={{ borderBottom: "1px solid #eee" }}>
+                  <td style={{ padding: "12px" }}>{product.productName}</td>
+                  <td style={{ padding: "12px" }}>{product.sku}</td>
+                  <td style={{ padding: "12px" }}>{product.quantity} {product.unit}</td>
+                  <td style={{ padding: "12px" }}>{product.category?.categoryName}</td>
+                  <td style={{ padding: "12px" }}>{product.brand?.brandName}</td>
+                  <td style={{ padding: "12px" }}>{product.itemType}</td>
+                  <td style={{ padding: "12px" }}>{product.supplierName || '-'}</td>
+                  <td style={{ padding: "12px" }}>KAPL-011</td>
+                  <td style={{ padding: "12px" }}>{product.itemBarcode}</td>
+                  <td style={{ padding: "12px" }}>{product.warehouse}</td>
+                  <td style={{ padding: "12px" }}>{product.warehouseName || '-'}</td>
+                  <td style={{ padding: "12px" }}>{product.reorderLevel}</td>
+                  <td style={{ padding: "12px" }}>{product.initialStock}</td>
+                  <td style={{ padding: "12px" }}>Serial No.</td>
+                  <td style={{ padding: "12px" }}>{product.leadTime}</td>
+                  <td style={{ padding: "12px" }}>{product.trackType}</td>
+                  <td style={{ padding: "12px" }}>{product.purchasePrice}</td>
+                  <td style={{ padding: "12px" }}>{product.sellingPrice}</td>
+                  <td style={{ padding: "12px" }}>{product.wholesalePrice}</td>
+                  <td style={{ padding: "12px" }}>{product.quantity}</td>
+                  <td style={{ padding: "12px" }}>{product.unit}</td>
+                  <td style={{ padding: "12px" }}>{product.discountValue}</td>
+                  <td style={{ padding: "12px" }}>{product.purchasePrice}</td>
+                  <td style={{ padding: "12px" }}>{product.hsnCode || '-'}</td>
+                  <td style={{ padding: "12px" }}>{product.tax}</td>
+                  <td style={{ padding: "12px" }}>{product.seoTitle}</td>
+                  <td style={{ padding: "12px" }}>{product.seoDescription}</td>
+                  <td style={{ padding: "12px" }}>{product.description}</td>
+                  {/* <td style={{ padding: "12px" }}>{Object.entries(product.variants).map(
+                          ([variant, qty]) => (
+                            <div key={variant} >
+                             <td><span>{variant} - {qty}</span></td> 
+                            </div>
+                          )
+                        )}</td> */}
+                  <td style={{ padding: "12px" , display:"flex"}}>                
+                     <button
                       style={{
                         // background: "#007bff",
                         // color: "#fff",
@@ -475,6 +510,7 @@ function ProductList() {
                     </button>
                   </td>
                 </tr>
+                ))}
               </tbody>
             </table>
           </div>
