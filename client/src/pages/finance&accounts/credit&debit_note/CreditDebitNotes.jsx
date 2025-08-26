@@ -1,7 +1,7 @@
 
 
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { DateRange } from "react-date-range";
 import { format } from "date-fns";
 import "react-date-range/dist/styles.css";
@@ -12,6 +12,7 @@ import { GrFormPrevious } from "react-icons/gr";
 import { useNavigate } from "react-router-dom";
 import * as XLSX from "xlsx";
 import { saveAs } from "file-saver";
+import BASE_URL from "../../config/config";
 
 
 const CreditDebitNotes = () => {
@@ -30,11 +31,37 @@ const CreditDebitNotes = () => {
     { date: "12 Jul 2025", to: "Electricity", type: "Short Circuit", invoiceNo: "UPI", amount: "Shop", paymentMode: "UPI", status: "Due" },
     { date: "12 Jul 2025", to: "Electricity", type: "Short Circuit", invoiceNo: "UPI", amount: "Shop", paymentMode: "UPI", status: "Paid" },
   ];
-
+   const [debitNotes, setDebitNotes] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [showCalendar, setShowCalendar] = useState(false);
   const [range, setRange] = useState([{ startDate: new Date("2025-01-01"), endDate: new Date("2025-03-31"), key: "selection" }]);
   const [activeTab, setActiveTab] = useState("inflow");
   const navigate = useNavigate();
+
+  // ✅ Fetch Debit Notes from backend
+  useEffect(() => {
+    const fetchDebitNotes = async () => {
+      try {
+        const response = await fetch(`${BASE_URL}/api/debit-notes/getDebit`);
+        if (!response.ok) {
+          throw new Error("Failed to fetch debit notes");
+        }
+        const data = await response.json();
+        setDebitNotes(data);
+      } catch (error) {
+        console.error("Error fetching debit notes:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchDebitNotes();
+    console.log('debitsss',debitNotes );
+    
+  }, []);
+
+  if (loading) return <p>Loading debit notes...</p>;
+
 
   const handleChange = (item) => {
     setRange([item.selection]);
