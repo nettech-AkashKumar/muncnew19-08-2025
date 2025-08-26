@@ -40,6 +40,7 @@ const DebitNote = () => {
                     setDebitNotes([]);
                     setTotalPages(1);
                 }
+                
             })
             .finally(() => setLoading(false));
     }, [page, search, startDate, endDate]);
