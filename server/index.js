@@ -43,6 +43,7 @@ const localizationrouter = require("./routes/settings/Localizationroute.js");
 const balanceSheetRoutes = require("./routes/balanceSheetRoutes.js");
 const salesRoutes = require('./routes/salesRoutes.js');
 const posSaleRoutes = require('./routes/posSaleRoutes.js');
+const expenseRoutes = require ('./routes/expenseRoutes.js')
 
 
 const http = require('http');
@@ -147,6 +148,9 @@ app.use("/api/cloudinary-signature", require("./routes/file"));
 
 //balancesheet api
 app.use("/api/balancesheet", balanceSheetRoutes);
+
+//expenseReport api
+app.use("/api/expenses", expenseRoutes);
 
 
 app.use(express.json());
