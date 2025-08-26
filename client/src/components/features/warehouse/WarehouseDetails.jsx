@@ -24,14 +24,14 @@ import { useParams } from "react-router-dom";
 // import { style } from './../../../node_modules/@mui/system/esm/Stack/createStack';
 
 function WarehouseDetails() {
-    const { id } = useParams(); 
-    // console.log("id ",id);
-    
-  const [bgColor, setBgColor] = useState("");
-   const [warehousesDetails, setWarehousesDetails] = useState([]);
+  const { id } = useParams();
+  // console.log("id ",id);
 
-      const [loading, setLoading] = useState(false);
-      const [error, setError] = useState(null);
+  const [bgColor, setBgColor] = useState("");
+  const [warehousesDetails, setWarehousesDetails] = useState([]);
+
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
 
   const chartData = [
     {
@@ -157,60 +157,60 @@ function WarehouseDetails() {
     },
   ];
 
- 
-  
-  
-    const detailsWarehouses = useCallback(async () => {
-          setLoading(true);
-          try {
-              const res = await axios.get(`${BASE_URL}/api/warehouse/${id}`); // <- endpoint
-              console.log("diwakar",res.data);
-              
-              
-              
-              setWarehousesDetails(res.data.warehouse); // backend: { success, data }
-              
-              
-          } catch (err) {
-              setError(err);
-              console.error(err);
-          } finally {
-              setLoading(false);
-          }
-      }, [id]);
-  
-        useEffect(() => {
-          detailsWarehouses();
-  //         const listener = () => fetchWarehouses();
-  //         window.addEventListener("warehouse-added", listener);
-  //         return () => window.removeEventListener("warehouse-added", listener);
-      }, [detailsWarehouses]);
+
+
+
+  const detailsWarehouses = useCallback(async () => {
+    setLoading(true);
+    try {
+      const res = await axios.get(`${BASE_URL}/api/warehouse/${id}`); // <- endpoint
+      console.log("diwakar", res.data);
+
+
+
+      setWarehousesDetails(res.data.warehouse); // backend: { success, data }
+
+
+    } catch (err) {
+      setError(err);
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  }, [id]);
+
+  useEffect(() => {
+    detailsWarehouses();
+    //         const listener = () => fetchWarehouses();
+    //         window.addEventListener("warehouse-added", listener);
+    //         return () => window.removeEventListener("warehouse-added", listener);
+  }, [detailsWarehouses]);
 
 
   const [sales, setSales] = useState([]);
 
-        const fetchSales = async () => {
-          setLoading(true);
-          try {
-            const res = await axios.get(`${BASE_URL}/api/sales`);
-            const data = res.data.sales;
-            console.log('sales8788qs', data);
-            
-            setSales(res.data.sales);
-          } catch (err) {
-            setSales([]);
-          }
-          setLoading(false);
-        };
-  
-useEffect(() => {
-  fetchSales();
-}, []);
+  const fetchSales = async () => {
+    setLoading(true);
+    try {
+      const res = await axios.get(`${BASE_URL}/api/sales`);
+      const data = res.data.sales;
+      console.log('sales8788qs', data);
+
+      setSales(res.data.sales);
+    } catch (err) {
+      setSales([]);
+    }
+    setLoading(false);
+  };
+
+  useEffect(() => {
+    fetchSales();
+  }, []);
 
 
-//for history table
+  //for history table
 
-const [purchases, setPurchases] = useState([]);
+  const [purchases, setPurchases] = useState([]);
 
 
   const fetchPurchases = async () => {
@@ -222,16 +222,16 @@ const [purchases, setPurchases] = useState([]);
     }
   };
 
-    useEffect(() => {
-      fetchPurchases();
-    }, []);
+  useEffect(() => {
+    fetchPurchases();
+  }, []);
 
   return (
 
 
 
     <div>
-    
+
       {/* Header */}
       <div
         style={{
@@ -259,7 +259,7 @@ const [purchases, setPurchases] = useState([]);
               gap: "10px", // Moved gap here to work with flex
             }}
           >
-            Warehouse <MdArrowForwardIos /> <Link  style={{ color: "#676767", textDecoration:"none" }} to={"/warehouse"}>All Warehouse</Link> 
+            Warehouse <MdArrowForwardIos /> <Link style={{ color: "#676767", textDecoration: "none" }} to={"/warehouse"}>All Warehouse</Link>
           </h2>
           <span
             style={{
@@ -275,18 +275,18 @@ const [purchases, setPurchases] = useState([]);
         </div>
         <div>
           <Link to="/Godown">
-          <button
-            style={{
-              backgroundColor: "#1368EC",
-              color: "white",
-              border: "none",
-              padding: "8px 16px",
-              borderRadius: "4px",
-              cursor: "pointer",
-            }}
-          >
-            Assign Product
-          </button>
+            <button
+              style={{
+                backgroundColor: "#1368EC",
+                color: "white",
+                border: "none",
+                padding: "8px 16px",
+                borderRadius: "4px",
+                cursor: "pointer",
+              }}
+            >
+              Assign Product
+            </button>
           </Link>
         </div>
       </div>
@@ -296,7 +296,7 @@ const [purchases, setPurchases] = useState([]);
       <div className="three-box">
         {/*total spent */}
         <div className="radio-active">
-          <div style={{background:"#f1f3f5",height:"45px", width:"45px",borderRadius:"10px",display:"flex",alignItems:"center",justifyContent:"center",fontSize:"24px", color:"#007bff"}}>
+          <div style={{ background: "#f1f3f5", height: "45px", width: "45px", borderRadius: "10px", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "24px", color: "#007bff" }}>
             {/* <img src={RiAlertFill} alt="money" /> */}
             <RiAlertFill />
           </div>
@@ -327,7 +327,7 @@ const [purchases, setPurchases] = useState([]);
 
         {/* Initial Purchase Date */}
         <div className="radio-active">
-          <div style={{background:"#f1f3f5",height:"45px", width:"45px",borderRadius:"10px",display:"flex",alignItems:"center",justifyContent:"center",fontSize:"22px", color:"#007bff"}}>
+          <div style={{ background: "#f1f3f5", height: "45px", width: "45px", borderRadius: "10px", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "22px", color: "#007bff" }}>
             {/* <img src={FaStopCircle} alt="money" /> */}
             <FaStopCircle />
           </div>
@@ -353,7 +353,7 @@ const [purchases, setPurchases] = useState([]);
             justifyContent: "center",
           }}
         >
-          <div style={{background:"#f1f3f5",height:"45px", width:"45px",borderRadius:"10px",display:"flex",alignItems:"center",justifyContent:"center",fontSize:"22px", color:"#007bff"}}>
+          <div style={{ background: "#f1f3f5", height: "45px", width: "45px", borderRadius: "10px", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "22px", color: "#007bff" }}>
             {/* <img src={RiAlertFill} alt="money" /> */}
             <FaSackDollar />
           </div>
@@ -377,8 +377,8 @@ const [purchases, setPurchases] = useState([]);
       </div>
 
       {/* basic detials of warehous */}
-              {/* {console.log("data of detailware ",warehousesDetails)} */}
-              {console.log("new data of detailware ", warehousesDetails) }
+      {/* {console.log("data of detailware ",warehousesDetails)} */}
+      {console.log("new data of detailware ", warehousesDetails)}
       <div
         style={{
           marginTop: "15px",
@@ -394,7 +394,7 @@ const [purchases, setPurchases] = useState([]);
             {/* Wh-001 */}
             {warehousesDetails?.warehouseName}
 
-            </span>
+          </span>
         </div>
         <div style={{ display: "flex", justifyContent: "space-between" }}>
           <div>
@@ -408,8 +408,8 @@ const [purchases, setPurchases] = useState([]);
               style={{ color: "#676767", fontWeight: "400", fontSize: "16px" }}
             >
               {/* Ajay Kumar */}
-              {warehousesDetails?.warehouseOwner}  
-                {/* {warehousesDetails?.contactPerson?.lastName} */}
+              {warehousesDetails?.warehouseOwner}
+              {/* {warehousesDetails?.contactPerson?.lastName} */}
             </span>
           </div>
 
@@ -588,7 +588,7 @@ const [purchases, setPurchases] = useState([]);
               ₹ 76,986.00
             </Typography>
 
-          
+
             {/* Chart */}
             <LineChart
               xAxis={[
@@ -644,7 +644,7 @@ const [purchases, setPurchases] = useState([]);
         </div>
       </div>
 
-      
+
 
       <div
         style={{
@@ -760,7 +760,7 @@ const [purchases, setPurchases] = useState([]);
               {sales.map((item, idx) => (
                 <tr
                   key={idx}
-                  
+
                   style={{ cursor: "pointer" }}
                 >
                   <td
@@ -1118,6 +1118,7 @@ const [purchases, setPurchases] = useState([]);
               <CiSearch style={{ fontSize: "20px" }} />
               <IoFilter style={{ fontSize: "20px" }} />
             </div>
+
             <div
               style={{
                 color: "#676767",
@@ -1130,6 +1131,7 @@ const [purchases, setPurchases] = useState([]);
             </div>
           </div>
         </div>
+
 
         {/* Table */}
         <div>
@@ -1255,7 +1257,7 @@ const [purchases, setPurchases] = useState([]);
                       borderBottom: "1px solid #e6e6e6",
                     }}
                   >
-                    {}
+                    { }
                   </td>
                   <td
                     style={{

@@ -7,6 +7,9 @@ import { FaShoppingBag } from "react-icons/fa";
 import "../../../../styles/product/product-list.css";
 import BASE_URL from "../../../../pages/config/config";
 import { CiCirclePlus } from "react-icons/ci";
+import { IoEyeOutline } from "react-icons/io5";
+import { FiEdit } from "react-icons/fi";
+import { RiDeleteBinLine } from "react-icons/ri";
 
 function ProductList() {
   const [products, setProducts] = useState([]);
@@ -367,6 +370,116 @@ function ProductList() {
             </div>
           ))
         )}
+      </div>
+
+      {/* new section is here */}
+      <div>
+        hi helo
+
+        <div
+          style={{
+            background: "#fff",
+            padding: "20px",
+            borderRadius: "12px",
+            boxShadow: "0 4px 8px rgba(0,0,0,0.1)",
+            marginTop: "20px",
+          }}
+        >
+          <h5 style={{ marginBottom: "15px", fontWeight: "600", color: "#333" }}>
+            Warranty Records
+          </h5>
+          <div style={{ overflowX: "auto" }}>
+            <table
+              style={{
+                width: "100%",
+                borderCollapse: "collapse",
+                marginBottom: "0",
+              }}
+            >
+              <thead>
+                <tr style={{ background: "#f5f5f5", textAlign: "left" }}>
+                  <th style={{ padding: "12px", borderBottom: "2px solid #ddd" }}>Category</th>
+                  <th style={{ padding: "12px", borderBottom: "2px solid #ddd" }}>Brands/Manufacturer</th>
+                  <th style={{ padding: "12px", borderBottom: "2px solid #ddd" }}>Product Type</th>
+                  <th style={{ padding: "12px", borderBottom: "2px solid #ddd" }}>Supplier</th>
+                  <th style={{ padding: "12px", borderBottom: "2px solid #ddd" }}>Supplier SKU</th>
+                  <th style={{ padding: "12px", borderBottom: "2px solid #ddd" }}>Barcode</th>
+                  <th style={{ padding: "12px", borderBottom: "2px solid #ddd" }}>Warehouse Location</th>
+                  <th style={{ padding: "12px", borderBottom: "2px solid #ddd" }}>Warehouse</th>
+                  <th style={{ padding: "12px", borderBottom: "2px solid #ddd" }}>Reorder Level</th>
+                  <th style={{ padding: "12px", borderBottom: "2px solid #ddd" }}>Initial Stock Quantity</th>
+                  <th style={{ padding: "12px", borderBottom: "2px solid #ddd" }}>Track by</th>
+                  <th style={{ padding: "12px", borderBottom: "2px solid #ddd" }}>Lead Time</th>
+                  <th style={{ padding: "12px", borderBottom: "2px solid #ddd" }}>Status</th>
+                  <th style={{ padding: "12px", borderBottom: "2px solid #ddd" }}>Purchase Price</th>
+                  <th style={{ padding: "12px", borderBottom: "2px solid #ddd" }}>Selling price</th>
+                  <th style={{ padding: "12px", borderBottom: "2px solid #ddd" }}>Wholesale Price / Bulk Price</th>
+                  <th style={{ padding: "12px", borderBottom: "2px solid #ddd" }}>Quantity</th>
+                  <th style={{ padding: "12px", borderBottom: "2px solid #ddd" }}>Unit</th>
+                  <th style={{ padding: "12px", borderBottom: "2px solid #ddd" }}>Discount</th>
+                  <th style={{ padding: "12px", borderBottom: "2px solid #ddd" }}>Discount Period</th>
+                  <th style={{ padding: "12px", borderBottom: "2px solid #ddd" }}>HSN / SAC</th>
+                  <th style={{ padding: "12px", borderBottom: "2px solid #ddd" }}>GST Rate</th>
+                  <th style={{ padding: "12px", borderBottom: "2px solid #ddd" }}>SEO META TITLE</th>
+                  <th style={{ padding: "12px", borderBottom: "2px solid #ddd" }}>SEO META Description</th>
+                  <th style={{ padding: "12px", borderBottom: "2px solid #ddd" }}>Description</th>
+                  <th style={{ padding: "12px", borderBottom: "2px solid #ddd" }}>Size</th>
+                  <th style={{ padding: "12px", borderBottom: "2px solid #ddd" }}>Expiry</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr style={{ borderBottom: "1px solid #eee" }}>
+                  <td style={{ padding: "12px" }}>1</td>
+                  <td style={{ padding: "12px" }}>John Doe</td>
+                  <td style={{ padding: "12px" }}>Laptop</td>
+                  <td style={{ padding: "12px" }}>2 Years</td>
+                  <td style={{ padding: "12px", color: "green", fontWeight: "600" }}>Active</td>
+                  <td style={{ padding: "12px" }}>
+                    <button
+                      style={{
+                        // background: "#007bff",
+                        // color: "#fff",
+                        border: "none",
+                        padding: "6px 12px",
+                        borderRadius: "6px",
+                        cursor: "pointer",
+                        marginRight: "8px",
+                      }}
+                    >
+                      <IoEyeOutline />
+                    </button>
+                    <button
+                      style={{
+                        // background: "#007bff",
+                        // color: "#fff",
+                        border: "none",
+                        padding: "6px 12px",
+                        borderRadius: "6px",
+                        cursor: "pointer",
+                        marginRight: "8px",
+                      }}
+                    >
+                      <FiEdit />
+                    </button>
+                    <button
+                      style={{
+                        // background: "#dc3545",
+                        // color: "#fff",
+                        border: "none",
+                        padding: "6px 12px",
+                        borderRadius: "6px",
+                        cursor: "pointer",
+                      }}
+                    >
+                      <RiDeleteBinLine />
+                    </button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
       </div>
     </div>
   );

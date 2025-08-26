@@ -147,6 +147,8 @@ const PaymentHistory = require("../models/salesPaymentHistoryModel"); // ✅ New
 // };
 
 // 🔹 Add Payment to Existing Sale (Partial Payment Update)
+
+
 exports.addPaymentToSale = async (req, res) => {
   try {
     const { saleId } = req.params;
@@ -261,6 +263,7 @@ exports.createSale = async (req, res) => {
     if (!products || products.length === 0) {
       return res.status(400).json({ message: "Please add at least one product" });
     }
+<<<<<<< Updated upstream
     // // ✅ Check and update product stock
     // for (const item of products) {
     //   const product = await Product.findById(item.product);
@@ -305,6 +308,9 @@ exports.createSale = async (req, res) => {
     //     notes: "Initial payment logged during Sale creation",
     //   });
     // }
+=======
+
+>>>>>>> Stashed changes
 
     // ✅ Create Sale
     const sale = new Sales({
