@@ -1053,6 +1053,59 @@ const handleInvoicePrint = async () => {
   }, 100); // Small delay to ensure DOM rendering
 };
 
+//add customers---------------------------------------------------------------------------------------------------------------
+
+  const [form, setForm] = useState({
+    name: '',
+    email: '',
+    phone: '',
+    status: true,
+  });
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setForm((prev) => ({ ...prev, [name]: value }));
+  };
+  
+const handleSubmit = async (e) => {
+  e.preventDefault();
+  setLoading(true);
+
+  try {
+    const response = await fetch(`${BASE_URL}/api/customers`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        name: form.name,
+        phone: form.phone,
+        email: form.email,
+      }),
+    });
+
+    const data = await response.json();
+
+    if (response.ok) {
+      alert("Customer saved successfully ✅");
+      setForm({
+        name: '',
+        email: '',
+        phone: '',
+        status: true,
+      });
+  fetchCustomers(); 
+    } else {
+      alert("Error: " + data.error);
+    }
+  } catch (err) {
+    console.error(err);
+    alert("Something went wrong ❌");
+  } finally {
+    setLoading(false);
+  }
+};
+
   return ( //page code starts from here-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     <div style={{marginLeft:'-21px',backgroundColor:'#fff'}}>
 
@@ -2495,24 +2548,40 @@ const handleInvoicePrint = async () => {
               <span>Add Customers details</span>
             </div>
             
+            <form onSubmit={handleSubmit}>
             <div style={{display:'flex',justifyContent:'space-between',padding:'10px 0px',width:'100%',gap:'15px',marginTop:'5px',}}>
               <div style={{width:'100%'}}>
                 <div>Customer Number <span style={{color:'red'}}>*</span></div>
                 <div style={{display:'flex',justifyContent:'space-between',padding:'10px 15px',backgroundColor:'#F9FAFB',borderRadius:'10px',border:'1px solid #E6E6E6',width:'100%',marginTop:'5px'}}>
-                  <input type="text" placeholder='Enter Customer Name' style={{border:'none',outline:'none',width:'100%',backgroundColor:'#F9FAFB'}} required />
+                  <input type="text" placeholder='Enter Customer Name' style={{border:'none',outline:'none',width:'100%',backgroundColor:'#F9FAFB'}} name="name" value={form.name} onChange={handleInputChange} required />
                 </div>
               </div>
               <div style={{width:'100%',display:'flex',justifyContent:'space-between',gap:'15px'}}>
                 <div style={{width:'100%'}}>
                 <div>Mobile Number <span style={{color:'red'}}>*</span></div>
                 <div style={{display:'flex',justifyContent:'space-between',padding:'10px 15px',backgroundColor:'#F9FAFB',borderRadius:'10px',border:'1px solid #E6E6E6',width:'100%',marginTop:'5px'}}>
-                  <input type="number" placeholder='Enter Mobile Number' style={{border:'none',outline:'none',width:'100%',backgroundColor:'#F9FAFB'}} required />
+                  <input 
+                  type="number" 
+                  placeholder='Enter Mobile Number' 
+                  style={{border:'none',outline:'none',width:'100%',backgroundColor:'#F9FAFB'}} 
+                  name="phone" 
+                  value={form.phone} 
+                  onChange={(e) => {
+                    // allow only digits and limit to 10
+                    const value = e.target.value.replace(/\D/g, ""); 
+                    if (value.length <= 10) {
+                      handleInputChange(e);
+                    }
+                  }}
+                  maxLength={10} 
+                  required 
+                  />
                 </div>
                 </div>
                 <div style={{width:'100%'}}>
                 <div>Email Id</div>
                 <div style={{display:'flex',justifyContent:'space-between',padding:'10px 15px',backgroundColor:'#F9FAFB',borderRadius:'10px',border:'1px solid #E6E6E6',width:'100%',marginTop:'5px'}}>
-                  <input type="email" placeholder='Enter Email Id' style={{border:'none',outline:'none',width:'100%',backgroundColor:'#F9FAFB'}} />
+                  <input type="email" placeholder='Enter Email Id' style={{border:'none',outline:'none',width:'100%',backgroundColor:'#F9FAFB'}} name="email" value={form.email} onChange={handleInputChange} />
                 </div>
                 </div>
               </div>
@@ -2523,7 +2592,7 @@ const handleInvoicePrint = async () => {
               <div style={{width:'100%'}}>
                 <div>Address</div>
                 <div style={{display:'flex',justifyContent:'space-between',padding:'10px 15px',backgroundColor:'#F9FAFB',borderRadius:'10px',border:'1px solid #E6E6E6',width:'100%',marginTop:'5px'}}>
-                  <textarea type="text" placeholder='Enter Customer Address...' style={{border:'none',outline:'none',width:'100%',backgroundColor:'#F9FAFB'}} required ></textarea>
+                  <textarea type="text" placeholder='Enter Customer Address...' style={{border:'none',outline:'none',width:'100%',backgroundColor:'#F9FAFB'}} ></textarea>
                 </div>
               </div>
             </div>
@@ -2691,6 +2760,12 @@ const handleInvoicePrint = async () => {
                   />
                 </div>
               </div>
+
+              {/* buttons */}
+              <div style={{display:'flex',justifyContent:'end',padding:'10px 0px',width:'100%',gap:'15px',marginTop:'5px',}}>
+                <button type="submit" disabled={loading} style={{padding:'3px 10px',backgroundColor:'#1368EC',border:'2px solid #E6E6E6',borderRadius:'8px',color:'white',cursor:'pointer'}}>{loading ? 'Saving...' : 'Save'}</button>
+              </div>
+            </form>
 
           </div>
         </div>
