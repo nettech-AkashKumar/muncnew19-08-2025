@@ -66,111 +66,13 @@ function WarehouseDetails() {
     "Jul 2025",
   ];
 
-  const sellingProducts = [
-    {
-      id: 1,
-      product: "Ajay Srivastava",
-      sku: "SKU-00123",
-      mrp: 10987,
-      available: 36,
-      unit: "1,44,560.00",
-      revenue: "₹2,98400.00",
-    },
-    {
-      id: 2,
-      product: "Ajay Srivastava",
-      sku: "SKU-00123",
-      mrp: 10987,
-      available: 36,
-      unit: "1,44,560.00",
-      revenue: "₹2,98400.00",
-    },
-    {
-      id: 3,
-      product: "Ajay Srivastava",
-      sku: "SKU-00123",
-      mrp: 10987,
-      available: 36,
-      unit: "1,44,560.00",
-      revenue: "₹2,98400.00",
-    },
-    {
-      id: 4,
-      product: "Ajay Srivastava",
-      SKU: "SKU-00123",
-      sku: 10987,
-      available: 36,
-      unit: "1,44,560.00",
-      revenue: "₹2,98400.00",
-    },
-    {
-      id: 5,
-      product: "Ajay Srivastava",
-      SKU: "SKU-00123",
-      mrp: 10987,
-      available: 36,
-      unit: "1,44,560.00",
-      revenue: "₹2,98400.00",
-    },
-  ];
-
-  const dummyData = [
-    {
-      product: "Plywood Sheet",
-      time: "2025-08-11 09:45 AM",
-      qty: 25,
-      movementType: "IN",
-      sourceDest: "Supplier: ABC Plywood Co.",
-      reference: "PO-2345",
-    },
-    {
-      product: "Cement Bag (50kg)",
-      time: "2025-08-11 10:15 AM",
-      qty: 100,
-      movementType: "OUT",
-      sourceDest: "Project Site A",
-      reference: "Invoice-5678",
-    },
-    {
-      product: "Iron Rod (12mm)",
-      time: "2025-08-10 04:20 PM",
-      qty: 50,
-      movementType: "IN",
-      sourceDest: "Steel Works Pvt Ltd",
-      reference: "PO-2398",
-    },
-    {
-      product: "Water Heater 15L",
-      time: "2025-08-09 02:30 PM",
-      qty: 8,
-      movementType: "OUT",
-      sourceDest: "Retail Customer",
-      reference: "Sales-INV-9912",
-    },
-    {
-      product: "Sunmica Sheet",
-      time: "2025-08-08 11:00 AM",
-      qty: 40,
-      movementType: "IN",
-      sourceDest: "Decor Supplies Ltd",
-      reference: "PO-2410",
-    },
-  ];
-
-
-
-
   const detailsWarehouses = useCallback(async () => {
     setLoading(true);
     try {
       const res = await axios.get(`${BASE_URL}/api/warehouse/${id}`); // <- endpoint
       console.log("diwakar", res.data);
 
-
-
       setWarehousesDetails(res.data.warehouse); // backend: { success, data }
-
-
     } catch (err) {
       setError(err);
       console.error(err);
@@ -186,7 +88,6 @@ function WarehouseDetails() {
     //         return () => window.removeEventListener("warehouse-added", listener);
   }, [detailsWarehouses]);
 
-
   const [sales, setSales] = useState([]);
 
   const fetchSales = async () => {
@@ -194,7 +95,7 @@ function WarehouseDetails() {
     try {
       const res = await axios.get(`${BASE_URL}/api/sales`);
       const data = res.data.sales;
-      console.log('sales8788qs', data);
+      console.log("sales8788qs", data);
 
       setSales(res.data.sales);
     } catch (err) {
@@ -207,15 +108,13 @@ function WarehouseDetails() {
     fetchSales();
   }, []);
 
-
   //for history table
 
   const [purchases, setPurchases] = useState([]);
 
-
   const fetchPurchases = async () => {
     try {
-      const res = await axios.get(`${BASE_URL}/api/purchases`,);
+      const res = await axios.get(`${BASE_URL}/api/purchases`);
       setPurchases(res.data.purchases);
     } catch (error) {
       console.error("Error fetching purchases:", error);
@@ -226,12 +125,48 @@ function WarehouseDetails() {
     fetchPurchases();
   }, []);
 
+  // products fetching
+
+  const [product, setProducts] = useState([]);
+  const [activeTabs, setActiveTabs] = useState({});
+
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        const res = await axios.get(`${BASE_URL}/api/products`);
+        setProducts(res.data);
+        // Initialize all to "general"
+        const initialTabs = res.data.reduce((acc, product) => {
+          acc[product._id] = "general";
+          return acc;
+        }, {});
+        setActiveTabs(initialTabs);
+      } catch (err) {
+        console.error("Failed to fetch products", err);
+      }
+    };
+    fetchProducts();
+  }, []);
+
+  const salesMap = sales.reduce((acc, sale) => {
+    if (!sale.products || !Array.isArray(sale.products)) return acc; // skip if no products
+
+    sale.products.forEach((p) => {
+      if (!p || !p.productId) return; // skip if productId missing
+
+      const pid =
+        typeof p.productId === "object" ? p.productId._id : p.productId;
+      if (!pid) return;
+
+      if (!acc[pid]) acc[pid] = 0;
+      acc[pid] += p.saleQty || 0; // ensure safe number
+    });
+
+    return acc;
+  }, {});
+
   return (
-
-
-
     <div>
-
       {/* Header */}
       <div
         style={{
@@ -259,7 +194,13 @@ function WarehouseDetails() {
               gap: "10px", // Moved gap here to work with flex
             }}
           >
-            Warehouse <MdArrowForwardIos /> <Link style={{ color: "#676767", textDecoration: "none" }} to={"/warehouse"}>All Warehouse</Link>
+            Warehouse <MdArrowForwardIos />{" "}
+            <Link
+              style={{ color: "#676767", textDecoration: "none" }}
+              to={"/warehouse"}
+            >
+              All Warehouse
+            </Link>
           </h2>
           <span
             style={{
@@ -269,8 +210,8 @@ function WarehouseDetails() {
               alignItems: "center",
             }}
           >
-            <MdArrowForwardIos style={{ color: "#676767" }} />    {warehousesDetails?.warehouseName}
-
+            <MdArrowForwardIos style={{ color: "#676767" }} />{" "}
+            {warehousesDetails?.warehouseName}
           </span>
         </div>
         <div>
@@ -296,7 +237,19 @@ function WarehouseDetails() {
       <div className="three-box">
         {/*total spent */}
         <div className="radio-active">
-          <div style={{ background: "#f1f3f5", height: "45px", width: "45px", borderRadius: "10px", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "24px", color: "#007bff" }}>
+          <div
+            style={{
+              background: "#f1f3f5",
+              height: "45px",
+              width: "45px",
+              borderRadius: "10px",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              fontSize: "24px",
+              color: "#007bff",
+            }}
+          >
             {/* <img src={RiAlertFill} alt="money" /> */}
             <RiAlertFill />
           </div>
@@ -327,7 +280,19 @@ function WarehouseDetails() {
 
         {/* Initial Purchase Date */}
         <div className="radio-active">
-          <div style={{ background: "#f1f3f5", height: "45px", width: "45px", borderRadius: "10px", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "22px", color: "#007bff" }}>
+          <div
+            style={{
+              background: "#f1f3f5",
+              height: "45px",
+              width: "45px",
+              borderRadius: "10px",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              fontSize: "22px",
+              color: "#007bff",
+            }}
+          >
             {/* <img src={FaStopCircle} alt="money" /> */}
             <FaStopCircle />
           </div>
@@ -353,7 +318,19 @@ function WarehouseDetails() {
             justifyContent: "center",
           }}
         >
-          <div style={{ background: "#f1f3f5", height: "45px", width: "45px", borderRadius: "10px", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "22px", color: "#007bff" }}>
+          <div
+            style={{
+              background: "#f1f3f5",
+              height: "45px",
+              width: "45px",
+              borderRadius: "10px",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              fontSize: "22px",
+              color: "#007bff",
+            }}
+          >
             {/* <img src={RiAlertFill} alt="money" /> */}
             <FaSackDollar />
           </div>
@@ -393,7 +370,6 @@ function WarehouseDetails() {
           <span>
             {/* Wh-001 */}
             {warehousesDetails?.warehouseName}
-
           </span>
         </div>
         <div style={{ display: "flex", justifyContent: "space-between" }}>
@@ -588,7 +564,6 @@ function WarehouseDetails() {
               ₹ 76,986.00
             </Typography>
 
-
             {/* Chart */}
             <LineChart
               xAxis={[
@@ -643,8 +618,6 @@ function WarehouseDetails() {
           </Box>
         </div>
       </div>
-
-
 
       <div
         style={{
@@ -757,77 +730,75 @@ function WarehouseDetails() {
             </thead>
 
             <tbody>
-              {sales.map((item, idx) => (
-                <tr
-                  key={idx}
-
-                  style={{ cursor: "pointer" }}
-                >
-                  <td
-                    style={{
-                      padding: "12px 24px",
-                      borderBottom: "1px solid #e6e6e6",
-                    }}
-                  >
-                    <input type="checkbox" />
-                  </td>
-                  <td
-                    style={{
-                      padding: "12px 24px",
-                      borderBottom: "1px solid #e6e6e6",
-                    }}
-                  >
-                    <div className="customer-info">
-                      <img
-                        src={item.products[0]?.productId?.images[0]?.url}
-                        alt="avatar"
-                        className="avatar"
-                      />
-                      {item.products[0]?.productId?.productName}
-                    </div>
-                  </td>
-                  <td
-                    style={{
-                      padding: "12px 24px",
-                      borderBottom: "1px solid #e6e6e6",
-                    }}
-                  >
-                    {item.products[0]?.productId?.sku}
-                  </td>
-                  <td
-                    style={{
-                      padding: "12px 24px",
-                      borderBottom: "1px solid #e6e6e6",
-                    }}
-                  >
-                    {item.products[0]?.productId?.sellingPrice}
-                  </td>
-                  <td
-                    style={{
-                      padding: "12px 24px",
-                      borderBottom: "1px solid #e6e6e6",
-                    }}
-                  >
-                    {item.products[0]?.productId?.quantity}
-                  </td>
-                  <td
-                    style={{
-                      padding: "12px 24px",
-                      borderBottom: "1px solid #e6e6e6",
-                    }}
-                  >
-                    {item.unit}
-                  </td>
-                  <td
-                    style={{
-                      padding: "12px 24px",
-                      borderBottom: "1px solid #e6e6e6",
-                    }}
-                  >
-                    {item.revenue}
-                  </td>
-                </tr>
-              ))}
+              {product
+                .filter(
+                  (item) =>
+                    item.warehouseName === warehousesDetails?.warehouseName
+                ) // filter by warehouse
+                .slice(0, 5) // limit to 5 products
+                .map((item, idx) => {
+                  const soldUnits = salesMap[item._id] || 0; // total sold across all sales
+                  return (
+                    <tr key={idx} style={{ cursor: "pointer" }}>
+                      <td
+                        style={{
+                          padding: "12px 24px",
+                          borderBottom: "1px solid #e6e6e6",
+                        }}
+                      >
+                        <input type="checkbox" />
+                      </td>
+                      <td
+                        style={{
+                          padding: "12px 24px",
+                          borderBottom: "1px solid #e6e6e6",
+                        }}
+                      >
+                        {item.productName}
+                      </td>
+                      <td
+                        style={{
+                          padding: "12px 24px",
+                          borderBottom: "1px solid #e6e6e6",
+                        }}
+                      >
+                        {item.sku}
+                      </td>
+                      <td
+                        style={{
+                          padding: "12px 24px",
+                          borderBottom: "1px solid #e6e6e6",
+                        }}
+                      >
+                        {item.sellingPrice}
+                      </td>
+                      <td
+                        style={{
+                          padding: "12px 24px",
+                          borderBottom: "1px solid #e6e6e6",
+                        }}
+                      >
+                        {item.quantity} {item.unit}
+                      </td>
+                      <td
+                        style={{
+                          padding: "12px 24px",
+                          borderBottom: "1px solid #e6e6e6",
+                        }}
+                      >
+                        {soldUnits} {/* ✅ total sold from all sales */}
+                      </td>
+                      <td
+                        style={{
+                          padding: "12px 24px",
+                          borderBottom: "1px solid #e6e6e6",
+                        }}
+                      >
+                        {soldUnits * item.sellingPrice} {/* ✅ total revenue */}
+                      </td>
+                    </tr>
+                  );
+                })}
             </tbody>
           </table>
         </div>
@@ -861,7 +832,10 @@ function WarehouseDetails() {
               cursor: "pointer",
             }}
           >
-            <Link to="/Godown" style={{ textDecoration: "none", color: "#1368EC" }}>
+            <Link
+              to="/Godown"
+              style={{ textDecoration: "none", color: "#1368EC" }}
+            >
               View All <FaArrowRight />
             </Link>
           </span>
@@ -979,8 +953,6 @@ function WarehouseDetails() {
             <span style={tagStyle}>Sunmica</span>
           </div>
         </div>
-
-        {/* </div> */}
       </div>
 
       {/* Stock Movement History */}
@@ -1132,7 +1104,6 @@ function WarehouseDetails() {
           </div>
         </div>
 
-
         {/* Table */}
         <div>
           <table
@@ -1174,7 +1145,7 @@ function WarehouseDetails() {
             </thead>
 
             <tbody>
-              {purchases.map((purchases) => (
+              {purchases.slice(0,5).map((purchase) => (
                 <tr key={purchases._id} style={{ cursor: "pointer" }}>
                   <td
                     style={{
@@ -1190,7 +1161,7 @@ function WarehouseDetails() {
                       borderBottom: "1px solid #e6e6e6",
                     }}
                   >
-                    {purchases.products[0]?.product?.productName}
+                    {purchase.products[0]?.product?.productName}
                   </td>
                   <td
                     style={{
@@ -1198,7 +1169,7 @@ function WarehouseDetails() {
                       borderBottom: "1px solid #e6e6e6",
                     }}
                   >
-                    {purchases.orderTax}
+                    {purchase.createdAt}
                   </td>
                   <td
                     style={{
@@ -1206,49 +1177,20 @@ function WarehouseDetails() {
                       borderBottom: "1px solid #e6e6e6",
                     }}
                   >
-                    {purchases.products[0]?.product?.quantity}
+                    {purchase.products[0]?.product?.quantity}
                   </td>
                   <td
                     style={{ borderBottom: "1px solid #ddd", padding: "8px" }}
                   >
-                    {/* {(() => {
-                      const type = item.movementType.trim().toLowerCase(); // normalize
-
-                      if (type === "stock in") {
-                        return (
-                          <span
-                            style={{
-                              padding: "4px 12px",
+                    <span 
+                    style={{
+                      padding: "4px 12px",
                               borderRadius: "20px",
                               fontSize: "13px",
                               fontWeight: "500",
-                              backgroundColor: "#DFFFE0", // green shade
-                            }}
-                          >
-                            {}
-                          </span>
-                        );
-                      }
-
-                      if (type === "stock out") {
-                        return (
-                          <span
-                            style={{
-                              padding: "4px 12px",
-                              borderRadius: "20px",
-                              fontSize: "13px",
-                              fontWeight: "500",
-                              backgroundColor: "#FCE4E6", // red shade
-                            }}
-                          >
-                            {purchase.movementType}
-                          </span>
-                        );
-                      }
-
-                      // fallback (no color)
-                      return <span>{}</span>;
-                    })()} */}
+                              color: purchase.status == "Ordered" ? "#2BAE66" : "#D64550",
+                              backgroundColor: purchase.status == "Ordered" ? "#DFFFE0" : "#FCE4E6",
+                    }}>{purchase.status}</span>
                   </td>
 
                   <td
@@ -1257,7 +1199,7 @@ function WarehouseDetails() {
                       borderBottom: "1px solid #e6e6e6",
                     }}
                   >
-                    { }
+                    {purchase.products[0]?.product?.warehouse?.warehouseName}
                   </td>
                   <td
                     style={{
@@ -1265,7 +1207,7 @@ function WarehouseDetails() {
                       borderBottom: "1px solid #e6e6e6",
                     }}
                   >
-                    {purchases.referenceNumber}
+                    {purchase.referenceNumber}
                   </td>
                 </tr>
               ))}

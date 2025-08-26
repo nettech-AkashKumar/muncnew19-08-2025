@@ -248,7 +248,13 @@ exports.getAllPurchases = async (req, res) => {
 
         const purchases = await Purchase.find(query)
             .populate("supplier", "firstName lastName email phone")
-            .populate("products.product")
+            .populate({
+        path: "products.product",
+        populate: {
+            path: "warehouse", // warehouse inside product
+            select: "warehouseName location", // choose which fields you want
+        },
+    })
             .sort({ createdAt: -1 })
             .skip((pageNum - 1) * limitNum)
             .limit(limitNum);
