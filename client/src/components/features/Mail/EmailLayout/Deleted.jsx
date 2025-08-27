@@ -20,9 +20,15 @@ const Deleted = () => {
           const senderName = email.from?.firstName
             ? `${email.from.firstName} ${email.from.lastName || ""}`.trim()
             : email.from?.email || "Unknown";
+          let profileImage = null;
 
-          const profileImage =
-            email.from?.profileImage?.url || email.from?.profileImage || null;
+if (typeof email.from?.profileImage === "string") {
+  const match = email.from.profileImage.match(/url:\s*'([^']+)'/);
+  profileImage = match ? match[1] : null;
+} else {
+  profileImage = email.from?.profileImage?.url || null;
+}
+
 
           const initials = senderName
             .split(" ")
