@@ -694,6 +694,7 @@ function WarehouseDetails() {
                   data: xLabels,
                   axisLine: false,
                   tickSize: 0,
+                  // tickValues: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
                 },
               ]}
               yAxis={[
@@ -702,7 +703,7 @@ function WarehouseDetails() {
                   tickSize: 0,
                   min: 0,
                   max: Math.max(...soldItemsPerMonth, 20000),
-                  tickValues: [0, 5000, 10000, 15000, 20000],
+                  // tickValues: [0, 5000, 10000, 15000, 20000],
                   gridLine: { style: { stroke: "#e0e0e0" } }, // light horizontal grid
                 },
               ]}
@@ -834,7 +835,6 @@ function WarehouseDetails() {
                       </td>
                       <td
                         style={{
-                          // padding: "12px 24px",
                           borderBottom: "1px solid #e6e6e6",
                         }}
                       >
