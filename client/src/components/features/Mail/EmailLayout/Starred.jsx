@@ -11,7 +11,7 @@ const Starred = () => {
     const fetchStarredEmails = async () => {
       try {
         const token = localStorage.getItem("token");
-        const res = await axios.get(`${BASE_URL}/api/email/mail/receive`, {
+        const res = await axios.get(`${BASE_URL}/api/email/mail/starred`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -21,7 +21,14 @@ const Starred = () => {
           const senderName = email.from?.firstName
             ? `${email.from.firstName} ${email.from.lastName || ''}`.trim()
             : "Unknown";
-          const profileImage = email.from?.profileImage?.url || email.from?.profileImage || null;
+          let profileImage = null;
+
+if (typeof email.from?.profileImage === "string") {
+  const match = email.from.profileImage.match(/url:\s*'([^']+)'/);
+  profileImage = match ? match[1] : null;
+} else {
+  profileImage = email.from?.profileImage?.url || null;
+}
           const initials = senderName.split(" ").map((w) => w[0]).join("").toUpperCase().slice(0, 2);
           return {
             ...email,

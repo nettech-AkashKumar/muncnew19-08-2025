@@ -20,12 +20,14 @@ import Alk from "../../../../assets/images/alk.jpg"
 
 
 
+
 const EmailMessages = ({
   filteredEmails,
   handleToggleStar: externalToggleStar,
   isDraftPage,
   onDraftClick,
   isDeletedPage,
+  starredEmails
 
 }) => {
 
@@ -196,10 +198,12 @@ const EmailMessages = ({
   // const emailsToShow = displayMailboxName.toLowerCase() === "sent" ? sentEmails : inboxEmails;
   const emailsToShow = isDraftPage
     ? filteredEmails || []
-    // : isDeletedPage
-    //   ? filteredEmails || []
-    : displayMailboxName.toLowerCase() === "sent"
-      ? sentEmails : displayMailboxName.toLowerCase() === "allemails" ? [...inboxEmails, ...sentEmails].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)) : inboxEmails;
+    : isDeletedPage
+      ? filteredEmails || []
+       : displayMailboxName.toLowerCase() === "starred"
+        ? filteredEmails || []
+        : displayMailboxName.toLowerCase() === "sent"
+          ? sentEmails : displayMailboxName.toLowerCase() === "allemails" ? [...inboxEmails, ...sentEmails].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)) : inboxEmails;
 
 
   console.log("emailsToShow", emailsToShow);
@@ -587,7 +591,7 @@ const EmailMessages = ({
                             {[
                               ...(email.attachments || []),
                               ...(email.image || []),
-                            ].map((fileUrl, index) => {
+                            ].slice(0, 2).map((fileUrl, index) => {
                               const fileName = fileUrl.split("/").pop();
                               const extension = fileUrl
                                 .split(".")
@@ -646,6 +650,23 @@ const EmailMessages = ({
                                 </a>
                               );
                             })}
+                            {[
+                              ...(email.attachments || []),
+                              ...(email.image || [])
+                            ].length > 2 && (
+                                <span
+                                  style={{
+                                    padding: "5px 10px",
+                                    borderRadius: "20px",
+                                    backgroundColor: "#ddd",
+                                    fontSize: "13px",
+                                    fontWeight: 500,
+                                    color: "#333",
+                                  }}
+                                >
+                                  +{[...(email.attachments || []), ...(email.image || [])].length - 2} more
+                                </span>
+                              )}
                           </div>
                         </div>
                       )}

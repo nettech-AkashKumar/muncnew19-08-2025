@@ -4,6 +4,7 @@ const {
     receiveEmail,
   getSentEmails,
   deleteEmail,
+  getStarredEmails,
   starredEmail,
   getDeletedEmails,
   permanentDeleteEmails,
@@ -19,7 +20,8 @@ emailrouter.post(
   sendEmail
 );
 emailrouter.get("/receive", verifyToken, receiveEmail);
-emailrouter.get("/getsentemail", verifyToken, getSentEmails )
+emailrouter.get("/getsentemail", verifyToken, getSentEmails);
+emailrouter.get("/starred", verifyToken, getStarredEmails);
 emailrouter.put("/star/:id", verifyToken, starredEmail);
 emailrouter.post("/delete", verifyToken, deleteEmail);
 // get soft deleted mail
