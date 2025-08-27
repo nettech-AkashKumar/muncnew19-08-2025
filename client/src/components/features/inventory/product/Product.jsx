@@ -7,6 +7,9 @@ import { FaShoppingBag } from "react-icons/fa";
 import "../../../../styles/product/product-list.css";
 import BASE_URL from "../../../../pages/config/config";
 import { CiCirclePlus } from "react-icons/ci";
+import { IoEyeOutline } from "react-icons/io5";
+import { FiEdit } from "react-icons/fi";
+import { RiDeleteBinLine } from "react-icons/ri";
 
 function ProductList() {
   const [products, setProducts] = useState([]);
@@ -368,9 +371,161 @@ function ProductList() {
           ))
         )}
       </div>
+
+      {/* new section is here */}
+      <div>
+      
+
+        <div
+          style={{
+            background: "#fff",
+            padding: "20px",
+            borderRadius: "12px",
+            boxShadow: "0 4px 8px rgba(0,0,0,0.1)",
+            marginTop: "20px",
+          }}
+        >
+          <h5 style={{ marginBottom: "15px", fontWeight: "600", color: "#333" }}>
+           Products
+          </h5>
+          <div style={{ overflowX: "auto" }}>
+            <table
+              style={{
+                width: "100%",
+                borderCollapse: "collapse",
+                marginBottom: "0",
+              }}
+            >
+              <thead>
+                <tr style={{ background: "#f5f5f5", textAlign: "left" }}>
+                  <th style={{ padding: "12px", borderBottom: "2px solid #ddd" }}>Product Name</th>
+                  <th style={{ padding: "12px", borderBottom: "2px solid #ddd" }}>SKU</th>
+                  <th style={{ padding: "12px", borderBottom: "2px solid #ddd" }}>Available QTY</th>
+                  <th style={{ padding: "12px", borderBottom: "2px solid #ddd" }}>Category</th>
+                  <th style={{ padding: "12px", borderBottom: "2px solid #ddd" }}>Brands/Manufacturer</th>
+                  <th style={{ padding: "12px", borderBottom: "2px solid #ddd" }}>Product Type</th>
+                  <th style={{ padding: "12px", borderBottom: "2px solid #ddd" }}>Supplier</th>
+                  <th style={{ padding: "12px", borderBottom: "2px solid #ddd" }}>Supplier SKU</th>
+                  <th style={{ padding: "12px", borderBottom: "2px solid #ddd" }}>Barcode</th>
+                  <th style={{ padding: "12px", borderBottom: "2px solid #ddd" }}>Warehouse Location</th>
+                  <th style={{ padding: "12px", borderBottom: "2px solid #ddd" }}>Warehouse</th>
+                  <th style={{ padding: "12px", borderBottom: "2px solid #ddd" }}>Reorder Level</th>
+                  <th style={{ padding: "12px", borderBottom: "2px solid #ddd" }}>Initial Stock Quantity</th>
+                  <th style={{ padding: "12px", borderBottom: "2px solid #ddd" }}>Track by</th>
+                  <th style={{ padding: "12px", borderBottom: "2px solid #ddd" }}>Lead Time</th>
+                  <th style={{ padding: "12px", borderBottom: "2px solid #ddd" }}>Status</th>
+                  <th style={{ padding: "12px", borderBottom: "2px solid #ddd" }}>Purchase Price</th>
+                  <th style={{ padding: "12px", borderBottom: "2px solid #ddd" }}>Selling price</th>
+                  <th style={{ padding: "12px", borderBottom: "2px solid #ddd" }}>Wholesale Price / Bulk Price</th>
+                  <th style={{ padding: "12px", borderBottom: "2px solid #ddd" }}>Quantity</th>
+                  <th style={{ padding: "12px", borderBottom: "2px solid #ddd" }}>Unit</th>
+                  <th style={{ padding: "12px", borderBottom: "2px solid #ddd" }}>Discount</th>
+                  <th style={{ padding: "12px", borderBottom: "2px solid #ddd" }}>Discount Period</th>
+                  <th style={{ padding: "12px", borderBottom: "2px solid #ddd" }}>HSN / SAC</th>
+                  <th style={{ padding: "12px", borderBottom: "2px solid #ddd" }}>GST Rate</th>
+                  <th style={{ padding: "12px", borderBottom: "2px solid #ddd" }}>SEO META TITLE</th>
+                  <th style={{ padding: "12px", borderBottom: "2px solid #ddd" }}>SEO META Description</th>
+                  <th style={{ padding: "12px", borderBottom: "2px solid #ddd" }}>Description</th>
+                  <th style={{ padding: "12px", borderBottom: "2px solid #ddd" }}>Varient</th>
+                  <th style={{ padding: "12px", borderBottom: "2px solid #ddd" }}>Action</th>
+                  
+                </tr>
+              </thead>
+              <tbody>
+              {products.map((product,idx)=>( 
+                <tr key={product} style={{ borderBottom: "1px solid #eee" }}>
+                  <td style={{ padding: "12px", display:"flex" }}>{product.productName}  {product.images?.[0] && (
+                            <img
+                              src={product.images[0].url}
+                              alt={product.productName}
+                              className="media-image"
+                              style={{ height: "40px", width: "45px" }}
+                            />
+                          )} </td>
+                  <td style={{ padding: "12px" }}>{product.sku}</td>
+                  <td style={{ padding: "12px" }}>{product.quantity} {product.unit}</td>
+                  <td style={{ padding: "12px" }}>{product.category?.categoryName}</td>
+                  <td style={{ padding: "12px" }}>{product.brand?.brandName}</td>
+                  <td style={{ padding: "12px" }}>{product.itemType}</td>
+                  <td style={{ padding: "12px" }}>{product.supplierName || '-'}</td>
+                  <td style={{ padding: "12px" }}>KAPL-011</td>
+                  <td style={{ padding: "12px" }}>{product.itemBarcode}</td>
+                  <td style={{ padding: "12px" }}>{product.warehouse}</td>
+                  <td style={{ padding: "12px" }}>{product.warehouseName || '-'}</td>
+                  <td style={{ padding: "12px" }}>{product.reorderLevel}</td>
+                  <td style={{ padding: "12px" }}>{product.initialStock}</td>
+                  <td style={{ padding: "12px" }}>Serial No.</td>
+                  <td style={{ padding: "12px" }}>{product.leadTime}</td>
+                  <td style={{ padding: "12px" }}>{product.trackType}</td>
+                  <td style={{ padding: "12px" }}>{product.purchasePrice}</td>
+                  <td style={{ padding: "12px" }}>{product.sellingPrice}</td>
+                  <td style={{ padding: "12px" }}>{product.wholesalePrice}</td>
+                  <td style={{ padding: "12px" }}>{product.quantity}</td>
+                  <td style={{ padding: "12px" }}>{product.unit}</td>
+                  <td style={{ padding: "12px" }}>{product.discountValue}</td>
+                  <td style={{ padding: "12px" }}>{product.purchasePrice}</td>
+                  <td style={{ padding: "12px" }}>{product.hsnCode || '-'}</td>
+                  <td style={{ padding: "12px" }}>{product.tax}</td>
+                  <td style={{ padding: "12px" }}>{product.seoTitle}</td>
+                  <td style={{ padding: "12px" }}>{product.seoDescription}</td>
+                  <td style={{ padding: "12px" }}>{product.description}</td>
+                  {/* <td style={{ padding: "12px" }}>{Object.entries(product.variants).map(
+                          ([variant, qty]) => (
+                            <div key={variant} >
+                             <td><span>{variant} - {qty}</span></td> 
+                            </div>
+                          )
+                        )}</td> */}
+                  <td style={{ padding: "12px" , display:"flex"}}>                
+                     <button
+                      style={{
+                        // background: "#007bff",
+                        // color: "#fff",
+                        border: "none",
+                        padding: "6px 12px",
+                        borderRadius: "6px",
+                        cursor: "pointer",
+                        marginRight: "8px",
+                      }}
+                    >
+                      <IoEyeOutline />
+                    </button>
+                    <button
+                      style={{
+                        // background: "#007bff",
+                        // color: "#fff",
+                        border: "none",
+                        padding: "6px 12px",
+                        borderRadius: "6px",
+                        cursor: "pointer",
+                        marginRight: "8px",
+                      }}
+                    >
+                      <FiEdit />
+                    </button>
+                    <button
+                      style={{
+                        // background: "#dc3545",
+                        // color: "#fff",
+                        border: "none",
+                        padding: "6px 12px",
+                        borderRadius: "6px",
+                        cursor: "pointer",
+                      }}
+                    >
+                      <RiDeleteBinLine />
+                    </button>
+                  </td>
+                </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </div>
     </div>
   );
 }
 
 export default ProductList;
-// --------------------------------------------------
