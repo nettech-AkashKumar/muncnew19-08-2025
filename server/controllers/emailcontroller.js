@@ -128,9 +128,15 @@ const sendEmail = async (req, res) => {
       bcc = [],
       subject,
       body,
-      attachments,
-      images,
     } = req.body;
+
+      const normalizedAttachments = req.files?.attachments
+      ? req.files.attachments.map((file) => file.path) // Cloudinary URL
+      : [];
+
+    const normalizedImages = req.files?.images
+      ? req.files.images.map((file) => file.path) // Cloudinary URL
+      : [];
 
     const senderEmail = req.user.email.toLowerCase();
     const existingUser = await User.findOne({ email: senderEmail });
@@ -156,8 +162,8 @@ const sendEmail = async (req, res) => {
       from: sender,
       subject,
       body,
-      attachments: attachments || [],
-      image: images || [],
+      attachments: normalizedAttachments,
+      image: normalizedImages,
       type: "sent",
       name: "You",
       starred: false,
@@ -180,8 +186,8 @@ const sendEmail = async (req, res) => {
         from: sender,
         subject,
         body,
-        attachments: attachments || [],
-        image: images || [],
+        attachments: normalizedAttachments,
+        image: normalizedImages,
         type: "inbox",
         name: user ? `${user.firstName} ${user.lastName}` : "Unknown",
         starred: false,
@@ -307,6 +313,30 @@ const getSentEmails = async (req, res) => {
   }
 };
 
+// backend/controllers/emailController.js
+const getStarredEmails = async (req, res) => {
+  try {
+    const userEmail = req.user.email.toLowerCase();
+
+    const emails = await EmailModal.find({
+      starred: true,
+      deleted: false,
+      $or: [
+        { type: "inbox", to: userEmail },
+        { type: "sent", "from.email": userEmail }
+      ]
+    }).sort({ createdAt: -1 });
+
+    res.status(200).json({ success: true, data: emails });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch starred emails",
+      error: error.message,
+    });
+  }
+};
+
 const starredEmail = async (req, res) => {
   try {
     const email = await EmailModal.findByIdAndUpdate(
@@ -396,6 +426,7 @@ module.exports = {
   sendEmail,
   receiveEmail,
   getSentEmails,
+  getStarredEmails,
   starredEmail,
   deleteEmail,
   getDeletedEmails,
