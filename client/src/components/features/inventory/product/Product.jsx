@@ -434,7 +434,14 @@ function ProductList() {
               <tbody>
               {products.map((product,idx)=>( 
                 <tr key={product} style={{ borderBottom: "1px solid #eee" }}>
-                  <td style={{ padding: "12px" }}>{product.productName}</td>
+                  <td style={{ padding: "12px", display:"flex" }}>{product.productName}  {product.images?.[0] && (
+                            <img
+                              src={product.images[0].url}
+                              alt={product.productName}
+                              className="media-image"
+                              style={{ height: "40px", width: "45px" }}
+                            />
+                          )} </td>
                   <td style={{ padding: "12px" }}>{product.sku}</td>
                   <td style={{ padding: "12px" }}>{product.quantity} {product.unit}</td>
                   <td style={{ padding: "12px" }}>{product.category?.categoryName}</td>
@@ -522,4 +529,3 @@ function ProductList() {
 }
 
 export default ProductList;
-// --------------------------------------------------

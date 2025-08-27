@@ -21,8 +21,8 @@ const bankSchema = new mongoose.Schema({
 
 const customerSchema = new mongoose.Schema({
   name: { type: String, required: true },
-  email: { type: String, required: true },
-  phone: { type: String, required: true },
+  email: { type: String },
+  phone: { type: String, required: true, unique: true },
   currency: String,
   website: String,
   notes: String,

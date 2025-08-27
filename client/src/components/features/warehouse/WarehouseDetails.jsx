@@ -1,29 +1,31 @@
 import { useState, useEffect, useCallback } from "react";
-import { MdArrowForwardIos } from "react-icons/md";
-// import RadioActive from "../images/Radioactive.png";
-// import CircleLogo from "../images/Circlelogo.png";
-import DonutChart from "react-donut-chart";
 
+import DonutChart from "react-donut-chart";
+import { Box, Typography } from "@mui/material";
+import { LineChart } from "@mui/x-charts";
+
+import { MdArrowForwardIos } from "react-icons/md";
 import { FaSackDollar } from "react-icons/fa6";
 import { RiAlertFill } from "react-icons/ri";
 import { FaStopCircle } from "react-icons/fa";
-// import { LineChart } from "@mui/x-charts/LineChart";
-import { Box, Typography } from "@mui/material";
-import { LineChart } from "@mui/x-charts";
 import { FaArrowRight } from "react-icons/fa";
 import { PiWarehouseBold } from "react-icons/pi";
-import { Link } from "react-router-dom";
 import { CiSearch } from "react-icons/ci";
 import { IoFilter } from "react-icons/io5";
 import { LuArrowUpDown } from "react-icons/lu";
+
+//
 import BASE_URL from "../../../pages/config/config";
 import AddWarehouseModal from "../../../pages/Modal/warehouse/AddWarehouseModal";
 import axios from "axios";
+import { Link } from "react-router-dom";
 import { useParams } from "react-router-dom";
 
 // import { style } from './../../../node_modules/@mui/system/esm/Stack/createStack';
 
 function WarehouseDetails() {
+  const [activeTab, setActiveTab] = useState("All");
+
   const { id } = useParams();
   // console.log("id ",id);
 
@@ -165,23 +167,48 @@ function WarehouseDetails() {
     return acc;
   }, {});
 
+  const filteredPurchases = purchases.filter((purchase) => {
+    if (activeTab === "All") return true;
+    if (activeTab === "Stock In") return purchase.status === "Received";
+    if (activeTab === "Stock Out") return purchase.status === "Ordered";
+    if (activeTab === "Transfer") return purchase.status === "Transfer";
+    if (activeTab === "Processing") return purchase.status === "Processing";
+    return true;
+  });
+
+  // ✅ Get all products of this warehouse
+  const filteredProducts = product.filter(
+    (item) => item.warehouseName === warehousesDetails?.warehouseName
+  );
+
+  // ✅ Calculate total revenue for all filtered products
+  const totalRevenue = filteredProducts.reduce((sum, item) => {
+    const soldUnits = salesMap[item._id] || 0;
+    return sum + soldUnits * item.sellingPrice;
+  }, 0);
+
+  // total available items
+  const totalItems = filteredProducts.reduce((sum, item) => {
+    return sum + (item.quantity || 0);
+  }, 0);
+
   //time & date format
   function formatDateTime(dateString) {
-  const date = new Date(dateString);
+    const date = new Date(dateString);
 
-  // Extract hours, minutes, am/pm
-  let hours = date.getHours();
-  const minutes = date.getMinutes().toString().padStart(2, "0");
-  const ampm = hours >= 12 ? "PM" : "AM";
-  hours = hours % 12 || 12; // convert 0 to 12
+    // Extract hours, minutes, am/pm
+    let hours = date.getHours();
+    const minutes = date.getMinutes().toString().padStart(2, "0");
+    const ampm = hours >= 12 ? "PM" : "AM";
+    hours = hours % 12 || 12; // convert 0 to 12
 
-  // Format date
-  const day = date.getDate().toString().padStart(2, "0");
-  const month = (date.getMonth() + 1).toString().padStart(2, "0");
-  const year = date.getFullYear();
+    // Format date
+    const day = date.getDate().toString().padStart(2, "0");
+    const month = (date.getMonth() + 1).toString().padStart(2, "0");
+    const year = date.getFullYear();
 
-  return `${hours}:${minutes} ${ampm} - ${day}-${month}-${year}`;
-}
+    return `${hours}:${minutes} ${ampm} - ${day}-${month}-${year}`;
+  }
 
   return (
     <div>
@@ -277,24 +304,10 @@ function WarehouseDetails() {
             </span>
             <br />
             <span style={{ textAlign: "left" }}>
-              <b>₹12,75,987</b>
+              <b>₹{totalRevenue.toLocaleString("en-IN")}</b>
             </span>
           </div>
         </div>
-
-        {/* order
-        <div className="radio-active">
-          <div>
-            <img src={CircleLogo} alt="money" />
-          </div>
-          <div className="bag-content">
-            <span style={{ color: "#676767", marginTop: "50px" }}>Order</span>
-            <br />
-            <span style={{ textAlign: "left" }}>
-              <b>₹5,987</b>
-            </span>
-          </div>
-        </div> */}
 
         {/* Initial Purchase Date */}
         <div className="radio-active">
@@ -447,8 +460,7 @@ function WarehouseDetails() {
             <span
               style={{ color: "#676767", fontWeight: "400", fontSize: "16px" }}
             >
-              {/* 86,477 */}
-              {warehousesDetails?.items}
+              <b>{totalItems}</b>
             </span>
           </div>
         </div>
@@ -658,64 +670,6 @@ function WarehouseDetails() {
           <span>Top Selling Products</span>
         </div>
 
-        {/* <div style={{ padding: "8px 24px", gap: "18px" }}>
-          <span
-            style={{
-              font: "Robot",
-              fontWeight: "400",
-              fontSize: "16px",
-              color: "#262626",
-              padding: "8px",
-            }}
-          >
-            All
-          </span>
-          <span
-            style={{
-              font: "Robot",
-              fontWeight: "400",
-              fontSize: "16px",
-              color: "#262626",
-              padding: "8px",
-            }}
-          >
-            Stock In
-          </span>
-          <span
-            style={{
-              font: "Robot",
-              fontWeight: "400",
-              fontSize: "16px",
-              color: "#262626",
-              padding: "8px",
-            }}
-          >
-            Stock Out
-          </span>
-          <span
-            style={{
-              font: "Robot",
-              fontWeight: "400",
-              fontSize: "16px",
-              color: "#262626",
-              padding: "8px",
-            }}
-          >
-            Transfer
-          </span>
-          <span
-            style={{
-              font: "Robot",
-              fontWeight: "400",
-              fontSize: "16px",
-              color: "#262626",
-              padding: "8px",
-            }}
-          >
-            Processing
-          </span>
-        </div> */}
-
         {/* Table */}
         <div>
           <table
@@ -767,18 +721,31 @@ function WarehouseDetails() {
                       >
                         <input type="checkbox" />
                       </td>
-                      <td style={{
-                          // padding: "12px 24px",
-                          borderBottom: "1px solid #e6e6e6",
-                        }}>
-                          <img src={item.images[0]?.url} alt="" style={{width:'35px', borderRadius:'4px', border:'1px solid #f1f1f1', backgroundColor:'#D9D9D9',}} />
-                        </td>
                       <td
                         style={{
                           // padding: "12px 24px",
                           borderBottom: "1px solid #e6e6e6",
                         }}
-                      > {item.productName}
+                      >
+                        <img
+                          src={item.images[0]?.url}
+                          alt=""
+                          style={{
+                            width: "35px",
+                            borderRadius: "4px",
+                            border: "1px solid #f1f1f1",
+                            backgroundColor: "#D9D9D9",
+                          }}
+                        />
+                      </td>
+                      <td
+                        style={{
+                          // padding: "12px 24px",
+                          borderBottom: "1px solid #e6e6e6",
+                        }}
+                      >
+                        {" "}
+                        {item.productName}
                       </td>
                       <td
                         style={{
@@ -1044,37 +1011,46 @@ function WarehouseDetails() {
           <div>
             <span
               style={{
-                font: "Robot",
+                fontFamily: "Roboto",
                 fontWeight: "400",
                 fontSize: "16px",
-                color: "#262626",
+                color: activeTab === "All" ? "#2BAE66" : "#262626",
                 padding: "8px",
+                cursor: "pointer",
               }}
+              onClick={() => setActiveTab("All")}
             >
               All
             </span>
+
             <span
               style={{
-                font: "Robot",
+                fontFamily: "Roboto",
                 fontWeight: "400",
                 fontSize: "16px",
-                color: "#262626",
+                color: activeTab === "Stock In" ? "#2BAE66" : "#262626",
                 padding: "8px",
+                cursor: "pointer",
               }}
+              onClick={() => setActiveTab("Stock In")}
             >
               Stock In
             </span>
+
             <span
               style={{
-                font: "Robot",
+                fontFamily: "Roboto",
                 fontWeight: "400",
                 fontSize: "16px",
-                color: "#262626",
+                color: activeTab === "Stock Out" ? "#2BAE66" : "#262626",
                 padding: "8px",
+                cursor: "pointer",
               }}
+              onClick={() => setActiveTab("Stock Out")}
             >
               Stock Out
             </span>
+
             <span
               style={{
                 font: "Robot",
@@ -1169,8 +1145,8 @@ function WarehouseDetails() {
             </thead>
 
             <tbody>
-              {purchases.slice(0,5).map((purchase) => (
-                <tr key={purchases._id} style={{ cursor: "pointer" }}>
+              {filteredPurchases.slice(0, 5).map((purchase) => (
+                <tr key={purchase._id} style={{ cursor: "pointer" }}>
                   <td
                     style={{
                       padding: "12px 24px",
@@ -1206,17 +1182,21 @@ function WarehouseDetails() {
                   <td
                     style={{ borderBottom: "1px solid #ddd", padding: "8px" }}
                   >
-                    <span 
-                    style={{
-                      padding: "4px 12px",
-                              borderRadius: "20px",
-                              fontSize: "13px",
-                              fontWeight: "500",
-                              color: purchase.status == "Ordered" ? "#DFFFE0" : "#FCE4E6",
-                              backgroundColor: purchase.status == "Ordered" ? "#2bAE66" : "#D64550",
-                    }}>{purchase.status}</span>
+                    <span
+                      style={{
+                        padding: "4px 12px",
+                        borderRadius: "20px",
+                        fontSize: "13px",
+                        fontWeight: "500",
+                        color:
+                          purchase.status === "Ordered" ? "#DFFFE0" : "#FCE4E6",
+                        backgroundColor:
+                          purchase.status === "Ordered" ? "#2bAE66" : "#D64550",
+                      }}
+                    >
+                      {purchase.status}
+                    </span>
                   </td>
-
                   <td
                     style={{
                       padding: "12px 24px",
@@ -1238,7 +1218,6 @@ function WarehouseDetails() {
             </tbody>
           </table>
         </div>
-        
       </div>
     </div>
   );

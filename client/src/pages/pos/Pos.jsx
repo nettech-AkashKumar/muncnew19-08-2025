@@ -258,7 +258,12 @@ function Pos() {
   
   const DiscountRef = useRef(null);
   const handleProductDiscountClick = (item) => {
-    setSelectedItemForDiscount(item);
+    // setSelectedItemForDiscount(item);
+    const product = products.find(p => p._id === item._id); // Find the product in the products array
+  setSelectedItemForDiscount({
+    ...item,
+    availableQuantity: product ? product.quantity : 0, // Store the available quantity
+  });
     setDiscountQuantity(item.quantity);
     setDiscountPercentage(item.discountType === 'Percentage' ? item.discountValue : 0);
     setDiscountFixed(item.discountType === 'Fixed' ? item.discountValue : 0);
@@ -1053,6 +1058,59 @@ const handleInvoicePrint = async () => {
   }, 100); // Small delay to ensure DOM rendering
 };
 
+//add customers---------------------------------------------------------------------------------------------------------------
+
+  const [form, setForm] = useState({
+    name: '',
+    email: '',
+    phone: '',
+    status: true,
+  });
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setForm((prev) => ({ ...prev, [name]: value }));
+  };
+  
+const handleSubmit = async (e) => {
+  e.preventDefault();
+  setLoading(true);
+
+  try {
+    const response = await fetch(`${BASE_URL}/api/customers`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        name: form.name,
+        phone: form.phone,
+        email: form.email,
+      }),
+    });
+
+    const data = await response.json();
+
+    if (response.ok) {
+      alert("Customer saved successfully ✅");
+      setForm({
+        name: '',
+        email: '',
+        phone: '',
+        status: true,
+      });
+  fetchCustomers(); 
+    } else {
+      alert("Error: " + data.error);
+    }
+  } catch (err) {
+    console.error(err);
+    alert("Something went wrong ❌");
+  } finally {
+    setLoading(false);
+  }
+};
+
   return ( //page code starts from here-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     <div style={{marginLeft:'-21px',backgroundColor:'#fff'}}>
 
@@ -1286,7 +1344,7 @@ const handleInvoicePrint = async () => {
               </div>
             </div>
 
-            {/* details card */}
+            {/* item details card */}
             <div style={{width:'80%',backgroundColor:'#F7F7F7',height:'100%',overflowY:'auto'}}>
               
               {/* products */}
@@ -1304,8 +1362,15 @@ const handleInvoicePrint = async () => {
                 <div 
                   key={product._id}
                   className='col-2' 
-                  style={{border:'2px solid #E6E6E6',backgroundColor:'white',borderRadius:'16px',padding:'10px',cursor:'pointer',position:'relative'}}
-                  onClick={() => handleProductClick(product)}
+                  style={{
+                    border:'2px solid #E6E6E6',
+                    backgroundColor:'white',
+                    borderRadius:'16px',
+                    padding:'10px',
+                    cursor: product.quantity > 0 ? 'pointer' : 'not-allowed',
+                    position:'relative'
+                  }}
+                  onClick={() => product.quantity > 0 && handleProductClick(product)}
                 >
                   {/* Quantity Badge */}
                   {cartQuantity > 0 && (
@@ -1551,7 +1616,7 @@ const handleInvoicePrint = async () => {
                     <div style={{display:'flex',justifyContent:'space-between',alignItems:'center'}} onClick={() => handleProductDiscountClick(item)}>
                       <div style={{display:'flex',alignItems:'center',gap:'8px'}}>
                         <span style={{fontWeight:'600',color:'#666'}}>
-                          Qty: {item.quantity}
+                          Quantity: {item.quantity}
                         </span>
                       </div>
                       <div style={{fontWeight:'600',color:'#1368EC'}}>
@@ -2495,24 +2560,40 @@ const handleInvoicePrint = async () => {
               <span>Add Customers details</span>
             </div>
             
+            <form onSubmit={handleSubmit}>
             <div style={{display:'flex',justifyContent:'space-between',padding:'10px 0px',width:'100%',gap:'15px',marginTop:'5px',}}>
               <div style={{width:'100%'}}>
                 <div>Customer Number <span style={{color:'red'}}>*</span></div>
                 <div style={{display:'flex',justifyContent:'space-between',padding:'10px 15px',backgroundColor:'#F9FAFB',borderRadius:'10px',border:'1px solid #E6E6E6',width:'100%',marginTop:'5px'}}>
-                  <input type="text" placeholder='Enter Customer Name' style={{border:'none',outline:'none',width:'100%',backgroundColor:'#F9FAFB'}} required />
+                  <input type="text" placeholder='Enter Customer Name' style={{border:'none',outline:'none',width:'100%',backgroundColor:'#F9FAFB'}} name="name" value={form.name} onChange={handleInputChange} required />
                 </div>
               </div>
               <div style={{width:'100%',display:'flex',justifyContent:'space-between',gap:'15px'}}>
                 <div style={{width:'100%'}}>
                 <div>Mobile Number <span style={{color:'red'}}>*</span></div>
                 <div style={{display:'flex',justifyContent:'space-between',padding:'10px 15px',backgroundColor:'#F9FAFB',borderRadius:'10px',border:'1px solid #E6E6E6',width:'100%',marginTop:'5px'}}>
-                  <input type="number" placeholder='Enter Mobile Number' style={{border:'none',outline:'none',width:'100%',backgroundColor:'#F9FAFB'}} required />
+                  <input 
+                  type="number" 
+                  placeholder='Enter Mobile Number' 
+                  style={{border:'none',outline:'none',width:'100%',backgroundColor:'#F9FAFB'}} 
+                  name="phone" 
+                  value={form.phone} 
+                  onChange={(e) => {
+                    // allow only digits and limit to 10
+                    const value = e.target.value.replace(/\D/g, ""); 
+                    if (value.length <= 10) {
+                      handleInputChange(e);
+                    }
+                  }}
+                  maxLength={10} 
+                  required 
+                  />
                 </div>
                 </div>
                 <div style={{width:'100%'}}>
                 <div>Email Id</div>
                 <div style={{display:'flex',justifyContent:'space-between',padding:'10px 15px',backgroundColor:'#F9FAFB',borderRadius:'10px',border:'1px solid #E6E6E6',width:'100%',marginTop:'5px'}}>
-                  <input type="email" placeholder='Enter Email Id' style={{border:'none',outline:'none',width:'100%',backgroundColor:'#F9FAFB'}} />
+                  <input type="email" placeholder='Enter Email Id' style={{border:'none',outline:'none',width:'100%',backgroundColor:'#F9FAFB'}} name="email" value={form.email} onChange={handleInputChange} />
                 </div>
                 </div>
               </div>
@@ -2523,7 +2604,7 @@ const handleInvoicePrint = async () => {
               <div style={{width:'100%'}}>
                 <div>Address</div>
                 <div style={{display:'flex',justifyContent:'space-between',padding:'10px 15px',backgroundColor:'#F9FAFB',borderRadius:'10px',border:'1px solid #E6E6E6',width:'100%',marginTop:'5px'}}>
-                  <textarea type="text" placeholder='Enter Customer Address...' style={{border:'none',outline:'none',width:'100%',backgroundColor:'#F9FAFB'}} required ></textarea>
+                  <textarea type="text" placeholder='Enter Customer Address...' style={{border:'none',outline:'none',width:'100%',backgroundColor:'#F9FAFB'}} ></textarea>
                 </div>
               </div>
             </div>
@@ -2692,6 +2773,12 @@ const handleInvoicePrint = async () => {
                 </div>
               </div>
 
+              {/* buttons */}
+              <div style={{display:'flex',justifyContent:'end',padding:'10px 0px',width:'100%',gap:'15px',marginTop:'5px',}}>
+                <button type="submit" disabled={loading} style={{padding:'3px 10px',backgroundColor:'#1368EC',border:'2px solid #E6E6E6',borderRadius:'8px',color:'white',cursor:'pointer'}}>{loading ? 'Saving...' : 'Save'}</button>
+              </div>
+            </form>
+
           </div>
         </div>
         </>
@@ -2717,33 +2804,123 @@ const handleInvoicePrint = async () => {
           >
           <div ref={DiscountRef} style={{width:'700px',padding:'10px 16px',overflowY:'auto',backgroundColor:'#fff',border:'1px solid #E1E1E1',borderRadius:'8px'}}>
             
-            <div style={{display:'flex',justifyContent:'space-between',borderBottom:'1px solid #E1E1E1',padding:'10px 0px'}}>
-              <span>Selected Item: {selectedItemForDiscount?.productName || 'N/A'}</span>
-            </div>
+    {/* selected item image, name, sku, quantity available, mrp */}
+    <div style={{display:'flex',justifyContent:'space-between',borderBottom:'1px solid #E1E1E1',padding:'10px 0px'}}>
+      <div style={{ display: 'flex', alignItems: 'center', marginTop: '10px', gap: '15px' }}>
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'center',
+            backgroundColor: 'white',
+            width: '80px',
+            height: '80px',
+            alignItems: 'center',
+            borderRadius: '8px',
+            overflow: 'hidden',
+            border: '2px solid #E6E6E6',
+          }}
+        >
+          {selectedItemForDiscount.images &&
+          selectedItemForDiscount.images.length > 0 &&
+          selectedItemForDiscount.images[0] ? (
+            <img
+              src={selectedItemForDiscount.images[0].url || selectedItemForDiscount.images[0]}
+              alt={selectedItemForDiscount.productName}
+              style={{
+                height: '100%',
+                width: '100%',
+                objectFit: 'contain',
+                maxWidth: '100%',
+                maxHeight: '100%',
+              }}
+              onError={(e) => {
+                e.target.style.display = 'none';
+                e.target.nextSibling.style.display = 'flex';
+              }}
+            />
+          ) : null}
+          <div
+            style={{
+              display:
+                selectedItemForDiscount.images &&
+                selectedItemForDiscount.images.length > 0 &&
+                selectedItemForDiscount.images[0]
+                  ? 'none'
+                  : 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: '#ccc',
+              fontSize: '24px',
+            }}
+          >
+            <span style={{ fontSize: '10px' }}>No Image</span>
+          </div>
+        </div>
+        <div style={{ flex: 1 }}>
+          <div style={{ marginBottom: '5px' }}>
+            <span style={{ color: 'black',fontWeight:'600',fontSize:'20px' }}>{selectedItemForDiscount?.productName || 'N/A'}</span>
+          </div>
+          <div style={{display:'flex',gap:'15px',justifyContent:'space-around',alignItems:'center'}}>
+          <div style={{ marginBottom: '5px' }}>
+            <span style={{ color: '#676767' }}>SKU: </span>
+            <span>{selectedItemForDiscount.sku || 'N/A'}</span>
+          </div>
+          <div style={{ marginBottom: '5px' }}>
+            <span style={{ color: '#676767' }}>Qty Available: </span>
+            <span>
+              {(() => {
+                // Fallback to products array
+                const product = products.find(p => p._id === selectedItemForDiscount._id);
+                return product ? product.quantity : 'N/A';
+              })()}
+            </span>
+            <span>
+              {(() => {
+                // Fallback to products array
+                const product = products.find(p => p._id === selectedItemForDiscount._id);
+                return product ? product.unit : 'N/A';
+              })()}
+            </span>
+          </div>
+          <div style={{ marginBottom: '5px' }}>
+            <span style={{ color: '#676767' }}>Rate: </span>
+            <span>₹{selectedItemForDiscount.sellingPrice} /-</span>
+          </div>
+          </div>
+        </div>
+      </div>
+    </div>
 
             {/* quantity */}
-            <div style={{width:'100%',display:'flex',justifyContent:'space-between',gap:'50px'}}>
+            <div style={{width:'100%',display:'flex',justifyContent:'space-between',gap:'50px',marginTop:'15px'}}>
               <div style={{width:'50%',display:'flex',justifyContent:'space-between',alignItems:'center'}}>
                 <span style={{fontSize:'25px',fontWeight:'500'}}>Quantity</span>
               </div>
               <div style={{width:'25%',display:'flex',justifyContent:'center',padding:'10px 0px',gap:'15px',marginTop:'2px',alignItems:'center'}}>
               </div>
               <div style={{width:'25%',display:'flex',justifyContent:'center',padding:'10px 0px',gap:'15px',marginTop:'2px',alignItems:'center'}}>
-              <div 
-                style={{borderRadius:'8px',border:'1px solid #E6E6E6',backgroundColor:'#F9FAFB',display:'flex',alignItems:'center',justifyContent:'center',padding:'5px 12px',cursor:'pointer'}}
+              <button 
+                style={{borderRadius:'8px',border: discountQuantity <= 1 ? '1px solid #E6E6E6' : '1px solid #E6E6E6',backgroundColor: discountQuantity <= 1 ? 'white' : '#F9FAFB',display:'flex',alignItems:'center',justifyContent:'center',padding:'5px 12px',
+                  cursor: discountQuantity <= 1 ? 'not-allowed' : 'pointer',}}
                 onClick={() => handleQuantityChange(discountQuantity - 1)}
+                disabled={discountQuantity <= 1}
               >
                 -
-              </div>
+              </button>
 
               <div><span>{discountQuantity}</span></div>
 
-              <div 
-                style={{borderRadius:'8px',border:'1px solid #E6E6E6',backgroundColor:'#F9FAFB',display:'flex',alignItems:'center',justifyContent:'center',padding:'5px 12px',cursor:'pointer'}}
+              <button 
+                style={{
+                  borderRadius:'8px',border:'1px solid #E6E6E6',backgroundColor:'#F9FAFB',display:'flex',alignItems:'center',justifyContent:'center',padding:'5px 12px',
+                  cursor: discountQuantity >= (selectedItemForDiscount.availableQuantity || 0) ? 'not-allowed' : 'pointer',
+                }}
                 onClick={() => handleQuantityChange(discountQuantity + 1)}
+                disabled={discountQuantity >= (selectedItemForDiscount.availableQuantity || 0)}
               >
                 +
-              </div>
+              </button>
               </div>
             </div>
 
