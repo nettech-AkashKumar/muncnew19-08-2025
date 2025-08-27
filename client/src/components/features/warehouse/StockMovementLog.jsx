@@ -1,113 +1,48 @@
-import React, { useState } from "react";
+import axios from "axios";
+import React, { useEffect, useState } from "react";
 import { IoIosArrowForward } from "react-icons/io";
+import BASE_URL from "../../../pages/config/config";
 
 function StockMovementLog() {
-  // Updated stockMovements with consistent naming: movementType instead of movementtype
-  const stockMovements = [
-    {
-      id: 1,
-      product: "LED Monitor",
-      time: "11:23",
-      qty: "3 Pieces",
-      movementType: "Stock In", // Changed to movementType
-      source: "Supplier-XYZ",
-      reference: "Request #REQ102",
-    },
-    {
-      id: 2,
-      product: "Wireless Keyboard",
-      time: "09:15",
-      qty: "5 Pieces",
-      movementType: "Stock Out", // Changed to movementType
-      source: "Order #ORD205",
-      reference: "Dispatch #DISP301",
-    },
-    // ... other items updated similarly
-    {
-      id: 3,
-      product: "Gaming Mouse",
-      time: "14:40",
-      qty: "8 Pieces",
-      movementType: "Stock In",
-      source: "Supplier-ABC",
-      reference: "Request #REQ108",
-    },
-    {
-      id: 4,
-      product: "Office Chair",
-      time: "16:10",
-      qty: "2 Pieces",
-      movementType: "Stock Out",
-      source: "Order #ORD210",
-      reference: "Dispatch #DISP305",
-    },
-    {
-      id: 5,
-      product: "Laptop Stand",
-      time: "10:05",
-      qty: "6 Pieces",
-      movementType: "Stock In",
-      source: "Supplier-PQR",
-      reference: "Request #REQ115",
-    },
-    {
-      id: 6,
-      product: "Smartphone",
-      time: "13:55",
-      qty: "4 Pieces",
-      movementType: "Stock Out",
-      source: "Order #ORD218",
-      reference: "Dispatch #DISP310",
-    },
-    {
-      id: 7,
-      product: "Projector",
-      time: "12:25",
-      qty: "1 Piece",
-      movementType: "Stock In",
-      source: "Supplier-LMN",
-      reference: "Request #REQ120",
-    },
-    {
-      id: 8,
-      product: "USB-C Cable",
-      time: "15:45",
-      qty: "15 Pieces",
-      movementType: "Stock Out",
-      source: "Order #ORD225",
-      reference: "Dispatch #DISP315",
-    },
-    {
-      id: 9,
-      product: "Router",
-      time: "17:30",
-      qty: "3 Pieces",
-      movementType: "Stock In",
-      source: "Supplier-DEF",
-      reference: "Request #REQ125",
-    },
-    {
-      id: 10,
-      product: "External Hard Drive",
-      time: "18:20",
-      qty: "7 Pieces",
-      movementType: "Stock Out",
-      source: "Order #ORD230",
-      reference: "Dispatch #DISP320",
-    },
-    {
-      id: 11,
-      product: "Webcam",
-      time: "19:05",
-      qty: "5 Pieces",
-      movementType: "Stock In",
-      source: "Supplier-UVW",
-      reference: "Request #REQ130",
-    },
-  ];
-
+  
+  const [activeTab, setActiveTab] = useState("All");
   const [isPopupOpen, setIsPopupOpen] = useState(false);
   const [selectedStock, setSelectedStock] = useState(null);
+  const [purchases, setPurchases] = useState([]);
+
+  const fetchPurchases = async () => {
+    try {
+      const res = await axios.get(`${BASE_URL}/api/purchases`);
+      setPurchases(res.data.purchases);
+    } catch (error) {
+      console.error("Error fetching purchases:", error);
+    }
+  };
+
+  useEffect(() => {
+    fetchPurchases();
+  }, []);
+
+  const filteredPurchases = purchases.filter((purchase) => {
+    if (activeTab === "All") return true;
+    if (activeTab === "Stock In") return purchase.status === "Received";
+    if (activeTab === "Stock Out") return purchase.status === "Ordered";
+    if (activeTab === "Transfer") return purchase.status === "Transfer";
+    if (activeTab === "Processing") return purchase.status === "Processing";
+    return true;
+  });
+
+  function formatDateTime(dateString) {
+    const date = new Date(dateString);
+    let hours = date.getHours();
+    const minutes = date.getMinutes().toString().padStart(2, "0");
+    const ampm = hours >= 12 ? "PM" : "AM";
+    hours = hours % 12 || 12; // convert 0 to 12
+    const day = date.getDate().toString().padStart(2, "0");
+    const month = (date.getMonth() + 1).toString().padStart(2, "0");
+    const year = date.getFullYear();
+    return `${hours}:${minutes} ${ampm} - ${day}-${month}-${year}`;
+  }
 
   const handleCellClick = (stock) => {
     setSelectedStock(stock);
@@ -120,9 +55,17 @@ function StockMovementLog() {
   };
 
   // Calculate subtotal and related values
-  const quantity = selectedStock
-    ? parseInt(selectedStock.qty.replace("Pieces", "").trim())
+  // const quantity = selectedStock
+  //   ? parseInt(selectedStock.qty.replace("Pieces", "").trim())
+  //   : 0;
+  // const quantity =
+  // selectedStock?.products?.[0]?.product?.quantity
+  //   ? parseInt(selectedStock.products[0].product.quantity)
+  //   : 0;
+  const quantity = selectedStock?.products?.[0]?.product?.quantity
+    ? parseInt(selectedStock.products[0].product.quantity)
     : 0;
+
   const unitPrice = 5000;
   const subtotal = quantity * unitPrice;
   const cgst = 9; // 9% CGST
@@ -214,7 +157,6 @@ function StockMovementLog() {
           borderLeft: "1px solid #e6e6e6",
           borderRight: "1px solid #e6e6e6",
           gap: "18px",
-          
         }}
       >
         <div
@@ -226,23 +168,50 @@ function StockMovementLog() {
             fontWeight: "400",
             fontSize: "16px",
             color: "#262626",
-            alignItems:'center'
+            alignItems: "center",
           }}
         >
-          <span
+          {/* <span
+            onClick={() => setActiveTab("All")}
             style={{
               borderRadius: "4px",
               padding: "8px",
               gap: "8px",
-              backgroundColor: "#f1f1f1",
+              backgroundColor: activeTab === "All" ? "#d1d1d1" : "#f1f1f1",
+              cursor: "pointer",
             }}
           >
             All
           </span>
-          <span>Stock In</span>
+          <span
+            onClick={() => setActiveTab("Stock In")}
+            style={{
+              borderRadius: "4px",
+              padding: "8px",
+              backgroundColor: activeTab === "Stock In" ? "#d1d1d1" : "#f1f1f1",
+              cursor: "pointer",
+            }}
+          >
+            Stock In
+          </span>
           <span>Stock Out</span>
           <span>Transfer</span>
-          <span>Processing</span>
+          <span>Processing</span> */}
+
+          {["All", "Stock In", "Stock Out", "Transfer", "Processing"].map((tab) => (
+          <span
+            key={tab}
+            onClick={() => setActiveTab(tab)}
+            style={{
+              borderRadius: "4px",
+              padding: "8px",
+              backgroundColor: activeTab === tab ? "#d1d1d1" : "#f1f1f1",
+              cursor: "pointer",
+            }}
+          >
+            {tab}
+          </span>
+        ))}
         </div>
       </div>
       <div
@@ -283,85 +252,94 @@ function StockMovementLog() {
             </tr>
           </thead>
           <tbody>
-            {stockMovements.map((stock) => (
+            {filteredPurchases.map((purchase) => (
               <tr
-                key={stock.id}
+                key={purchase._id}
                 style={{
                   borderBottom: "1px solid #d3d3d3",
                   transition: "background-color 0.2s",
                 }}
+                 onClick={() => handleCellClick(purchase)}
               >
                 <td
-                  onClick={() => handleCellClick(stock)}
+                  // onClick={() => handleCellClick(purchase)}
                   style={{ padding: "10px" }}
                 >
                   <input type="checkbox" />
                 </td>
                 <td
                   style={{ padding: "10px" }}
-                  onClick={() => handleCellClick(stock)}
+                  // onClick={() => handleCellClick(purchase)}
                 >
-                  {stock.product}
+                  {/* {stock.product} */}
+                  {purchase.products[0]?.product?.productName}
                 </td>
                 <td
                   style={{ padding: "10px" }}
-                  onClick={() => handleCellClick(stock)}
+                  // onClick={() => handleCellClick(purchase)}
                 >
-                  {stock.time}
+                  {/* {stock.time} */}
+                  {formatDateTime(purchase.createdAt)}
                 </td>
                 <td
                   style={{ padding: "10px" }}
-                  onClick={() => handleCellClick(stock)}
+                  onClick={() => handleCellClick(purchase)}
                 >
-                  {stock.qty}
+                  {/* {stock.qty} */}
+                  {purchase.products[0]?.product?.quantity}
                 </td>
                 <td style={{ borderBottom: "1px solid #ddd", padding: "8px" }}>
+                 
                   {(() => {
-                    const type = stock.movementType.trim().toLowerCase(); // Fixed to use movementType
-                    if (type === "stock in") {
-                      return (
-                        <span
-                          style={{
-                            padding: "4px 12px",
-                            borderRadius: "20px",
-                            fontSize: "13px",
-                            fontWeight: "500",
-                            backgroundColor: "#DFFFE0", // green shade
-                          }}
-                        >
-                          {stock.movementType}
-                        </span>
-                      );
+                    const type = purchase.status.trim().toLowerCase(); // using purchase.status as equivalent
+                    let backgroundColor = "#D3D3D3";
+                    let textColor = "#000";
+
+                    if (type === "received") {
+                      backgroundColor = "#DFFFE0";
+                      textColor = "#2BAE66";
+                    } else if (type === "ordered") {
+                      backgroundColor = "#FCE4E6";
+                      textColor = "#D64550";
+                    } else if (type === "transfer") {
+                      backgroundColor = "#D4E4FF";
+                      textColor = "#2F80ED";
+                    } else if (type === "processing") {
+                      backgroundColor = "#FFF3CD";
+                      textColor = "#856404";
                     }
-                    if (type === "stock out") {
-                      return (
-                        <span
-                          style={{
-                            padding: "4px 12px",
-                            borderRadius: "20px",
-                            fontSize: "13px",
-                            fontWeight: "500",
-                            backgroundColor: "#FCE4E6", // red shade
-                          }}
-                        >
-                          {stock.movementType}
-                        </span>
-                      );
-                    }
-                    return <span>{stock.movementType}</span>;
+
+                    return (
+                      <span
+                        style={{
+                          padding: "4px 12px",
+                          borderRadius: "20px",
+                          fontSize: "13px",
+                          fontWeight: "500",
+                          color: textColor,
+                          backgroundColor,
+                        }}
+                      >
+                        {purchase.status}
+                      </span>
+                    );
                   })()}
                 </td>
                 <td
                   style={{ padding: "10px" }}
-                  onClick={() => handleCellClick(stock)}
+                  // onClick={() => handleCellClick(purchase)}
                 >
-                  {stock.source}
+                  {/* {stock.source} */}
+                  {purchase.products[0]?.product?.warehouse?.warehouseName}
                 </td>
                 <td
                   style={{ padding: "10px" }}
-                  onClick={() => handleCellClick(stock)}
+                  // onClick={() => handleCellClick(purchase)}
                 >
-                  {stock.reference}
+                  {/* {stock.reference} */}
+                  {/* {purchase.referenceNumber} */}
+                  {/* {selectedStock?.referenceNumber || "N/A"} */}
+                  {purchase.referenceNumber || "N/A"}
                 </td>
               </tr>
             ))}
@@ -371,17 +349,18 @@ function StockMovementLog() {
 
       {isPopupOpen && selectedStock && (
         <div
-          style={{
+         
+           style={{
             position: "fixed",
-            top: 0,
+            top: 70,
             left: 0,
             width: "100%",
-            height: "100%",
+            height: "90%",
             background: "rgba(0,0,0,0.5)",
             display: "flex",
             justifyContent: "center",
             alignItems: "center",
-            padding: "24px",
+            padding: "90px",
           }}
         >
           <div
@@ -406,16 +385,15 @@ function StockMovementLog() {
               <span
                 style={{
                   border: "1px solid #676767",
-                  backgroundColor:
-                    selectedStock.movementType === "Stock Out" // Fixed to movementType
-                      ? "#ED2F42"
-                      : "#2fed45",
+                   backgroundColor:
+                    selectedStock.status === "Ordered" ? "#ED2F42" : "#2fed45",
                   padding: "8px",
                   borderRadius: "4px",
                   color: "#fff",
                 }}
               >
-                {selectedStock.movementType}
+             
+                {selectedStock.status}
               </span>
               <select
                 style={{
@@ -424,9 +402,13 @@ function StockMovementLog() {
                   padding: "8px",
                   borderRadius: "4px",
                 }}
-              >
-                <option value="">Reached</option>
-                <option value="">In Transit</option>
+              > {selectedStock.status === "Ordered" ? (
+    <option value="">In Transit</option>
+  ) : (
+    <option value="">Reached</option>
+  )}
+                
+               
               </select>
             </div>
 
@@ -440,7 +422,8 @@ function StockMovementLog() {
               }}
             >
               <span>
-                Reference No.: <strong>{selectedStock.reference}</strong>
+                Reference No.:{" "}
+                <strong>{selectedStock.referenceNumber || "N/A"}</strong>
               </span>
               <span>Date: {new Date().toLocaleDateString()}</span>
             </div>
@@ -466,12 +449,19 @@ function StockMovementLog() {
                 <div>
                   <span>Customer</span>
                   <br />
-                  <span>{selectedStock.source.split("-")[1] || "N/A"}</span>
+                  <span>
+                    {/* {selectedStock.source.split("-")[1] || "N/A"} */}
+                    <span>{selectedStock.supplier?.supplierName || "N/A"}</span>
+                  </span>
                 </div>
                 <div>
                   <span>From Warehouse</span>
                   <br />
-                  <span>WH-001</span>
+                  {/* <span>WH-001</span> */}
+                  <span>
+                    {selectedStock.products[0]?.product?.warehouse
+                      ?.warehouseName || "N/A"}
+                  </span>
                 </div>
               </div>
 
@@ -513,22 +503,19 @@ function StockMovementLog() {
                           <input type="checkbox" />
                         </td>
                         <td style={{ padding: "10px" }}>
-                          {selectedStock.product}
+                          {/* {selectedStock.product} */}
+                          {selectedStock.products[0]?.product?.productName}
                         </td>
                         <td style={{ padding: "10px" }}>
-                          SKU{selectedStock.id}
+                          {/* SKU{selectedStock.id} */}
+                          SKU{selectedStock.products[0]?.product?.sku || "N/A"}
                         </td>
+                        
+                        <td style={{ padding: "10px" }}>{quantity}</td>
+                       <td style={{ padding: "10px" }}>₹{unitPrice}</td>
                         <td style={{ padding: "10px" }}>
-                          {selectedStock.qty.replace("Pieces", "").trim()}
-                        </td>
-                        <td style={{ padding: "10px" }}>₹5000.00</td>
-                        <td style={{ padding: "10px" }}>
-                          ₹
-                          {parseInt(
-                            selectedStock.qty.replace("Pieces", "").trim()
-                          ) * 5000}
-                          .00
-                        </td>
+                        ₹{(quantity * unitPrice).toLocaleString()}
+                      </td>
                       </tr>
                     </tbody>
                   </table>
