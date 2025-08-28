@@ -150,7 +150,6 @@
 
 // export default Warehouse
 
-
 /* -----------------------------------------------------------------
    src/pages/Warehouse/Warehouse.jsx
 ------------------------------------------------------------------ */
@@ -417,7 +416,7 @@
 //         try {
 //             const res = await axios.get(`${BASE_URL}/api/warehouse`); // <- endpoint
 //             setWarehouses(res.data.data); // backend: { success, data }
-            
+
 //         } catch (err) {
 //             setError(err);
 //             console.error(err);
@@ -676,7 +675,6 @@
 //                 </div>
 //             )}
 
-
 //             {/* ---------- Add‑Warehouse modal ---------- */}
 //             <AddWarehouseModal
 //                 afterSave={() => window.dispatchEvent(new Event("warehouse-added"))}
@@ -704,7 +702,6 @@
 //     const [error, setError] = useState(null);
 
 //     console.log(warehouses);
-
 
 //     /* --------------------- helpers ----------------------- */
 //     const formatDate = (iso) =>
@@ -855,9 +852,6 @@
 
 // export default Warehouse;
 
-
-
-
 // import React from 'react'
 // import { MdOutlineWatchLater } from "react-icons/md";
 // import { CircularProgressbar } from 'react-circular-progressbar';
@@ -959,7 +953,6 @@
 //         capacity: 80
 //     }
 // ];
-
 
 // function Warehouse() {
 //     return (
@@ -1070,11 +1063,7 @@
 
 // export default Warehouse
 
-
-
-// new code for werehouse 
-
-
+// new code for werehouse
 
 import React, { useCallback, useEffect, useState } from "react";
 import { MdArrowForwardIos } from "react-icons/md";
@@ -1086,57 +1075,43 @@ import BASE_URL from "../../../pages/config/config";
 import AddWarehouseModal from "../../../pages/Modal/warehouse/AddWarehouseModal";
 import axios from "axios";
 
-
-
 function Warehouse() {
   const [warehouses, setWarehouses] = useState([]);
-    const [loading, setLoading] = useState(false);
-     const [error, setError] = useState(null);
-     const [favourites, setFavourites] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [favourites, setFavourites] = useState([]);
 
-
-
-     const toggleFavourite = (warehouse) => {
-  setFavourites((prev) => {
-    const exists = prev.find((fav) => fav._id === warehouse._id);
-    if (exists) {
-      // remove if already in favourites
-      return prev.filter((fav) => fav._id !== warehouse._id);
-    } else {
-      // add if not already in favourites
-      return [...prev, warehouse];
-    }
-  });
-};
+  const toggleFavourite = (warehouse) => {
+    setFavourites((prev) => {
+      const exists = prev.find((fav) => fav._id === warehouse._id);
+      if (exists) {
+        return prev.filter((fav) => fav._id !== warehouse._id);
+      } else {
+        return [...prev, warehouse];
+      }
+    });
+  };
 
   const fetchWarehouses = useCallback(async () => {
-        setLoading(true);
-        try {
-            const res = await axios.get(`${BASE_URL}/api/warehouse`); // <- endpoint
-            
-            
-            setWarehouses(res.data.data); // backend: { success, data }
-            
-        } catch (err) {
-            setError(err);
-            console.error(err);
-        } finally {
-            setLoading(false);
-        }
-    }, []);
+    setLoading(true);
+    try {
+      const res = await axios.get(`${BASE_URL}/api/warehouse`); // <- endpoint
 
-      useEffect(() => {
-        fetchWarehouses();
-//         const listener = () => fetchWarehouses();
-//         window.addEventListener("warehouse-added", listener);
-//         return () => window.removeEventListener("warehouse-added", listener);
-    }, [fetchWarehouses]);
+      setWarehouses(res.data.data); 
+    } catch (err) {
+      setError(err);
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
-
-
-
-
-   
+  useEffect(() => {
+    fetchWarehouses();
+    //         const listener = () => fetchWarehouses();
+    //         window.addEventListener("warehouse-added", listener);
+    //         return () => window.removeEventListener("warehouse-added", listener);
+  }, [fetchWarehouses]);
 
   return (
     <div>
@@ -1165,19 +1140,161 @@ function Warehouse() {
 
         {/* Add Warehouse */}
 
-       
-         <Link to="/AddWarehouse">
-            <button style={{border:'1px solid #1450AE', backgroundColor: "#1368EC", color:'white', padding:'8px', borderRadius: '4px'}}>
-            Add Warehouse</button>
-         </Link>
-        
+        <Link to="/AddWarehouse">
+          <button
+            style={{
+              border: "1px solid #1450AE",
+              backgroundColor: "#1368EC",
+              color: "white",
+              padding: "8px",
+              borderRadius: "4px",
+            }}
+          >
+            Add Warehouse
+          </button>
+        </Link>
       </div>
 
       {/* Recently Accessed */}
-      <div style={{ fontWeight: "500", fontSize: "16px", color: "#262626", marginTop:'20px' }}>
+      <div
+        style={{
+          fontWeight: "500",
+          fontSize: "16px",
+          color: "#262626",
+          marginTop: "20px",
+        }}
+      >
         <span>Recently Accessed</span>
-      
-      {/* Cards */}
+
+        {/* Cards */}
+
+        <div
+          style={{
+            fontWeight: "500",
+            fontSize: "16px",
+            color: "#262626",
+            marginTop: "10px",
+            paddingBottom: "4px",
+          }}
+        >
+          {/* Cards */}
+
+          <div style={{ marginTop: "2px" }}>
+            <div className="row">
+              {console.log("wre", warehouses)}
+              {warehouses.map((item) => (
+                <div className="col-3">
+                  <div
+                    style={{
+                      backgroundColor: "#f9f9f9",
+                      padding: "10px",
+                      borderRadius: "8px",
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "flex-start",
+                      marginBottom: "30px",
+                      height: "150px", 
+                      position: "relative", 
+                    }}
+                  >
+                    {/* WH-006 and Heart - Left Side */}
+                    <div
+                      style={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        width: "100%",
+                        marginBottom: "10px",
+                      }}
+                    >
+                      {/* Left: WH-006 */}
+                      <div
+                        style={{
+                          backgroundColor: "#f1f1f1",
+                          border: "1px solid #e6e6e6",
+                          borderRadius: "8px",
+                          padding: "10px ",
+                          alignItems: "center",
+                        }}
+                      >
+                        <span>
+                          <PiWarehouseFill
+                            style={{
+                              color: "#1368EC",
+                              fontSize: "20px",
+                              fontWeight: "bold",
+                            }}
+                          />
+                          {item.warehouseName}
+                        </span>
+                      </div>
+
+                      {/* Right: Heart icon */}
+                      <div
+                        style={{
+                          padding: "10px",
+                          backgroundColor: "#f1f1f1",
+                          borderRadius: "8px",
+                          width: "fit-content",
+                        }}
+                      >
+                        <FaHeart
+                          onClick={() => toggleFavourite(item)}
+                          style={{
+                            cursor: "pointer",
+                            color: favourites.some(
+                              (fav) => fav._id === item._id
+                            )
+                              ? "red"
+                              : "#1368EC",
+                            fontWeight: "500",
+                            fontSize: "26px",
+                          }}
+                        />
+                      </div>
+                    </div>
+
+                    {/* Bottom Section (Address + Arrow) */}
+                    <div
+                      style={{
+                        position: "absolute",
+                        bottom: "10px",
+                        left: "10px",
+                        right: "10px",
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "flex-end",
+                      }}
+                    >
+                      {/* Address */}
+                      <div>
+                        <p style={{ margin: "0", fontWeight: "500" }}>
+                          {/* Delhi - Ram Prashad */}
+                          {item?.city}
+                          &nbsp;-&nbsp;{item?.warehouseOwner}
+                          {/* {item?.contactPerson?.lastName} */}
+                        </p>
+                        <span style={{ color: "#1368EC" }}>$76,000</span>
+                        <span style={{ marginLeft: "4px" }}>
+                          Stock Valuation
+                        </span>
+                      </div>
+
+                      {/* Arrow */}
+                      <div>
+                        <Link to={`/WarehouseDetails/${item._id}`}>
+                          <FaArrowRight />
+                        </Link>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* favrouite */}
 
       <div
         style={{
@@ -1188,233 +1305,104 @@ function Warehouse() {
           paddingBottom: "4px",
         }}
       >
-        {/* Cards */}
+        <span>Favourite</span>
 
         <div style={{ marginTop: "2px" }}>
           <div className="row">
-            {console.log('wre', warehouses)}
-          {warehouses.map((item)=>(
-            <div className="col-3">
-              <div
-                style={{
-                  backgroundColor: "#f9f9f9",
-                  padding: "10px",
-                  borderRadius: "8px",
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "flex-start",
-                  marginBottom:'30px',
-                  height: "150px", // Set a fixed or min height
-                  position: "relative", // for absolute positioning inside
-                }}
-              >
-                {/* WH-006 and Heart - Left Side */}
+            {favourites.length === 0 && <p>No favourites yet.</p>}
+            {favourites.map((fav) => (
+              <div className="col-3" key={fav._id}>
                 <div
                   style={{
+                    backgroundColor: "#f9f9f9",
+                    padding: "10px",
+                    borderRadius: "8px",
                     display: "flex",
                     justifyContent: "space-between",
-                    width: "100%",
-                    marginBottom: "10px",
+                    alignItems: "flex-start",
+                    height: "150px",
+                    position: "relative",
                   }}
                 >
-                  {/* Left: WH-006 */}
                   <div
                     style={{
-                      backgroundColor: "#f1f1f1",
-                      border: "1px solid #e6e6e6",
-                      borderRadius: "8px",
-                      padding: "10px ",
-                      alignItems: "center",
+                      display: "flex",
+                      justifyContent: "space-between",
+                      width: "100%",
+                      marginBottom: "10px",
                     }}
                   >
-                    <span>
-                      <PiWarehouseFill
-                        style={{
-                          color: "#1368EC",
-                          fontSize: "20px",
-                          fontWeight: "bold",
-                        }}
-                      />{" "}
-                      {/* Warehouse Delhi */}
-                      {/* {item.contactPerson.firstName} {item.contactPerson.lastName} */}
-                      {item.warehouseName}
-                    </span>
-                  </div>
-
-                  {/* Right: Heart icon */}
-                  <div
-                    style={{
-                      padding: "10px",
-                      backgroundColor: "#f1f1f1",
-                      borderRadius: "8px",
-                      width: "fit-content",
-                    }}
-                  >
-                    {/* <FaHeart
+                    <div
                       style={{
-                        color: "#1368EC",
-                        fontWeight: "500",
-                        fontSize: "26px",
+                        backgroundColor: "#f1f1f1",
+                        border: "1px solid #e6e6e6",
+                        borderRadius: "8px",
+                        padding: "10px ",
+                        alignItems: "center",
                       }}
-                    /> */}
-                    <FaHeart
-  onClick={() => toggleFavourite(item)}
-  style={{
-    cursor: "pointer",
-    color: favourites.some(fav => fav._id === item._id) ? "red" : "#1368EC",
-    fontWeight: "500",
-    fontSize: "26px",
-  }}
-/>
-
-                  </div>
-                </div>
-
-                {/* Bottom Section (Address + Arrow) */}
-                <div
-                  style={{
-                    position: "absolute",
-                    bottom: "10px",
-                    left: "10px",
-                    right: "10px",
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "flex-end",
-                  }}
-                >
-                  {/* Address */}
-                  <div>
-                    <p style={{ margin: "0", fontWeight: "500" }}>
-                      {/* Delhi - Ram Prashad */}
-                      {item?.city}
-                      &nbsp;-&nbsp;{item?.warehouseOwner} 
-                      {/* {item?.contactPerson?.lastName} */}
-                    </p>
-                    <span style={{ color: "#1368EC" }}>$76,000</span>
-                    <span style={{ marginLeft: "4px" }}>Stock Valuation</span>
+                    >
+                      <span>
+                        <PiWarehouseFill
+                          style={{
+                            color: "#1368EC",
+                            fontSize: "20px",
+                            fontWeight: "bold",
+                          }}
+                        />
+                        {fav.warehouseName}
+                      </span>
+                    </div>
+                    <div
+                      style={{
+                        padding: "10px",
+                        backgroundColor: "#f1f1f1",
+                        borderRadius: "8px",
+                        width: "fit-content",
+                      }}
+                    >
+                      <FaHeart
+                        onClick={() => toggleFavourite(fav)}
+                        style={{
+                          cursor: "pointer",
+                          color: "red",
+                          fontWeight: "500",
+                          fontSize: "26px",
+                        }}
+                      />
+                    </div>
                   </div>
 
-                  {/* Arrow */}
-                  <div>
-                    <Link to={`/WarehouseDetails/${item._id}`}>
-                      <FaArrowRight />
-                    </Link>
+                  <div
+                    style={{
+                      position: "absolute",
+                      bottom: "10px",
+                      left: "10px",
+                      right: "10px",
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "flex-end",
+                    }}
+                  >
+                    <div>
+                      <p style={{ margin: "0", fontWeight: "500" }}>
+                        {fav.city} - {fav.warehouseOwner}
+                      </p>
+                      <span style={{ color: "#1368EC" }}>$76,000</span>
+                      <span style={{ marginLeft: "4px" }}>Stock Valuation</span>
+                    </div>
+
+                    <div>
+                      <Link to={`/WarehouseDetails/${fav._id}`}>
+                        <FaArrowRight />
+                      </Link>
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
-          ))}
+            ))}
           </div>
         </div>
       </div>
-
-      </div>
-
-
-      {/* favrouite */}
-
-      <div
-  style={{
-    fontWeight: "500",
-    fontSize: "16px",
-    color: "#262626",
-    marginTop: "10px",
-    paddingBottom: "4px",
-  }}
->
-  <span>Favourite</span>
-
-  <div style={{ marginTop: "2px" }}>
-    <div className="row">
-      {favourites.length === 0 && <p>No favourites yet.</p>}
-      {favourites.map((fav) => (
-        <div className="col-3" key={fav._id}>
-          <div
-            style={{
-              backgroundColor: "#f9f9f9",
-              padding: "10px",
-              borderRadius: "8px",
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "flex-start",
-              height: "150px",
-              position: "relative",
-            }}
-          >
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                width: "100%",
-                marginBottom: "10px",
-              }}
-            >
-              <div
-                style={{
-                  backgroundColor: "#f1f1f1",
-                  border: "1px solid #e6e6e6",
-                  borderRadius: "8px",
-                  padding: "10px ",
-                  alignItems: "center",
-                }}
-              >
-                <span>
-                  <PiWarehouseFill style={{ color: "#1368EC", fontSize: "20px", fontWeight: "bold" }} />
-                  {fav.warehouseName}
-                </span>
-              </div>
-              <div
-                style={{
-                  padding: "10px",
-                  backgroundColor: "#f1f1f1",
-                  borderRadius: "8px",
-                  width: "fit-content",
-                }}
-              >
-                <FaHeart
-                  onClick={() => toggleFavourite(fav)}
-                  style={{
-                    cursor: "pointer",
-                    color: "red",
-                    fontWeight: "500",
-                    fontSize: "26px",
-                  }}
-                />
-              </div>
-            </div>
-
-            <div
-              style={{
-                position: "absolute",
-                bottom: "10px",
-                left: "10px",
-                right: "10px",
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "flex-end",
-              }}
-            >
-              <div>
-                <p style={{ margin: "0", fontWeight: "500" }}>
-                  {fav.city} - {fav.warehouseOwner}
-                </p>
-                <span style={{ color: "#1368EC" }}>$76,000</span>
-                <span style={{ marginLeft: "4px" }}>Stock Valuation</span>
-              </div>
-
-              <div>
-                <Link to={`/WarehouseDetails/${fav._id}`}>
-                  <FaArrowRight />
-                </Link>
-              </div>
-            </div>
-          </div>
-        </div>
-      ))}
-    </div>
-  </div>
-</div>
-      
 
       {/* Owened Warehouse */}
 
@@ -1442,7 +1430,7 @@ function Warehouse() {
                   display: "flex",
                   justifyContent: "space-between",
                   alignItems: "flex-start",
-                  height: "150px", 
+                  height: "150px",
                   position: "relative", // for absolute positioning inside
                 }}
               >
@@ -1528,7 +1516,6 @@ function Warehouse() {
             </div>
 
             {/* Other Columns (2nd) */}
-           
           </div>
         </div>
       </div>
@@ -1651,3 +1638,6 @@ function Warehouse() {
 }
 
 export default Warehouse;
+
+
+
