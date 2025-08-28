@@ -386,11 +386,12 @@ const Dashboards = () => {
   ]);
   const [showCalendar, setShowCalendar] = useState(false);
 
-
-  const [products, setProducts] = useState([]);
-  console.log("Products:", products);
-  const [activeTabs, setActiveTabs] = useState({});
-  const navigate = useNavigate();
+//-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+  
+const [products, setProducts] = useState([]);
+const [showTooltipslowstock, setShowTooltipsLowStock] = useState(false);
+const [showTooltipsoutstock, setShowTooltipsOutStock] = useState(false);
+const [showTooltipsexpiry, setShowTooltipsExpiry] = useState(false);
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -410,11 +411,7 @@ const Dashboards = () => {
     fetchProducts();
   }, []);
 
-  const handleTabClick = (productId, tab) => {
-    setActiveTabs((prev) => ({ ...prev, [productId]: tab }));
-  };
-
-//expiry code----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+//expiry code--------------------------------------------------------------------------------------------------------------------------------------
 const [expiringProducts, setExpiringProducts] = useState([]);
 
 const getExpiryStatus = (expiryValue) => {
@@ -472,6 +469,22 @@ useEffect(() => {
   };
   fetchProducts();
 }, []);
+
+//low stocks
+
+  const lowStockItems = products.filter(
+    (item) =>
+      item.quantity < 50 &&
+      item.quantity > 0
+  );
+
+//Out of Stock items
+
+  const outOfStockItems = products.filter(
+    (item) =>
+      item.quantity === 0
+  );
+
 
   return (
     <div>
@@ -737,6 +750,8 @@ useEffect(() => {
             </div>
           </div>
           <div className="d-flex justify-content-between dashboard-card-content">
+
+            {/* newly added */}
             <div
               className="dhasboard-card"
               style={{
@@ -772,9 +787,12 @@ useEffect(() => {
                 alt="dash_card_icon"
               />
             </div>
+
+            {/* low stocks */}
             <div
               className="dhasboard-card"
               style={{
+                position: "relative",
                 border: "1px solid rgb(223 225 227 / 70%)",
                 boxShadow: "rgba(149, 157, 165, 0.2) 0px 8px 24px",
                 borderRadius: "8px",
@@ -788,6 +806,8 @@ useEffect(() => {
                 height: "80px",
                 padding: "15px 5px",
               }}
+            onMouseEnter={() => setShowTooltipsLowStock(true)}
+            onMouseLeave={() => setShowTooltipsLowStock(false)}
             >
               <img src={line_blue} alt="line_blue" />
               <span>
@@ -795,9 +815,9 @@ useEffect(() => {
                   Low Stocks
                 </p>
                 <p style={{ margin: "0", color: "#0E101A", fontSize: "22px" }}>
-                  107{" "}
+                  {lowStockItems.length}{" "}
                   <span style={{ color: "#0E101A", fontSize: "14px" }}>
-                    INR
+                    ITEM
                   </span>
                 </p>
               </span>
@@ -806,10 +826,41 @@ useEffect(() => {
                 src={dash_card_icon}
                 alt="dash_card_icon"
               />
+              {showTooltipslowstock && (
+              <div>
+                {lowStockItems.length > 0 && (
+                <div
+                  style={{
+                    position: "absolute",
+                    top: "120%",
+                    left: "50%",
+                    transform: "translateX(-50%)",
+                    backgroundColor: "#f1f3f5",
+                    color: "black",
+                    padding: "8px",
+                    borderRadius: "6px",
+                    fontSize: "12px",
+                    zIndex: 10,
+                    width: "250px",
+                    height: "auto",
+                  }}
+                >
+                  {lowStockItems.map((product, index) => (
+                    <p key={index} style={{ margin: "4px 0" }}>
+                      {product.productName} - {product.quantity} {product.unit}
+                    </p>
+                  ))}
+                </div>
+              )}
+              </div>
+            )}
             </div>
+
+            {/* out of stocks */}
             <div
               className="dhasboard-card"
               style={{
+                position: "relative",
                 border: "1px solid rgb(223 225 227 / 70%)",
                 boxShadow: "rgba(149, 157, 165, 0.2) 0px 8px 24px",
                 borderRadius: "8px",
@@ -823,6 +874,8 @@ useEffect(() => {
                 height: "80px",
                 padding: "15px 5px",
               }}
+            onMouseEnter={() => setShowTooltipsOutStock(true)}
+            onMouseLeave={() => setShowTooltipsOutStock(false)}
             >
               <img src={line_blue} alt="line_blue" />
               <span>
@@ -830,9 +883,9 @@ useEffect(() => {
                   Out Of Stocks
                 </p>
                 <p style={{ margin: "0", color: "#0E101A", fontSize: "22px" }}>
-                  09{" "}
+                  {outOfStockItems.length}{" "}
                   <span style={{ color: "#0E101A", fontSize: "14px" }}>
-                    INR
+                    ITEM
                   </span>
                 </p>
               </span>
@@ -841,10 +894,41 @@ useEffect(() => {
                 src={dash_card_icon}
                 alt="dash_card_icon"
               />
+              {showTooltipsoutstock && (
+              <div>
+                {outOfStockItems.length > 0 && (
+                <div
+                  style={{
+                    position: "absolute",
+                    top: "120%",
+                    left: "50%",
+                    transform: "translateX(-50%)",
+                    backgroundColor: "#f1f3f5",
+                    color: "black",
+                    padding: "8px",
+                    borderRadius: "6px",
+                    fontSize: "12px",
+                    zIndex: 10,
+                    width: "250px",
+                    height: "auto",
+                  }}
+                >
+                  {outOfStockItems.map((product, index) => (
+                    <p key={index} style={{ margin: "4px 0" }}>
+                      {product.productName}
+                    </p>
+                  ))}
+                </div>
+              )}
+              </div>
+            )}
             </div>
+
+            {/* expiring soon */}
             <div
               className="dhasboard-card"
               style={{
+                position: "relative",
                 border: "1px solid rgb(223 225 227 / 70%)",
                 boxShadow: "rgba(149, 157, 165, 0.2) 0px 8px 24px",
                 borderRadius: "8px",
@@ -858,6 +942,8 @@ useEffect(() => {
                 height: "80px",
                 padding: "15px 5px",
               }}
+            onMouseEnter={() => setShowTooltipsExpiry(true)}
+            onMouseLeave={() => setShowTooltipsExpiry(false)}
             >
               <img src={line_blue} alt="line_blue" />
               <span>
@@ -876,7 +962,36 @@ useEffect(() => {
                 src={dash_card_icon}
                 alt="dash_card_icon"
               />
+              {showTooltipsexpiry && (
+              <div>
+                {expiringProducts.length > 0 && (
+                <div
+                  style={{
+                    position: "absolute",
+                    top: "120%",
+                    left: "50%",
+                    transform: "translateX(-50%)",
+                    backgroundColor: "#f1f3f5",
+                    color: "black",
+                    padding: "8px",
+                    borderRadius: "6px",
+                    fontSize: "12px",
+                    zIndex: 10,
+                    width: "250px",
+                    height: "auto",
+                  }}
+                >
+                  {expiringProducts.map((product, index) => (
+                    <p key={index} style={{ margin: "4px 0" }}>
+                      {product} - Expire on: {products.find(p => p.productName === product)?.variants?.Expiry || 'N/A'}
+                    </p>
+                  ))}
+                </div>
+              )}
+              </div>
+            )}
             </div>
+
           </div>
         </div>
         <div className="graph-container d-flex flex-column gap-3">

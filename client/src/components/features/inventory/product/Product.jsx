@@ -108,10 +108,10 @@ useEffect(() => {
             <div className="page-title">
               <h4 className="fw-bold">Products</h4>
               <h6>Manage your products </h6>
-              <h6>Expiring soon: {expiringCount}</h6>
+              {/* <h6>Expiring soon: {expiringCount}</h6>
               {expiringProducts.length > 0 && (
               <h6> Products: {expiringProducts.join(", ")}</h6>
-              )}
+              )} */}
             </div>
           </div>
 
