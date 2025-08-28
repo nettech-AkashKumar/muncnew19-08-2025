@@ -34,7 +34,7 @@ import Warranty from "../components/features/inventory/warranty/Warranty";
 import Logout from "../components/auth/Logout/Logout.jsx"; // adjust path if needed
 import Coupons from "../components/features/Promo/Coupons.jsx";
 // ... all your imports remain same
-import GiftCard from "../components/features/Promo/GiftCard.jsx"
+import GiftCard from "../components/features/Promo/GiftCard.jsx";
 import "../i18n.js"; // Import here
 import Chat from "../components/features/Chat/Chat.jsx";
 import Activities from "../components/layouts/Navbar/activities.jsx";
@@ -47,7 +47,7 @@ import Barcode from "../components/features/inventory/barcode/Barcode.jsx";
 // import Inbox from "../components/EmailLayout/Inbox";
 import MailPage from "../components/features/Mail/Pages/MailPage.jsx";
 
-import Inbox from "../components/features/Mail/EmailLayout/Inbox.jsx"
+import Inbox from "../components/features/Mail/EmailLayout/Inbox.jsx";
 import Starred from "../components/features/Mail/EmailLayout/Starred.jsx";
 import Sent from "../components/features/Mail/EmailLayout/Sent.jsx";
 import Drafts from "../components/features/Mail/EmailLayout/Drafts";
@@ -56,13 +56,11 @@ import Spam from "../components/features/Mail/EmailLayout/Spam.jsx";
 import Deleted from "../components/features/Mail/EmailLayout/Deleted.jsx";
 import EmailMessages from "../components/features/Mail/EmailMessages/EmailMessages.jsx";
 
-
 import LowStock from "../components/features/stock/lowstock/LowStock.jsx";
 
 import ManageStock from "../components/features/stock/manageStock/ManageStock";
 import StockAdujestment from "../components/features/stock/stockAdujestment/StockAdujestment";
 import StockTransfer from "../components/features/stock/stockTransfer/StockTransfer";
-
 
 import Purchase from "../components/features/purchase/Purchases/Purchase.jsx";
 import PurchaseReturn from "../components/features/purchase/PurchaseReturn//PurchaseReturn.jsx";
@@ -128,7 +126,6 @@ import EditProduct from "../components/features/inventory/product/EditProduct.js
 
 const AppRoutes = () => {
   return (
-
     <Routes>
       {/* Auth & 404 remain outside layout */}
       <Route path="/" element={<Login />} />
@@ -139,7 +136,6 @@ const AppRoutes = () => {
       <Route path="/reset-password/:token" element={<ResetPassword />} />
       <Route path="/change-password" element={<ChangePassword />} />
       <Route path="/logout" element={<Logout />} />
-
 
       <Route
         element={
@@ -198,7 +194,10 @@ const AppRoutes = () => {
         <Route path="/debit-note" element={<DebitNote />} />
         <Route path="/credit-note" element={<CreditNote />} />
         <Route path="/activities" element={<Activities />} />
-        <Route path="/ViewAllNotifications" element={<ViewAllNotifications />} />
+        <Route
+          path="/ViewAllNotifications"
+          element={<ViewAllNotifications />}
+        />
         <Route path="/barcode" element={<Barcode />} />
         <Route path="/pos" element={<Pos />} />
 
@@ -221,7 +220,7 @@ const AppRoutes = () => {
         <Route path="/warehouse" element={<Warehouse />} />
         <Route path="/addwarehouse" element={<AddWarehouse />} />
         <Route path="/WarehouseDetails/:id" element={<WarehouseDetails />} />
-        <Route path="/Godown" element={<Godown />} />
+        <Route path="/Godown/:id" element={<Godown />} />
         <Route path="/selectpage" element={<SelectPage />} />
 
         {/* customer */}
@@ -230,7 +229,6 @@ const AppRoutes = () => {
         <Route path="/suppliers" element={<AllSuppliers />} />
         <Route path="/viewsupplier/:id" element={<ViewSupplierModal />} />
 
-
         {/* settings */}
         <Route path="/Purchase-settings" element={<PurchaseSettings />} />
         <Route path="/warehouse-settings" element={<RackSettings />} />
@@ -238,11 +236,6 @@ const AppRoutes = () => {
         <Route path="/stock-movement-log" element={<StockMovementLog />} />
 
         <Route path="/purchase-report" element={<PurchaseReport />} />
-
-
-
-
-
 
         {/* ------------------ MAIL ROUTES ------------------ */}
         <Route path="/mail" element={<MailPage />}>
@@ -256,12 +249,17 @@ const AppRoutes = () => {
           <Route path="deleted" element={<Deleted />} />
         </Route>
 
-
         {/* ------------------ Finance & Accounts ------------------ */}
         <Route path="/balance-sheet" element={<BalanceSheet />} />
         <Route path="/profit&loss" element={<ProfitLoss />} />
-        <Route path="/profit_lossdate_choose" element={<ProfitLossDateChoose />} />
-        <Route path="/profit_lossselect_date" element={<ProfitLossSelectDate />} />
+        <Route
+          path="/profit_lossdate_choose"
+          element={<ProfitLossDateChoose />}
+        />
+        <Route
+          path="/profit_lossselect_date"
+          element={<ProfitLossSelectDate />}
+        />
         <Route path="/overdue-report" element={<OverdueReport />} />
         <Route path="/expense-report" element={<ExpenseReport />} />
         <Route path="/add_expenses" element={<ExpenseForm />} />
@@ -273,14 +271,8 @@ const AppRoutes = () => {
         <Route path="/credit" element={<Credit />} />
         <Route path="/debit" element={<Debit />} />
       </Route>
-
-
-
-
     </Routes>
   );
 };
 
 export default AppRoutes;
-
-
