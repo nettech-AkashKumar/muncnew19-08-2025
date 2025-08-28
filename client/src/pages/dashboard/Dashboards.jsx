@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import DashboardHeader from "./DashboardHeader";
 import { DateRange } from "react-date-range";
 import { format } from "date-fns";
@@ -41,6 +41,11 @@ import p_4 from "../../assets/img/p-4.png"
 import p_5 from "../../assets/img/p-5.png"
 import './Dashboards.css'
 
+import BASE_URL from "../../pages/config/config";
+import axios from "axios";
+
+import { useNavigate } from "react-router-dom";
+
 
 const styles = {
   card: {
@@ -63,7 +68,6 @@ const styles = {
     
   },
   title: {
-    fontWeight: "600",
     fontSize: "16px",
     color:"#0E101A",
     fontFamily:'"Poppins", sans-serif',
@@ -124,7 +128,7 @@ const styles = {
   },
 };
 const Dashboards = () => {
-  const products = [
+  const items = [
   { id: 1, name: "Product Name", units: "8,987", price: "₹ 78,980", change: "+12.98%", img: p_1},
   { id: 2, name: "Product Name", units: "8,987", price: "₹ 78,980", change: "+12.98%", img: p_2 },
   { id: 3, name: "Product Name", units: "8,987", price: "₹ 78,980", change: "+12.98%", img: p_3 },
@@ -381,6 +385,94 @@ const Dashboards = () => {
     },
   ]);
   const [showCalendar, setShowCalendar] = useState(false);
+
+
+  const [products, setProducts] = useState([]);
+  console.log("Products:", products);
+  const [activeTabs, setActiveTabs] = useState({});
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        const res = await axios.get(`${BASE_URL}/api/products`);
+        setProducts(res.data);
+        // Initialize all to "general"
+        const initialTabs = res.data.reduce((acc, product) => {
+          acc[product._id] = "general";
+          return acc;
+        }, {});
+        setActiveTabs(initialTabs);
+      } catch (err) {
+        console.error("Failed to fetch products", err);
+      }
+    };
+    fetchProducts();
+  }, []);
+
+  const handleTabClick = (productId, tab) => {
+    setActiveTabs((prev) => ({ ...prev, [productId]: tab }));
+  };
+
+//expiry code----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+const [expiringProducts, setExpiringProducts] = useState([]);
+
+const getExpiryStatus = (expiryValue) => {
+  const qtyString = Array.isArray(expiryValue) && expiryValue.length > 0 ? expiryValue[0] : expiryValue;
+
+  if (typeof qtyString === "string" && qtyString.match(/^\d{2}-\d{2}-\d{4}$/)) {
+    const [day, month, year] = qtyString.split("-").map(Number);
+    const expiryDate = new Date(year, month - 1, day);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    expiryDate.setHours(0, 0, 0, 0);
+
+    if (!isNaN(expiryDate.getTime())) {
+      const diffTime = expiryDate - today;
+      const daysDiff = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+      if (daysDiff <= 0) return "Expired";
+      if (daysDiff <= 2) return "Expiring Soon";
+    }
+  }
+  return "";
+};
+
+const [expiringCount, setExpiringCount] = useState(0);
+
+useEffect(() => {
+  const fetchProducts = async () => {
+    try {
+      const res = await axios.get(`${BASE_URL}/api/products`);
+      setProducts(res.data);
+
+      let names = [];
+      const count = res.data.reduce((acc, product) => {
+        if (product.variants && product.variants.Expiry) {
+          const status = getExpiryStatus(product.variants.Expiry);
+          if (status === "Expired" || status === "Expiring Soon") {
+            acc++;
+            names.push(product.productName); // collect product name
+          }
+        }
+        return acc;
+      }, 0);
+
+      setExpiringCount(count);
+      setExpiringProducts(names);
+
+      // Initialize tabs
+      const initialTabs = res.data.reduce((acc, product) => {
+        acc[product._id] = "general";
+        return acc;
+      }, {});
+      setActiveTabs(initialTabs);
+    } catch (err) {
+      console.error("Failed to fetch products", err);
+    }
+  };
+  fetchProducts();
+}, []);
+
   return (
     <div>
       <DashboardHeader />
@@ -773,9 +865,9 @@ const Dashboards = () => {
                   Expiring Soon
                 </p>
                 <p style={{ margin: "0", color: "#0E101A", fontSize: "22px" }}>
-                  21{" "}
+                  {expiringCount}{" "}
                   <span style={{ color: "#0E101A", fontSize: "14px" }}>
-                    INR
+                    ITEM
                   </span>
                 </p>
               </span>
@@ -992,7 +1084,7 @@ const Dashboards = () => {
                   <Line data={dataFour}options={{ ...optionsFour, maintainAspectRatio: false }}/>
               </div> */}
                <div style={{ display: "flex", flexDirection: "column", gap: "12px", fontFamily: "'Poppins', sans-serif" }}>
-      {products.map((p) => (
+      {items.map((p) => (
         <div
           key={p.id}
           style={{

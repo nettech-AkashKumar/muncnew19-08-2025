@@ -1165,7 +1165,7 @@ const ProductForm = () => {
                 <div className="mb-3">
                   <label>{t("enterVariants", { tab: activeTab })}</label>
                   <input
-                    type="text"
+                    type={activeTab === t("expiry") ? "date" : "text"}
                     className="form-control"
                     value={formData.variants[activeTab]?.join(", ") || ""}
                     onChange={(e) => inputChange(activeTab, e.target.value)}
