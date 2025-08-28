@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useCallback, useEffect } from "react";
 import { MdArrowForwardIos } from "react-icons/md";
 import {
   FaSearch,
@@ -9,11 +9,41 @@ import {
 import { RiArrowUpDownLine } from "react-icons/ri";
 // import "./Godown.css";
 import Popup from "./popup";
-import { Link } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
+
+import BASE_URL from "../../../pages/config/config";
+import axios from "axios";
 
 function Godown() {
+  
+    const { id } = useParams();
+    const [warehouses, setWarehouses] = useState([]);
+    const [zones, setZones] = useState([]);
+  const [warehousesDetails, setWarehousesDetails] = useState(null); // State for warehouse details
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+
   const [isPopupOpen, setIsPopupOpen] = useState(false);
   const [selectedItem, setSelectedItem] = useState({ zone: "", grid: "" });
+
+  const detailsWarehouses = useCallback(async () => {
+    setLoading(true);
+    try {
+      const res = await axios.get(`${BASE_URL}/api/warehouse/${id}`); // <- endpoint
+      console.log("diwakar", res.data);
+
+      setWarehousesDetails(res.data.warehouse); // backend: { success, data }
+    } catch (err) {
+      setError(err);
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  }, [id]);
+
+  useEffect(() => {
+    detailsWarehouses();
+  }, [detailsWarehouses]);
 
   const handleGridClick = (e, grid, zone) => {
     const style = window.getComputedStyle(e.target);
@@ -78,6 +108,46 @@ function Godown() {
   const displayStart = totalCount === 0 ? 0 : startIndex + 1;
   const displayEnd = endIndexExclusive;
   const paginatedProducts = products.slice(startIndex, endIndexExclusive);
+
+
+
+//Fetch Warehouse Data
+    const fetchWarehouses = useCallback(async () => {
+          setLoading(true);
+          try {
+              const res = await axios.get(`${BASE_URL}/api/warehouse`); // <- endpoint
+              
+              
+              setWarehouses(res.data.data); // backend: { success, data }
+              
+          } catch (err) {
+              setError(err);
+              console.error(err);
+          } finally {
+              setLoading(false);
+          }
+      }, []);
+  
+        useEffect(() => {
+          fetchWarehouses();
+      }, [fetchWarehouses]);
+
+
+  //Grid 
+  const [grid, setGrid] = useState([]);
+    useEffect(() => {
+      if (warehousesDetails?.layout?.zones) {
+        const zoneCount = Number(warehousesDetails?.layout?.zones || 0);
+        const zoneArray = Array.from(
+          { length: zoneCount },
+          (_, i) => `Zone ${i + 1}`
+        );
+        setZones(zoneArray);
+      } else {
+        setZones([]);
+      }
+    }, [warehousesDetails]);
+
 
   return (
     <div>
@@ -223,8 +293,14 @@ function Godown() {
           </div>
         </div>
 
+
+        <span>Total Zones: {warehousesDetails?.layout?.zones}</span>
+
         {/* Zone 04 Grid */}
-        <div
+        
+        <div>
+          
+          <div
           style={{
             margin: "0 auto",
             display: "flex",
@@ -247,7 +323,7 @@ function Godown() {
             }}
           >
             <span className="invisible">hg</span>
-            <span className="zone-text">Zone 04</span>
+            <span className="zone-text">Zone </span>
             <span style={{ transform: "rotate(0deg)" }}>
               <FaArrowRight />
             </span>
@@ -312,15 +388,17 @@ function Godown() {
           ))}
         </main>
 
+        </div>
+
         {/* Zone 03 and Zone 05 Section */}
-        <div
+        {/* <div
           style={{
             display: "flex",
             justifyContent: "space-evenly",
             padding: "24px",
           }}
         >
-          {/* Zone 03 */}
+         
           <div
             style={{
               transform: "rotate(-90deg)",
@@ -401,7 +479,7 @@ function Godown() {
             </main>
           </div>
 
-          {/* Table */}
+         
           <div
             style={{
               backgroundColor: "#fff",
@@ -545,7 +623,7 @@ function Godown() {
                 </tbody>
               </table>
             </div>
-            {/* Pagination */}
+           
             <div
               className="pagination"
               style={{
@@ -582,7 +660,7 @@ function Godown() {
             </div>
           </div>
 
-          {/* Zone 05 */}
+         
           <div
             style={{
               transform: "rotate(90deg)",
@@ -657,10 +735,11 @@ function Godown() {
               )}
             </main>
           </div>
-        </div>
+        </div> */}
 
         {/* Zone 06 and Zone 07 (corrected to Zone 06 and Zone 07) */}
-        <div
+      
+       {/* <div
           style={{
             display: "flex",
             justifyContent: "space-between",
@@ -668,7 +747,7 @@ function Godown() {
             marginRight: "70px",
           }}
         >
-          {/* Zone 06 */}
+          
           <div
             style={{
               width: "303px",
@@ -733,7 +812,7 @@ function Godown() {
             </main>
           </div>
 
-          {/* Zone 07 */}
+         
           <div
             style={{
               width: "303px",
@@ -798,7 +877,7 @@ function Godown() {
               )}
             </main>
           </div>
-        </div>
+        </div> */}
 
         {/* Popup */}
         <Popup
