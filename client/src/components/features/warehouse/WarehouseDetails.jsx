@@ -39,15 +39,67 @@ function WarehouseDetails() {
   const [showTooltip, setShowTooltip] = useState(false);
   const [showTooltips, setShowTooltips] = useState(false);
 
-  const xLabels = [
-    "Jan 2025",
-    "Feb 2025",
-    "Mar 2025",
-    "Apr 2025",
-    "May 2025",
-    "Jun 2025",
-    "Jul 2025",
+  // LineChart Current year months
+  const currentYear = new Date().getFullYear();
+
+  const months = [
+    "Jan",
+    "Feb",
+    "Mar",
+    "Apr",
+    "May",
+    "Jun",
+    "Jul",
+    "Aug",
+    "Sep",
+    "Oct",
+    "Nov",
+    "Dec",
   ];
+
+  const xLabels = months.map((m, i) => `${m} ${currentYear}`);
+
+  const soldItemsPerMonth = xLabels.map((label) => {
+    const [monthStr, yearStr] = label.split(" ");
+    const month = new Date(`${monthStr} 1, ${yearStr}`).getMonth();
+    const year = parseInt(yearStr);
+
+    let totalSold = 0;
+
+    sales.forEach((sale) => {
+      // ✅ Use correct date field (createdAt OR date)
+      const saleDate = new Date(sale.date || sale.createdAt);
+      if (saleDate.getMonth() === month && saleDate.getFullYear() === year) {
+        if (Array.isArray(sale.products)) {
+          sale.products.forEach((p) => {
+            // ✅ Use correct quantity field
+            totalSold += p.saleQty || p.quantity || p.qty || 0;
+          });
+        }
+      }
+    });
+
+    return totalSold;
+  });
+
+  const purchasesItemsPerMonth = xLabels.map((label) => {
+    const [monthStr, yearStr] = label.split(" ");
+    const month = new Date(`${monthStr} 1, ${yearStr}`).getMonth();
+    const year = parseInt(yearStr);
+    let totalPurchased = 0;
+    purchases.forEach((purchase) => {
+      const purchaseDate = new Date(purchase.date || purchase.createdAt);
+      if (purchaseDate.getMonth() === month && purchaseDate.getFullYear() === year) {
+        if (Array.isArray(purchase.products)) {
+          purchase.products.forEach((p) => {
+            totalPurchased += p.purchaseQty || p.quantity || p.qty || 0;
+          });
+        }
+      }
+    });
+    return totalPurchased;
+  });
+
 
   const detailsWarehouses = useCallback(async () => {
     setLoading(true);
@@ -66,9 +118,6 @@ function WarehouseDetails() {
 
   useEffect(() => {
     detailsWarehouses();
-    //         const listener = () => fetchWarehouses();
-    //         window.addEventListener("warehouse-added", listener);
-    //         return () => window.removeEventListener("warehouse-added", listener);
   }, [detailsWarehouses]);
 
   const fetchSales = async () => {
@@ -142,25 +191,6 @@ function WarehouseDetails() {
 
     return acc;
   }, {});
-
-  //Line chart data
-
-  const soldItemsPerMonth = xLabels.map((label) => {
-    const [monthStr, yearStr] = label.split(" ");
-    const month = new Date(`${monthStr} 1, ${yearStr}`).getMonth();
-    const year = parseInt(yearStr);
-
-    let totalSold = 0;
-    sales.forEach((sale) => {
-      const saleDate = new Date(sale.createdAt);
-      if (saleDate.getMonth() === month && saleDate.getFullYear() === year) {
-        sale.products.forEach((p) => {
-          totalSold += p.saleQty || 0;
-        });
-      }
-    });
-    return totalSold;
-  });
 
   const filteredPurchases = purchases.filter((purchase) => {
     if (activeTab === "All") return true;
@@ -344,7 +374,6 @@ function WarehouseDetails() {
               color: "#007bff",
             }}
           >
-            {/* <img src={RiAlertFill} alt="money" /> */}
             <RiAlertFill />
           </div>
           <div className="bag-content">
@@ -689,7 +718,6 @@ function WarehouseDetails() {
                   data: xLabels,
                   axisLine: false,
                   tickSize: 0,
-                  // tickValues: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
                 },
               ]}
               yAxis={[
@@ -697,8 +725,7 @@ function WarehouseDetails() {
                   axisLine: { display: false },
                   tickSize: 0,
                   min: 0,
-                  max: Math.max(...soldItemsPerMonth, 20000),
-                  // tickValues: [0, 5000, 10000, 15000, 20000],
+                  max: Math.max(...soldItemsPerMonth, 500),
                   gridLine: { style: { stroke: "#e0e0e0" } }, // light horizontal grid
                 },
               ]}
@@ -718,7 +745,7 @@ function WarehouseDetails() {
                 {
                   id: "purchased",
                   label: "Purchase Items",
-                  data: [5000, 7000, 4000, 13000, 15000, 8000, 6000],
+                  data: purchasesItemsPerMonth,
                   color: "#1976d2",
                   curve: "catmullRom",
                   showMark: false,
@@ -731,7 +758,7 @@ function WarehouseDetails() {
               legend={{
                 position: { vertical: "top", horizontal: "right" },
               }}
-              grid={{ vertical: false }} // hides vertical lines
+              grid={{ vertical: false }}
             />
           </Box>
         </div>
