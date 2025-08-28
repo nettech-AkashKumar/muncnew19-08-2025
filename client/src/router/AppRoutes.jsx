@@ -122,6 +122,8 @@ import ViewSupplierModal from "../pages/Modal/suppliers/ViewSupplierModal.jsx";
 import ViewProductStock from "../pages/ViewProductStock.jsx";
 import ViewReturnProduct from "../pages/ViewReturnProduct.jsx";
 import PurchaseReport from "../components/features/inventory/report/PurchaseReport.jsx";
+import ExpenseReportProductModal from "../pages/finance&accounts/expense_report/ExpenseReportProductModal.jsx"
+
 
 const AppRoutes = () => {
   return (
@@ -262,6 +264,7 @@ const AppRoutes = () => {
         <Route path="/expense-report" element={<ExpenseReport />} />
         <Route path="/add_expenses" element={<ExpenseForm />} />
         <Route path="/expenseformedit" element={<ExpenseFormEdit />} />
+        <Route path="/expensereportproduct-modal" element={<ExpenseReportProductModal/>}/>
         <Route path="/bc" element={<BC />} />
         <Route path="/payment-history" element={<PaymentHistory />} />
         <Route path="/credit&debit-note" element={<CreditDebitNotes />} />
