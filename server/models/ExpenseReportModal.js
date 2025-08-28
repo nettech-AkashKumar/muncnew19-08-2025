@@ -9,7 +9,13 @@ const expenseSchema = new mongoose.Schema(
     paymentMode: { type: String },
     paidTo: { type: String },
     amount: { type: Number, required: true },
-    receipt: { type: String }, // store image filename
+     // ✅ Cloudinary receipt
+    receipt: [
+      {
+        url: { type: String, required: true },
+        public_id: { type: String, required: true },
+      },
+    ],
   },
   { timestamps: true }
 );

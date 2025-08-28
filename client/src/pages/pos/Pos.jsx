@@ -258,7 +258,12 @@ function Pos() {
   
   const DiscountRef = useRef(null);
   const handleProductDiscountClick = (item) => {
-    setSelectedItemForDiscount(item);
+    // setSelectedItemForDiscount(item);
+    const product = products.find(p => p._id === item._id); // Find the product in the products array
+  setSelectedItemForDiscount({
+    ...item,
+    availableQuantity: product ? product.quantity : 0, // Store the available quantity
+  });
     setDiscountQuantity(item.quantity);
     setDiscountPercentage(item.discountType === 'Percentage' ? item.discountValue : 0);
     setDiscountFixed(item.discountType === 'Fixed' ? item.discountValue : 0);
@@ -1339,7 +1344,7 @@ const handleSubmit = async (e) => {
               </div>
             </div>
 
-            {/* details card */}
+            {/* item details card */}
             <div style={{width:'80%',backgroundColor:'#F7F7F7',height:'100%',overflowY:'auto'}}>
               
               {/* products */}
@@ -1357,8 +1362,15 @@ const handleSubmit = async (e) => {
                 <div 
                   key={product._id}
                   className='col-2' 
-                  style={{border:'2px solid #E6E6E6',backgroundColor:'white',borderRadius:'16px',padding:'10px',cursor:'pointer',position:'relative'}}
-                  onClick={() => handleProductClick(product)}
+                  style={{
+                    border:'2px solid #E6E6E6',
+                    backgroundColor:'white',
+                    borderRadius:'16px',
+                    padding:'10px',
+                    cursor: product.quantity > 0 ? 'pointer' : 'not-allowed',
+                    position:'relative'
+                  }}
+                  onClick={() => product.quantity > 0 && handleProductClick(product)}
                 >
                   {/* Quantity Badge */}
                   {cartQuantity > 0 && (
@@ -1447,10 +1459,10 @@ const handleSubmit = async (e) => {
                     <LuScanLine/>
                     Scan
                   </div>
-                  <div style={{border:'1px solid #ccc',backgroundColor:'white',padding:'2px 10px',borderRadius:'8px',display:'flex',gap:'5px',alignItems:'center',cursor:'pointer'}}>
+                  {/* <div style={{border:'1px solid #ccc',backgroundColor:'white',padding:'2px 10px',borderRadius:'8px',display:'flex',gap:'5px',alignItems:'center',cursor:'pointer'}}>
                     <AiOutlineTransaction/>
                     Credit Scale
-                  </div>
+                  </div> */}
                   <div style={{border:'1px solid #ccc',backgroundColor:'white',padding:'2px 10px',borderRadius:'8px',display:'flex',gap:'5px',alignItems:'center',cursor:'pointer'}} onClick={handleTransactionPopupChange}>
                     <AiOutlineRetweet />
                     Transaction
@@ -1604,7 +1616,7 @@ const handleSubmit = async (e) => {
                     <div style={{display:'flex',justifyContent:'space-between',alignItems:'center'}} onClick={() => handleProductDiscountClick(item)}>
                       <div style={{display:'flex',alignItems:'center',gap:'8px'}}>
                         <span style={{fontWeight:'600',color:'#666'}}>
-                          Qty: {item.quantity}
+                          Quantity: {item.quantity}
                         </span>
                       </div>
                       <div style={{fontWeight:'600',color:'#1368EC'}}>
@@ -2792,33 +2804,123 @@ const handleSubmit = async (e) => {
           >
           <div ref={DiscountRef} style={{width:'700px',padding:'10px 16px',overflowY:'auto',backgroundColor:'#fff',border:'1px solid #E1E1E1',borderRadius:'8px'}}>
             
-            <div style={{display:'flex',justifyContent:'space-between',borderBottom:'1px solid #E1E1E1',padding:'10px 0px'}}>
-              <span>Selected Item: {selectedItemForDiscount?.productName || 'N/A'}</span>
-            </div>
+    {/* selected item image, name, sku, quantity available, mrp */}
+    <div style={{display:'flex',justifyContent:'space-between',borderBottom:'1px solid #E1E1E1',padding:'10px 0px'}}>
+      <div style={{ display: 'flex', alignItems: 'center', marginTop: '10px', gap: '15px' }}>
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'center',
+            backgroundColor: 'white',
+            width: '80px',
+            height: '80px',
+            alignItems: 'center',
+            borderRadius: '8px',
+            overflow: 'hidden',
+            border: '2px solid #E6E6E6',
+          }}
+        >
+          {selectedItemForDiscount.images &&
+          selectedItemForDiscount.images.length > 0 &&
+          selectedItemForDiscount.images[0] ? (
+            <img
+              src={selectedItemForDiscount.images[0].url || selectedItemForDiscount.images[0]}
+              alt={selectedItemForDiscount.productName}
+              style={{
+                height: '100%',
+                width: '100%',
+                objectFit: 'contain',
+                maxWidth: '100%',
+                maxHeight: '100%',
+              }}
+              onError={(e) => {
+                e.target.style.display = 'none';
+                e.target.nextSibling.style.display = 'flex';
+              }}
+            />
+          ) : null}
+          <div
+            style={{
+              display:
+                selectedItemForDiscount.images &&
+                selectedItemForDiscount.images.length > 0 &&
+                selectedItemForDiscount.images[0]
+                  ? 'none'
+                  : 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: '#ccc',
+              fontSize: '24px',
+            }}
+          >
+            <span style={{ fontSize: '10px' }}>No Image</span>
+          </div>
+        </div>
+        <div style={{ flex: 1 }}>
+          <div style={{ marginBottom: '5px' }}>
+            <span style={{ color: 'black',fontWeight:'600',fontSize:'20px' }}>{selectedItemForDiscount?.productName || 'N/A'}</span>
+          </div>
+          <div style={{display:'flex',gap:'15px',justifyContent:'space-around',alignItems:'center'}}>
+          <div style={{ marginBottom: '5px' }}>
+            <span style={{ color: '#676767' }}>SKU: </span>
+            <span>{selectedItemForDiscount.sku || 'N/A'}</span>
+          </div>
+          <div style={{ marginBottom: '5px' }}>
+            <span style={{ color: '#676767' }}>Qty Available: </span>
+            <span>
+              {(() => {
+                // Fallback to products array
+                const product = products.find(p => p._id === selectedItemForDiscount._id);
+                return product ? product.quantity : 'N/A';
+              })()}
+            </span>
+            <span>
+              {(() => {
+                // Fallback to products array
+                const product = products.find(p => p._id === selectedItemForDiscount._id);
+                return product ? product.unit : 'N/A';
+              })()}
+            </span>
+          </div>
+          <div style={{ marginBottom: '5px' }}>
+            <span style={{ color: '#676767' }}>Rate: </span>
+            <span>₹{selectedItemForDiscount.sellingPrice} /-</span>
+          </div>
+          </div>
+        </div>
+      </div>
+    </div>
 
             {/* quantity */}
-            <div style={{width:'100%',display:'flex',justifyContent:'space-between',gap:'50px'}}>
+            <div style={{width:'100%',display:'flex',justifyContent:'space-between',gap:'50px',marginTop:'15px'}}>
               <div style={{width:'50%',display:'flex',justifyContent:'space-between',alignItems:'center'}}>
                 <span style={{fontSize:'25px',fontWeight:'500'}}>Quantity</span>
               </div>
               <div style={{width:'25%',display:'flex',justifyContent:'center',padding:'10px 0px',gap:'15px',marginTop:'2px',alignItems:'center'}}>
               </div>
               <div style={{width:'25%',display:'flex',justifyContent:'center',padding:'10px 0px',gap:'15px',marginTop:'2px',alignItems:'center'}}>
-              <div 
-                style={{borderRadius:'8px',border:'1px solid #E6E6E6',backgroundColor:'#F9FAFB',display:'flex',alignItems:'center',justifyContent:'center',padding:'5px 12px',cursor:'pointer'}}
+              <button 
+                style={{borderRadius:'8px',border: discountQuantity <= 1 ? '1px solid #E6E6E6' : '1px solid #E6E6E6',backgroundColor: discountQuantity <= 1 ? 'white' : '#F9FAFB',display:'flex',alignItems:'center',justifyContent:'center',padding:'5px 12px',
+                  cursor: discountQuantity <= 1 ? 'not-allowed' : 'pointer',}}
                 onClick={() => handleQuantityChange(discountQuantity - 1)}
+                disabled={discountQuantity <= 1}
               >
                 -
-              </div>
+              </button>
 
               <div><span>{discountQuantity}</span></div>
 
-              <div 
-                style={{borderRadius:'8px',border:'1px solid #E6E6E6',backgroundColor:'#F9FAFB',display:'flex',alignItems:'center',justifyContent:'center',padding:'5px 12px',cursor:'pointer'}}
+              <button 
+                style={{
+                  borderRadius:'8px',border:'1px solid #E6E6E6',backgroundColor:'#F9FAFB',display:'flex',alignItems:'center',justifyContent:'center',padding:'5px 12px',
+                  cursor: discountQuantity >= (selectedItemForDiscount.availableQuantity || 0) ? 'not-allowed' : 'pointer',
+                }}
                 onClick={() => handleQuantityChange(discountQuantity + 1)}
+                disabled={discountQuantity >= (selectedItemForDiscount.availableQuantity || 0)}
               >
                 +
-              </div>
+              </button>
               </div>
             </div>
 

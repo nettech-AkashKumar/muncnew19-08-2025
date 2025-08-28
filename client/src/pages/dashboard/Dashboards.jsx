@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import DashboardHeader from "./DashboardHeader";
 import { DateRange } from "react-date-range";
 import { format } from "date-fns";
@@ -41,6 +41,11 @@ import p_4 from "../../assets/img/p-4.png"
 import p_5 from "../../assets/img/p-5.png"
 import './Dashboards.css'
 
+import BASE_URL from "../../pages/config/config";
+import axios from "axios";
+
+import { useNavigate } from "react-router-dom";
+
 
 const styles = {
   card: {
@@ -63,7 +68,6 @@ const styles = {
     
   },
   title: {
-    fontWeight: "600",
     fontSize: "16px",
     color:"#0E101A",
     fontFamily:'"Poppins", sans-serif',
@@ -124,7 +128,7 @@ const styles = {
   },
 };
 const Dashboards = () => {
-  const products = [
+  const items = [
   { id: 1, name: "Product Name", units: "8,987", price: "₹ 78,980", change: "+12.98%", img: p_1},
   { id: 2, name: "Product Name", units: "8,987", price: "₹ 78,980", change: "+12.98%", img: p_2 },
   { id: 3, name: "Product Name", units: "8,987", price: "₹ 78,980", change: "+12.98%", img: p_3 },
@@ -381,6 +385,107 @@ const Dashboards = () => {
     },
   ]);
   const [showCalendar, setShowCalendar] = useState(false);
+
+//-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+  
+const [products, setProducts] = useState([]);
+const [showTooltipslowstock, setShowTooltipsLowStock] = useState(false);
+const [showTooltipsoutstock, setShowTooltipsOutStock] = useState(false);
+const [showTooltipsexpiry, setShowTooltipsExpiry] = useState(false);
+
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        const res = await axios.get(`${BASE_URL}/api/products`);
+        setProducts(res.data);
+        // Initialize all to "general"
+        const initialTabs = res.data.reduce((acc, product) => {
+          acc[product._id] = "general";
+          return acc;
+        }, {});
+        setActiveTabs(initialTabs);
+      } catch (err) {
+        console.error("Failed to fetch products", err);
+      }
+    };
+    fetchProducts();
+  }, []);
+
+//expiry code--------------------------------------------------------------------------------------------------------------------------------------
+const [expiringProducts, setExpiringProducts] = useState([]);
+
+const getExpiryStatus = (expiryValue) => {
+  const qtyString = Array.isArray(expiryValue) && expiryValue.length > 0 ? expiryValue[0] : expiryValue;
+
+  if (typeof qtyString === "string" && qtyString.match(/^\d{2}-\d{2}-\d{4}$/)) {
+    const [day, month, year] = qtyString.split("-").map(Number);
+    const expiryDate = new Date(year, month - 1, day);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    expiryDate.setHours(0, 0, 0, 0);
+
+    if (!isNaN(expiryDate.getTime())) {
+      const diffTime = expiryDate - today;
+      const daysDiff = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+      if (daysDiff <= 0) return "Expired";
+      if (daysDiff <= 2) return "Expiring Soon";
+    }
+  }
+  return "";
+};
+
+const [expiringCount, setExpiringCount] = useState(0);
+
+useEffect(() => {
+  const fetchProducts = async () => {
+    try {
+      const res = await axios.get(`${BASE_URL}/api/products`);
+      setProducts(res.data);
+
+      let names = [];
+      const count = res.data.reduce((acc, product) => {
+        if (product.variants && product.variants.Expiry) {
+          const status = getExpiryStatus(product.variants.Expiry);
+          if (status === "Expired" || status === "Expiring Soon") {
+            acc++;
+            names.push(product.productName); // collect product name
+          }
+        }
+        return acc;
+      }, 0);
+
+      setExpiringCount(count);
+      setExpiringProducts(names);
+
+      // Initialize tabs
+      const initialTabs = res.data.reduce((acc, product) => {
+        acc[product._id] = "general";
+        return acc;
+      }, {});
+      setActiveTabs(initialTabs);
+    } catch (err) {
+      console.error("Failed to fetch products", err);
+    }
+  };
+  fetchProducts();
+}, []);
+
+//low stocks
+
+  const lowStockItems = products.filter(
+    (item) =>
+      item.quantity < 50 &&
+      item.quantity > 0
+  );
+
+//Out of Stock items
+
+  const outOfStockItems = products.filter(
+    (item) =>
+      item.quantity === 0
+  );
+
+
   return (
     <div>
       <DashboardHeader />
@@ -645,6 +750,8 @@ const Dashboards = () => {
             </div>
           </div>
           <div className="d-flex justify-content-between dashboard-card-content">
+
+            {/* newly added */}
             <div
               className="dhasboard-card"
               style={{
@@ -680,9 +787,12 @@ const Dashboards = () => {
                 alt="dash_card_icon"
               />
             </div>
+
+            {/* low stocks */}
             <div
               className="dhasboard-card"
               style={{
+                position: "relative",
                 border: "1px solid rgb(223 225 227 / 70%)",
                 boxShadow: "rgba(149, 157, 165, 0.2) 0px 8px 24px",
                 borderRadius: "8px",
@@ -696,6 +806,8 @@ const Dashboards = () => {
                 height: "80px",
                 padding: "15px 5px",
               }}
+            onMouseEnter={() => setShowTooltipsLowStock(true)}
+            onMouseLeave={() => setShowTooltipsLowStock(false)}
             >
               <img src={line_blue} alt="line_blue" />
               <span>
@@ -703,9 +815,9 @@ const Dashboards = () => {
                   Low Stocks
                 </p>
                 <p style={{ margin: "0", color: "#0E101A", fontSize: "22px" }}>
-                  107{" "}
+                  {lowStockItems.length}{" "}
                   <span style={{ color: "#0E101A", fontSize: "14px" }}>
-                    INR
+                    ITEM
                   </span>
                 </p>
               </span>
@@ -714,10 +826,41 @@ const Dashboards = () => {
                 src={dash_card_icon}
                 alt="dash_card_icon"
               />
+              {showTooltipslowstock && (
+              <div>
+                {lowStockItems.length > 0 && (
+                <div
+                  style={{
+                    position: "absolute",
+                    top: "120%",
+                    left: "50%",
+                    transform: "translateX(-50%)",
+                    backgroundColor: "#f1f3f5",
+                    color: "black",
+                    padding: "8px",
+                    borderRadius: "6px",
+                    fontSize: "12px",
+                    zIndex: 10,
+                    width: "250px",
+                    height: "auto",
+                  }}
+                >
+                  {lowStockItems.map((product, index) => (
+                    <p key={index} style={{ margin: "4px 0" }}>
+                      {product.productName} - {product.quantity} {product.unit}
+                    </p>
+                  ))}
+                </div>
+              )}
+              </div>
+            )}
             </div>
+
+            {/* out of stocks */}
             <div
               className="dhasboard-card"
               style={{
+                position: "relative",
                 border: "1px solid rgb(223 225 227 / 70%)",
                 boxShadow: "rgba(149, 157, 165, 0.2) 0px 8px 24px",
                 borderRadius: "8px",
@@ -731,6 +874,8 @@ const Dashboards = () => {
                 height: "80px",
                 padding: "15px 5px",
               }}
+            onMouseEnter={() => setShowTooltipsOutStock(true)}
+            onMouseLeave={() => setShowTooltipsOutStock(false)}
             >
               <img src={line_blue} alt="line_blue" />
               <span>
@@ -738,9 +883,9 @@ const Dashboards = () => {
                   Out Of Stocks
                 </p>
                 <p style={{ margin: "0", color: "#0E101A", fontSize: "22px" }}>
-                  09{" "}
+                  {outOfStockItems.length}{" "}
                   <span style={{ color: "#0E101A", fontSize: "14px" }}>
-                    INR
+                    ITEM
                   </span>
                 </p>
               </span>
@@ -749,10 +894,41 @@ const Dashboards = () => {
                 src={dash_card_icon}
                 alt="dash_card_icon"
               />
+              {showTooltipsoutstock && (
+              <div>
+                {outOfStockItems.length > 0 && (
+                <div
+                  style={{
+                    position: "absolute",
+                    top: "120%",
+                    left: "50%",
+                    transform: "translateX(-50%)",
+                    backgroundColor: "#f1f3f5",
+                    color: "black",
+                    padding: "8px",
+                    borderRadius: "6px",
+                    fontSize: "12px",
+                    zIndex: 10,
+                    width: "250px",
+                    height: "auto",
+                  }}
+                >
+                  {outOfStockItems.map((product, index) => (
+                    <p key={index} style={{ margin: "4px 0" }}>
+                      {product.productName}
+                    </p>
+                  ))}
+                </div>
+              )}
+              </div>
+            )}
             </div>
+
+            {/* expiring soon */}
             <div
               className="dhasboard-card"
               style={{
+                position: "relative",
                 border: "1px solid rgb(223 225 227 / 70%)",
                 boxShadow: "rgba(149, 157, 165, 0.2) 0px 8px 24px",
                 borderRadius: "8px",
@@ -766,6 +942,8 @@ const Dashboards = () => {
                 height: "80px",
                 padding: "15px 5px",
               }}
+            onMouseEnter={() => setShowTooltipsExpiry(true)}
+            onMouseLeave={() => setShowTooltipsExpiry(false)}
             >
               <img src={line_blue} alt="line_blue" />
               <span>
@@ -773,9 +951,9 @@ const Dashboards = () => {
                   Expiring Soon
                 </p>
                 <p style={{ margin: "0", color: "#0E101A", fontSize: "22px" }}>
-                  21{" "}
+                  {expiringCount}{" "}
                   <span style={{ color: "#0E101A", fontSize: "14px" }}>
-                    INR
+                    ITEM
                   </span>
                 </p>
               </span>
@@ -784,7 +962,36 @@ const Dashboards = () => {
                 src={dash_card_icon}
                 alt="dash_card_icon"
               />
+              {showTooltipsexpiry && (
+              <div>
+                {expiringProducts.length > 0 && (
+                <div
+                  style={{
+                    position: "absolute",
+                    top: "120%",
+                    left: "50%",
+                    transform: "translateX(-50%)",
+                    backgroundColor: "#f1f3f5",
+                    color: "black",
+                    padding: "8px",
+                    borderRadius: "6px",
+                    fontSize: "12px",
+                    zIndex: 10,
+                    width: "250px",
+                    height: "auto",
+                  }}
+                >
+                  {expiringProducts.map((product, index) => (
+                    <p key={index} style={{ margin: "4px 0" }}>
+                      {product} - Expire on: {products.find(p => p.productName === product)?.variants?.Expiry || 'N/A'}
+                    </p>
+                  ))}
+                </div>
+              )}
+              </div>
+            )}
             </div>
+
           </div>
         </div>
         <div className="graph-container d-flex flex-column gap-3">
@@ -992,7 +1199,7 @@ const Dashboards = () => {
                   <Line data={dataFour}options={{ ...optionsFour, maintainAspectRatio: false }}/>
               </div> */}
                <div style={{ display: "flex", flexDirection: "column", gap: "12px", fontFamily: "'Poppins', sans-serif" }}>
-      {products.map((p) => (
+      {items.map((p) => (
         <div
           key={p.id}
           style={{

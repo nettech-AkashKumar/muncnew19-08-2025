@@ -61,7 +61,7 @@ exports.getAllWarehouses = async (req, res) => {
     }
 };
 
-// ✅  GET /api/warehouse/active
+//  GET /api/warehouse/active
 // exports.getActiveWarehouses = async (req, res) => {
 //     try {
 //         const activeWarehouses = await Warehouse.find({ status: "Active" })  // <-- quotes
