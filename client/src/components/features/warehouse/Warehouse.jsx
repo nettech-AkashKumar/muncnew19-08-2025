@@ -1085,10 +1085,8 @@ function Warehouse() {
     setFavourites((prev) => {
       const exists = prev.find((fav) => fav._id === warehouse._id);
       if (exists) {
-        // remove if already in favourites
         return prev.filter((fav) => fav._id !== warehouse._id);
       } else {
-        // add if not already in favourites
         return [...prev, warehouse];
       }
     });
@@ -1099,7 +1097,7 @@ function Warehouse() {
     try {
       const res = await axios.get(`${BASE_URL}/api/warehouse`); // <- endpoint
 
-      setWarehouses(res.data.data); // backend: { success, data }
+      setWarehouses(res.data.data); 
     } catch (err) {
       setError(err);
       console.error(err);
@@ -1195,8 +1193,8 @@ function Warehouse() {
                       justifyContent: "space-between",
                       alignItems: "flex-start",
                       marginBottom: "30px",
-                      height: "150px", // Set a fixed or min height
-                      position: "relative", // for absolute positioning inside
+                      height: "150px", 
+                      position: "relative", 
                     }}
                   >
                     {/* WH-006 and Heart - Left Side */}
@@ -1225,9 +1223,7 @@ function Warehouse() {
                               fontSize: "20px",
                               fontWeight: "bold",
                             }}
-                          />{" "}
-                          {/* Warehouse Delhi */}
-                          {/* {item.contactPerson.firstName} {item.contactPerson.lastName} */}
+                          />
                           {item.warehouseName}
                         </span>
                       </div>
@@ -1241,13 +1237,6 @@ function Warehouse() {
                           width: "fit-content",
                         }}
                       >
-                        {/* <FaHeart
-                      style={{
-                        color: "#1368EC",
-                        fontWeight: "500",
-                        fontSize: "26px",
-                      }}
-                    /> */}
                         <FaHeart
                           onClick={() => toggleFavourite(item)}
                           style={{
@@ -1649,3 +1638,6 @@ function Warehouse() {
 }
 
 export default Warehouse;
+
+
+

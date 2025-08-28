@@ -122,6 +122,7 @@ import ViewSupplierModal from "../pages/Modal/suppliers/ViewSupplierModal.jsx";
 import ViewProductStock from "../pages/ViewProductStock.jsx";
 import ViewReturnProduct from "../pages/ViewReturnProduct.jsx";
 import PurchaseReport from "../components/features/inventory/report/PurchaseReport.jsx";
+import EditProduct from "../components/features/inventory/product/EditProduct.jsx";
 
 const AppRoutes = () => {
   return (
@@ -168,6 +169,7 @@ const AppRoutes = () => {
         <Route path="/choose-adproduct" element={<ChooseToAddProduct />} />
         <Route path="/scan-product" element={<ScanToAddProduct />} />
         <Route path="/add-product" element={<ProductCreate />} />
+        <Route path="/product/edit/:id" element={<EditProduct />} />
         <Route path="/expired-products" element={<ExpriedProduct />} />
         <Route path="/category-list" element={<Category />} />
         <Route path="/sub-categories" element={<SubCategory />} />
