@@ -1368,6 +1368,10 @@ const EditProduct = () => {
     const [optionsHsn, setOptionsHsn] = useState([]);
     const [selectedHSN, setSelectedHSN] = useState(null);
     const [showHSNModal, setShowHSNModal] = useState(false);
+    const [brandId, setBrandId] = useState(null);
+    const [categoryId, setCategoryId] = useState(null);
+    const [subCategoryId, setSubCategoryId] = useState(null);
+
     // Image state
     const [images, setImages] = useState([]);
 
@@ -1389,23 +1393,31 @@ const EditProduct = () => {
                 const res = await axios.get(`${BASE_URL}/api/products/${id}`);
                 const data = res.data;
                 setFormData({ ...formData, ...data });
-                if (data.brand) setSelectedBrands({ value: data.brand._id || data.brand, label: data.brand.brandName || data.brand });
-                if (data.category) {
-                    const catObj = { value: data.category._id || data.category, label: data.category.categoryName || data.category };
-                    setSelectedCategory(catObj);
-                    // Fetch subcategories for this category
-                    const subRes = await axios.get(`${BASE_URL}/api/subcategory/by-category/${catObj.value}`);
-                    const subOptions = subRes.data.map((subcat) => ({
-                        value: subcat._id,
-                        label: subcat.subCategoryName,
-                    }));
-                    setSubcategories(subOptions);
-                    // Now set selectedsubCategory
-                    if (data.subCategory) {
-                        const found = subOptions.find(opt => opt.value === (data.subCategory._id || data.subCategory));
-                        if (found) setSelectedsubCategory(found);
-                    }
+                // if (data.brand)  setSelectedBrands({ value: data.brand._id || data.brand, label: data.brand.brandName || data.brand });
+                if (data.brand) {
+                    setBrandId(data.brand._id || data.brand)
                 }
+                // const catObj = { value: data.category._id || data.category, label: data.category.categoryName || data.category };
+                // setSelectedCategory(catObj);
+                // Fetch subcategories for this category
+                // const subRes = await axios.get(`${BASE_URL}/api/subcategory/by-category/${catObj.value}`);
+                // const subOptions = subRes.data.map((subcat) => ({
+                //     value: subcat._id,
+                //     label: subcat.subCategoryName,
+                // }));
+                // setSubcategories(subOptions);
+                // // Now set selectedsubCategory
+                // if (data.subCategory) {
+                //     const found = subOptions.find(opt => opt.value === (data.subCategory._id || data.subCategory));
+                //     if (found) setSelectedsubCategory(found);
+                // }
+                if (data.category) {
+                    setCategoryId(data.category._id || data.category)
+                }
+                if (data.subCategory) {
+                    setSubCategoryId(data.subCategory._id || data.subCategory)
+                }
+
                 if (data.unit) setSelectedUnits({ value: data.unit, label: data.unit });
                 if (data.supplier) setSelectedSupplier({ value: data.supplier._id || data.supplier, label: data.supplier.firstName ? `${data.supplier.firstName}${data.supplier.lastName} (${data.supplier.supplierCode})` : data.supplier });
                 if (data.warehouse) setSelectedWarehouse({ value: data.warehouse._id || data.warehouse, label: data.warehouse.warehouseName || data.warehouse });
@@ -1477,6 +1489,41 @@ const EditProduct = () => {
         fetchHSN();
     }, []);
 
+    useEffect(() => {
+        if (brandOptions.length > 0 && brandId) {
+            const found = brandOptions.find((opt) => opt.value === brandId);
+            if (found) {
+                setSelectedBrands(found)
+            }
+        }
+    }, [brandOptions, brandId]);
+
+    // category
+    useEffect(() => {
+        if (categories.length > 0 && categoryId) {
+            const found = categories.find((opt) => opt.value === categoryId);
+            if (found) {
+                setSelectedCategory(found)
+            }
+        }
+    }, [categories, categoryId]);
+
+    useEffect(() => {
+        if (selectedCategory && selectedCategory.value) {
+            fetchSubcategoriesByCategory(selectedCategory.value);
+        }
+    }, [selectedCategory]);
+
+
+    // Subcategory
+    useEffect(() => {
+        if (subcategories.length > 0 && subCategoryId) {
+            const found = subcategories.find(opt => opt.value === subCategoryId);
+            if (found) setSelectedsubCategory(found);
+        }
+    }, [subcategories, subCategoryId]);
+
+
     // Subcategory fetch logic
     const fetchSubcategoriesByCategory = async (categoryId) => {
         try {
@@ -1488,14 +1535,14 @@ const EditProduct = () => {
         }
     };
 
-    // Fetch subcategories when selectedCategory changes
-    useEffect(() => {
-        if (selectedCategory && selectedCategory.value) {
-            fetchSubcategoriesByCategory(selectedCategory.value);
-        } else {
-            setSubcategories([]);
-        }
-    }, [selectedCategory]);
+    // Fetch subcategories when selectedCategory changes    
+    // useEffect(() => {
+    //     if (selectedCategory && selectedCategory.value) {
+    //         fetchSubcategoriesByCategory(selectedCategory.value);
+    //     } else {
+    //         setSubcategories([]);
+    //     }
+    // }, [selectedCategory]);
 
     // Handlers for dropdowns
     const handleBrandChange = (selectedOption) => setSelectedBrands(selectedOption);
@@ -1650,10 +1697,6 @@ const EditProduct = () => {
                         <div className="page-title">
                             <h4 className="fw-bold">{t("Edit Product")}</h4>
                             <h6>{t("createNewProduct")}</h6>
-                            {/* <h4 className="fw-bold">Create Product</h4>
-                     <h6>Create new product</h6> */}
-
-
                         </div>
                     </div>
                     <div className="table-top-head me-2">
@@ -1726,7 +1769,6 @@ const EditProduct = () => {
                         );
                     })}
                 </div>
-
                 <form onSubmit={handleSubmit}>
                     <div className="p-3 accordion-item border mb-4">
                         {/* Step 0 - Basic Info */}
@@ -1741,8 +1783,6 @@ const EditProduct = () => {
                                                 type="radio"
                                                 name="itemType"
                                                 value="Good"
-                                                // checked={itemType === "Good"}
-                                                // onChange={() => setItemType("Good")}
                                                 checked={formData.itemType === "Good"}
                                                 onChange={(e) =>
                                                     setFormData((prev) => ({
@@ -1859,21 +1899,6 @@ const EditProduct = () => {
                                                 </div>
                                             </div>
                                         )}
-                                        {/* Slug */}
-                                        {/* <div className="col-sm-3 col-12 mb-3">
-                             <label className="form-label">
-                               {t("slug")}<span className="text-danger">*</span>
-                             </label>
-                             <input
-                               type="text"
-                               name="slug"
-                               className="form-control"
-                               value={formData.slug}
-                               onChange={handleChange}
-                               placeholder={t("enterSlug")}
-                             />
-                           </div> */}
-
                                         <div className="col-sm-6 col-12">
                                             <div className="mb-3 list position-relative">
                                                 <label className="form-label">
@@ -1956,16 +1981,6 @@ const EditProduct = () => {
                                             <label className="form-label">
                                                 {t("supplier")}<span className="text-danger">*</span>
                                             </label>
-                                            {/* <select
-                               className="form-select"
-                               name="supplier"
-                               value={formData.supplier}
-                               onChange={handleChange}
-                             >
-                               <option value="">{t("select")}</option>
-                               <option value="supplier1">{t("supplier1")}</option>
-                               <option value="supplier2">{t("supplier2")}</option>
-                             </select> */}
                                             <Select
                                                 options={options}
                                                 value={selectedSupplier}
@@ -2035,17 +2050,7 @@ const EditProduct = () => {
                                                 placeholder="Select Warehouse..."
                                                 onChange={handleWarehouseChange}
                                             />
-                                            {/* <select
-                               className="form-select"
-                               name="warehouse"
-                               value={formData.warehouse}
-                               onChange={handleChange}
-                             >
-                               <option value="">{t("select")}</option>
-                               <option value="Warehouse1">{t("warehouse1")}</option>
-                             </select> */}
                                         </div>
-
                                         {/* Advance Toggle */}
                                         <div
                                             className="d-flex align-items-center mb-4"
@@ -2547,8 +2552,6 @@ const EditProduct = () => {
                         </div>
                     </div>
                 </form>
-
-
             </div>
         </div>
     );

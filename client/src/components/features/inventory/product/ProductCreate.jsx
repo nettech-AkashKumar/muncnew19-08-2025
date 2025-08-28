@@ -209,7 +209,7 @@ const ProductForm = () => {
   };
 
   useEffect(() => {
-     console.log("Selected Category:", selectedCategory);
+    console.log("Selected Category:", selectedCategory);
     if (selectedCategory) {
       fetchSubcategoriesByCategory(selectedCategory.value);
     } else {
@@ -219,16 +219,16 @@ const ProductForm = () => {
 
   const fetchSubcategoriesByCategory = async (categoryId) => {
     try {
-       console.log("Fetching subcategories for category ID:", categoryId);
+      console.log("Fetching subcategories for category ID:", categoryId);
       // const res = await fetch(`${BASE_URL}/api/category/by-category/${categoryId}`);
-     const res = await fetch(`${BASE_URL}/api/subcategory/by-category/${categoryId}`);
-        if (!res.ok) {
-      throw new Error(`Server error: ${res.status}`);
-    }
+      const res = await fetch(`${BASE_URL}/api/subcategory/by-category/${categoryId}`);
+      if (!res.ok) {
+        throw new Error(`Server error: ${res.status}`);
+      }
 
 
       const data = await res.json();
-       console.log("Subcategory API raw response:", data);
+      console.log("Subcategory API raw response:", data);
 
       const options = data.map((subcat) => ({
         value: subcat._id,
@@ -242,10 +242,10 @@ const ProductForm = () => {
   };
   const fetchBrands = async () => {
     try {
-       const token = localStorage.getItem("token");
+      const token = localStorage.getItem("token");
       const res = await fetch(`${BASE_URL}/api/brands/active-brands`, {
         headers: {
-          Authorization:`Bearer ${token}`
+          Authorization: `Bearer ${token}`
         }
       });
       const data = await res.json();
@@ -397,7 +397,7 @@ const ProductForm = () => {
     const category = formData.category || "GEN";
     const name = formData.name || "PRD";
     const randomNum = Math.floor(Math.random() * 9000) + 1000;
-    const sku = `${category.toUpperCase().slice(0,3)}-${name.toUpperCase().slice(0,3)}-${randomNum}`
+    const sku = `${category.toUpperCase().slice(0, 3)}-${name.toUpperCase().slice(0, 3)}-${randomNum}`
     setFormData((prevProduct) => ({
       ...prevProduct,
       sku,
@@ -406,10 +406,10 @@ const ProductForm = () => {
 
   // to auto change sku based on changes in product name or category
   useEffect(() => {
-    if(formData.productName || formData.category) {
+    if (formData.productName || formData.category) {
       generateSKU();
     }
-  },[formData.productName, formData.category]);
+  }, [formData.productName, formData.category]);
 
   return (
     <div className="page-wrapper mt-4">
@@ -452,7 +452,7 @@ const ProductForm = () => {
           </div>
 
           <div className="page-btn mt-0">
-             <div className="d-flex gap-2">
+            <div className="d-flex gap-2">
               {/* <Link to="/product"></Link>{t("backToProduct")} */}
               <Link to="/product"><a className="btn btn-primary" >Back to Product</a></Link>
             </div>
@@ -583,10 +583,10 @@ const ProductForm = () => {
                           name="sku"
                           className="form-control"
                           value={formData.sku}
-                          onChange={(e) => setFormData({...formData, sku:e.target.value})}
+                          onChange={(e) => setFormData({ ...formData, sku: e.target.value })}
                           placeholder={t("enterSKU")}
                         />
-                        <button type="submit"  onClick={generateSKU} className="btn btn-primaryadd">
+                        <button type="submit" onClick={generateSKU} className="btn btn-primaryadd">
                           {t("generate")}
                         </button>
                       </div>
