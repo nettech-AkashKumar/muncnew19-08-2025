@@ -1643,10 +1643,6 @@ function Warehouse() {
                 </div>
               </div>
             </div>
-
-           
-
-           
           </div>
         </div>
       </div>

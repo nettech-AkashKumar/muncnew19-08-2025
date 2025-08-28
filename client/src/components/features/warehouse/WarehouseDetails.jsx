@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 
+//npm
 import DonutChart from "react-donut-chart";
 import { Box, Typography } from "@mui/material";
 import { LineChart } from "@mui/x-charts";
@@ -21,42 +22,22 @@ import axios from "axios";
 import { Link } from "react-router-dom";
 import { useParams } from "react-router-dom";
 
-// import { style } from './../../../node_modules/@mui/system/esm/Stack/createStack';
-
 function WarehouseDetails() {
   const [activeTab, setActiveTab] = useState("All");
+  const [product, setProducts] = useState([]);
 
   const { id } = useParams();
-  // console.log("id ",id);
 
   const [bgColor, setBgColor] = useState("");
   const [warehousesDetails, setWarehousesDetails] = useState([]);
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-
-  const chartData = [
-    {
-      label: "Cement",
-      value: 30,
-    },
-    {
-      label: "pipe",
-      value: 25,
-    },
-    {
-      label: "Iron Rod",
-      value: 21,
-    },
-    {
-      label: "Sand",
-      value: 5,
-    },
-    {
-      label: "Other",
-      value: 3,
-    },
-  ];
+  const [sales, setSales] = useState([]);
+  const [purchases, setPurchases] = useState([]);
+  const [activeTabs, setActiveTabs] = useState({});
+  const [showTooltip, setShowTooltip] = useState(false);
+  const [showTooltips, setShowTooltips] = useState(false);
 
   const xLabels = [
     "Jan 2025",
@@ -90,8 +71,6 @@ function WarehouseDetails() {
     //         return () => window.removeEventListener("warehouse-added", listener);
   }, [detailsWarehouses]);
 
-  const [sales, setSales] = useState([]);
-
   const fetchSales = async () => {
     setLoading(true);
     try {
@@ -112,8 +91,6 @@ function WarehouseDetails() {
 
   //for history table
 
-  const [purchases, setPurchases] = useState([]);
-
   const fetchPurchases = async () => {
     try {
       const res = await axios.get(`${BASE_URL}/api/purchases`);
@@ -128,9 +105,6 @@ function WarehouseDetails() {
   }, []);
 
   // products fetching
-
-  const [product, setProducts] = useState([]);
-  const [activeTabs, setActiveTabs] = useState({});
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -150,6 +124,8 @@ function WarehouseDetails() {
     fetchProducts();
   }, []);
 
+  //sales map for top selling products
+
   const salesMap = sales.reduce((acc, sale) => {
     if (!sale.products || !Array.isArray(sale.products)) return acc; // skip if no products
 
@@ -167,6 +143,25 @@ function WarehouseDetails() {
     return acc;
   }, {});
 
+  //Line chart data
+
+  const soldItemsPerMonth = xLabels.map((label) => {
+    const [monthStr, yearStr] = label.split(" ");
+    const month = new Date(`${monthStr} 1, ${yearStr}`).getMonth();
+    const year = parseInt(yearStr);
+
+    let totalSold = 0;
+    sales.forEach((sale) => {
+      const saleDate = new Date(sale.createdAt);
+      if (saleDate.getMonth() === month && saleDate.getFullYear() === year) {
+        sale.products.forEach((p) => {
+          totalSold += p.saleQty || 0;
+        });
+      }
+    });
+    return totalSold;
+  });
+
   const filteredPurchases = purchases.filter((purchase) => {
     if (activeTab === "All") return true;
     if (activeTab === "Stock In") return purchase.status === "Received";
@@ -177,20 +172,6 @@ function WarehouseDetails() {
   });
 
   // ✅ Get all products of this warehouse
-  const filteredProducts = product.filter(
-    (item) => item.warehouseName === warehousesDetails?.warehouseName
-  );
-
-  // ✅ Calculate total revenue for all filtered products
-  const totalRevenue = filteredProducts.reduce((sum, item) => {
-    const soldUnits = salesMap[item._id] || 0;
-    return sum + soldUnits * item.sellingPrice;
-  }, 0);
-
-  // total available items
-  const totalItems = filteredProducts.reduce((sum, item) => {
-    return sum + (item.quantity || 0);
-  }, 0);
 
   //time & date format
   function formatDateTime(dateString) {
@@ -209,6 +190,74 @@ function WarehouseDetails() {
 
     return `${hours}:${minutes} ${ampm} - ${day}-${month}-${year}`;
   }
+
+  //low stock items
+
+  const lowStockItems = product.filter(
+    (item) =>
+      item.warehouseName === warehousesDetails?.warehouseName &&
+      item.quantity < 2500 &&
+      item.quantity > 0
+  );
+
+  //Out of Stock items
+
+  const outOfStockItems = product.filter(
+    (item) =>
+      item.warehouseName === warehousesDetails?.warehouseName &&
+      item.quantity === 0
+  );
+
+  //dougnut chart data
+
+  const filteredProducts = product.filter(
+    (item) => item.warehouseName === warehousesDetails?.warehouseName
+  );
+
+  const totalStock = filteredProducts.reduce(
+    (sum, item) => sum + (parseFloat(item.quantity) || 0),
+    0
+  );
+
+  const sortedProducts = [...filteredProducts].sort(
+    (a, b) => (parseFloat(b.quantity) || 0) - (parseFloat(a.quantity) || 0)
+  );
+
+  const topProducts = sortedProducts.slice(0, 4);
+
+  const otherProducts = sortedProducts.slice(4);
+  const otherTotal = otherProducts.reduce(
+    (sum, item) => sum + (parseFloat(item.quantity) || 0),
+    0
+  );
+
+  // total initial items
+  const totalInitialItems = filteredProducts.reduce((sum, item) => {
+    return sum + (parseFloat(item.initialStock) || 0);
+  }, 0);
+
+  let chartData = topProducts.map((item) => ({
+    label: item.productName,
+    value: parseFloat(item.quantity) || 0, // raw quantity
+  }));
+
+  if (otherProducts.length > 0) {
+    chartData.push({
+      label: "Others",
+      value: otherTotal, // raw quantity, not percentage
+    });
+  }
+
+  // ✅ Calculate total revenue for all filtered products
+  const totalRevenue = filteredProducts.reduce((sum, item) => {
+    const soldUnits = salesMap[item._id] || 0;
+    return sum + soldUnits * item.sellingPrice;
+  }, 0);
+
+  // total available items
+  const totalItems = filteredProducts.reduce((sum, item) => {
+    return sum + (item.quantity || 0);
+  }, 0);
 
   return (
     <div>
@@ -324,21 +373,54 @@ function WarehouseDetails() {
               color: "#007bff",
             }}
           >
-            {/* <img src={FaStopCircle} alt="money" /> */}
             <FaStopCircle />
           </div>
-          <div className="bag-content">
+
+          <div
+            style={{
+              position: "relative",
+              display: "inline-block",
+              cursor: "pointer",
+            }}
+            onMouseEnter={() => setShowTooltip(true)}
+            onMouseLeave={() => setShowTooltip(false)}
+          >
             <span style={{ color: "#676767", marginTop: "50px" }}>
-              low Stock
+              Low Stock
             </span>
             <br />
-            <span style={{ textAlign: "left" }}>
-              <b>₹12</b>
-            </span>
+            <b>{lowStockItems.length}</b>
+
+            {showTooltip && (
+              <div
+                style={{
+                  position: "absolute",
+                  top: "120%", // below number
+                  left: "50%",
+                  transform: "translateX(-50%)",
+                  backgroundColor: "#f1f3f5",
+                  color: "black",
+                  padding: "8px",
+                  borderRadius: "6px",
+                  fontSize: "12px",
+                  whiteSpace: "pre-line", // makes \n line breaks
+                  zIndex: 10,
+                  width: "200px",
+                  height: "auto",
+                }}
+              >
+                {lowStockItems
+                  .map(
+                    (item) =>
+                      `${item.productName} - ${item.quantity} ${item.unit}`
+                  )
+                  .join("\n")}
+              </div>
+            )}
           </div>
         </div>
 
-        {/*Dues Amount */}
+        {/* Out Of Stocks */}
         <div
           className=""
           style={{
@@ -362,30 +444,53 @@ function WarehouseDetails() {
               color: "#007bff",
             }}
           >
-            {/* <img src={RiAlertFill} alt="money" /> */}
             <FaSackDollar />
           </div>
 
-          <div className="bag-content">
-            <span
-              style={{
-                color: "#676767",
-                marginTop: "50px",
-                border: "none",
-              }}
-            >
-              Out Of Stock
+          <div
+            style={{
+              position: "relative",
+              display: "inline-block",
+              cursor: "pointer",
+            }}
+            onMouseEnter={() => setShowTooltips(true)}
+            onMouseLeave={() => setShowTooltips(false)}
+          >
+            <span style={{ color: "#676767", marginTop: "50px" }}>
+              Total Stock Value
             </span>
             <br />
-            <span style={{ textAlign: "left" }}>
-              <b>18</b>
-            </span>
+            <b>{outOfStockItems.length}</b>
+
+            {showTooltips && (
+              <div
+                style={{
+                  position: "absolute",
+                  top: "120%", // below number
+                  left: "50%",
+                  transform: "translateX(-50%)",
+                  backgroundColor: "#f1f3f5",
+                  color: "black",
+                  padding: "8px",
+                  borderRadius: "6px",
+                  fontSize: "12px",
+                  whiteSpace: "pre-line", // makes \n line breaks
+                  zIndex: 10,
+                  width: "200px",
+                  height: "auto",
+                }}
+              >
+                {outOfStockItems
+                  .map(
+                    (item) =>
+                      `${item.productName} - ${item.quantity} ${item.unit}`
+                  )
+                  .join("\n")}
+              </div>
+            )}
           </div>
         </div>
       </div>
-
-      {/* basic detials of warehous */}
-      {/* {console.log("data of detailware ",warehousesDetails)} */}
       {console.log("new data of detailware ", warehousesDetails)}
       <div
         style={{
@@ -416,7 +521,6 @@ function WarehouseDetails() {
             >
               {/* Ajay Kumar */}
               {warehousesDetails?.warehouseOwner}
-              {/* {warehousesDetails?.contactPerson?.lastName} */}
             </span>
           </div>
 
@@ -485,18 +589,18 @@ function WarehouseDetails() {
             Storage
           </span>
           <br />
-
           <div>
             <span
               style={{ color: "#262626", fontWeight: "400", fontSize: "16px" }}
             >
-              Stroage Capacity
+              Stroage Capacity : {totalInitialItems}
             </span>
             <br />
             <span
               style={{ color: "#1368ec", fontWeight: "400", fontSize: "16px" }}
             >
-              30% Left
+              {100 - ((totalItems / totalInitialItems) * 100 || 0).toFixed(2)} %
+              Left
             </span>
           </div>
 
@@ -506,17 +610,18 @@ function WarehouseDetails() {
             colors={["#B8D2F9", "#4286F0", "#A1C3F7", "#B8D2F9", "#D0E1FB"]}
             width={220}
             height={250}
-            legend={false} // hide built-in legend
-            formatValues={(val) => `${val}%`}
-            strokeColor="#fff" // remove border
+            legend={false}
+            interactive={true}
+            formatValues={(value) =>
+              `${((value / totalInitialItems) * 100).toFixed(0, 2)}%`
+            }
+            strokeColor="#fff"
             strokeWidth={4}
             style={{
-              margin: "20px auto 0", // center chart
+              margin: "20px auto 0",
               display: "block",
             }}
           />
-
-          {/* Legend under chart */}
           <div
             style={{
               justifyContent: "center",
@@ -544,7 +649,8 @@ function WarehouseDetails() {
                   }}
                 />
                 <span style={{ fontSize: "14px", color: "#262626" }}>
-                  {item.label} ({item.value}%)
+                  {item.label} (
+                  {((item.value / totalInitialItems) * 100).toFixed(0, 2)}%)
                 </span>
               </div>
             ))}
@@ -553,20 +659,6 @@ function WarehouseDetails() {
 
         {/* Line Chart */}
         <div style={{ width: "100%" }}>
-          {/* <LineChart
-            xAxis={[{ data: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10] }]}
-            series={[
-              {
-                data: [2, 3, 5.5, 8.5, 1.5, 5, 1, 4, 3, 8],
-                showMark: ({ index }) => index % 2 === 0,
-              },
-              {
-                data: [3, 3, 5.5, 8.5, 1.5, 5, 1, 4, 3, 8],
-                showMark: ({ index }) => index % 2 === 0,
-              },
-            ]}
-            height={300}
-          /> */}
           <Box
             sx={{
               width: "auto",
@@ -591,7 +683,7 @@ function WarehouseDetails() {
                 mb: 2,
               }}
             >
-              ₹ 76,986.00
+              ₹{totalRevenue.toLocaleString("en-IN")}
             </Typography>
 
             {/* Chart */}
@@ -602,6 +694,7 @@ function WarehouseDetails() {
                   data: xLabels,
                   axisLine: false,
                   tickSize: 0,
+                  // tickValues: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
                 },
               ]}
               yAxis={[
@@ -609,8 +702,8 @@ function WarehouseDetails() {
                   axisLine: { display: false },
                   tickSize: 0,
                   min: 0,
-                  max: 20000,
-                  tickValues: [0, 5000, 10000, 15000, 20000],
+                  max: Math.max(...soldItemsPerMonth, 20000),
+                  // tickValues: [0, 5000, 10000, 15000, 20000],
                   gridLine: { style: { stroke: "#e0e0e0" } }, // light horizontal grid
                 },
               ]}
@@ -618,7 +711,7 @@ function WarehouseDetails() {
                 {
                   id: "sold",
                   label: "Sold Items",
-                  data: [3000, 5000, 15000, 7000, 10000, 16000, 9000],
+                  data: soldItemsPerMonth,
                   color: "#90caf9",
                   curve: "catmullRom",
                   showMark: false,
@@ -649,6 +742,7 @@ function WarehouseDetails() {
         </div>
       </div>
 
+      {/* Top Selling Products */}
       <div
         style={{
           backgroundColor: "#fff",
@@ -708,6 +802,7 @@ function WarehouseDetails() {
                   (item) =>
                     item.warehouseName === warehousesDetails?.warehouseName
                 ) // filter by warehouse
+                .sort((a, b) => (salesMap[b._id] || 0) - (salesMap[a._id] || 0))
                 .slice(0, 5) // limit to 5 products
                 .map((item, idx) => {
                   const soldUnits = salesMap[item._id] || 0; // total sold across all sales
@@ -740,11 +835,9 @@ function WarehouseDetails() {
                       </td>
                       <td
                         style={{
-                          // padding: "12px 24px",
                           borderBottom: "1px solid #e6e6e6",
                         }}
                       >
-                        {" "}
                         {item.productName}
                       </td>
                       <td
