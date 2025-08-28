@@ -457,14 +457,15 @@ function WarehouseDetails() {
             onMouseLeave={() => setShowTooltips(false)}
           >
             <span style={{ color: "#676767", marginTop: "50px" }}>
-              Total Stock Value
+              Out of Stock
             </span>
             <br />
             <b>{outOfStockItems.length}</b>
 
             {showTooltips && (
-              <div
-                style={{
+              <div>
+                {outOfStockItems.map((item, index) => (
+                  <div key={index} style={{
                   position: "absolute",
                   top: "120%", // below number
                   left: "50%",
@@ -478,14 +479,8 @@ function WarehouseDetails() {
                   zIndex: 10,
                   width: "200px",
                   height: "auto",
-                }}
-              >
-                {outOfStockItems
-                  .map(
-                    (item) =>
-                      `${item.productName} - ${item.quantity} ${item.unit}`
-                  )
-                  .join("\n")}
+                  }}>{item.productName} - {item.quantity} {item.unit}</div>
+                ))}
               </div>
             )}
           </div>
