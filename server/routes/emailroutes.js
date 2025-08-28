@@ -3,6 +3,8 @@ const {
   sendEmail,
     receiveEmail,
   getSentEmails,
+  getInboxCount,
+  readInboxEmails,
   deleteEmail,
   getStarredEmails,
   starredEmail,
@@ -21,6 +23,10 @@ emailrouter.post(
 );
 emailrouter.get("/receive", verifyToken, receiveEmail);
 emailrouter.get("/getsentemail", verifyToken, getSentEmails);
+// Get inbox count for the logged-in user
+emailrouter.get("/inbox-count", verifyToken, getInboxCount);
+// Mark an email as read
+emailrouter.put("/read/:id", verifyToken, readInboxEmails);
 emailrouter.get("/starred", verifyToken, getStarredEmails);
 emailrouter.put("/star/:id", verifyToken, starredEmail);
 emailrouter.post("/delete", verifyToken, deleteEmail);
