@@ -122,13 +122,18 @@ const path = require("path");
 
 const sendEmail = async (req, res) => {
   try {
-    const {
+    let {
       to,
       cc = [],
       bcc = [],
       subject,
       body,
     } = req.body;
+
+    // Ensure all are arrays
+    to = Array.isArray(to) ? to : [to].filter(Boolean);
+    cc = Array.isArray(cc) ? cc : [cc].filter(Boolean);
+    bcc = Array.isArray(bcc) ? bcc : [bcc].filter(Boolean);
 
       const normalizedAttachments = req.files?.attachments
       ? req.files.attachments.map((file) => file.path) // Cloudinary URL
@@ -153,6 +158,32 @@ const sendEmail = async (req, res) => {
           lastName: "",
           profileImage: null,
         };
+
+         const transporter = nodemailer.createTransport({
+      host: "smtp.gmail.com",
+      port: 465,
+      secure: true,
+      auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS, // app password
+      },
+    });
+
+    const mailOptions = {
+      from: sender.email,
+      to: Array.isArray(to) ? to.join(",") : to,
+      cc: cc.length ? cc.join(",") : undefined,
+      bcc: bcc.length ? bcc.join(",") : undefined,
+      subject,
+      html: `<div style="white-space: pre-wrap;">${body}</div>`,
+      attachments: [
+        ...normalizedAttachments.map((file) => ({ path: file })),
+        ...normalizedImages.map((img) => ({ path: img })),
+      ],
+    };
+
+    await transporter.sendMail(mailOptions);
+
 
     // Save email for sender (sent)
     const sentEmail = new EmailModal({
@@ -192,6 +223,7 @@ const sendEmail = async (req, res) => {
         name: user ? `${user.firstName} ${user.lastName}` : "Unknown",
         starred: false,
         bin: false,
+        isRead: false,
         date: new Date(),
       });
 
@@ -313,6 +345,61 @@ const getSentEmails = async (req, res) => {
   }
 };
 
+const getInboxCount = async (req, res) => {
+  try {
+    const userEmail = req.user.email.toLowerCase();
+
+    const count = await EmailModal.countDocuments({
+      type: "inbox",
+      to: { $in: [userEmail] },
+      deleted: false,
+      isRead: false,
+    });
+
+    res.status(200).json({ success: true, count });
+  } catch (error) {
+    console.log("Error fetching inbox count:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch inbox count",
+      error: error.message,
+    });
+  }
+};
+
+// Mark an email as read
+const readInboxEmails = async (req, res) => {
+
+  try {
+    const emailId = req.params.id;
+    const userEmail = req.user.email.toLowerCase();
+
+    console.log("🔹 readInboxEmails called for emailId:", emailId, "by user:", userEmail);
+
+    const email = await EmailModal.findOneAndUpdate(
+      { _id: emailId, to: { $in: [userEmail] } },  // simpler and safer than regex
+      { $set: { isRead: true } },
+      { new: true }
+    );
+
+    console.log("Email isRead status:", email.isRead);
+
+    if (!email) {
+       console.log("Email not found or not for this user");
+      return res.status(404).json({ success: false, message: "Email not found" });
+    }
+
+    console.log("✅ Email marked as read:", email._id, "isRead:", email.isRead);
+
+     console.log("Email after marking as read:", email);
+
+    res.status(200).json({ success: true, data: email });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
 // backend/controllers/emailController.js
 const getStarredEmails = async (req, res) => {
   try {
@@ -426,6 +513,8 @@ module.exports = {
   sendEmail,
   receiveEmail,
   getSentEmails,
+  getInboxCount,
+  readInboxEmails,
   getStarredEmails,
   starredEmail,
   deleteEmail,

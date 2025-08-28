@@ -223,13 +223,19 @@ import * as XLSX from "xlsx";
 import { saveAs } from "file-saver";
 import axios from "axios";
 import BASE_URL from "../../config/config";
+import { Tooltip, OverlayTrigger } from "react-bootstrap";
+import ExpenseFromEdit from "./ExpenseFromEdit";
+import { TiEdit } from "react-icons/ti";
+import { LuEye } from "react-icons/lu";
 
-const ExpenseReport = () => {
+const ExpenseReport = ({item}) => {
   const [showCalendar, setShowCalendar] = useState(false);
   const [expenses, setExpenses] = useState([]); // backend data
   const [filterStatus, setFilterStatus] = useState("All"); // ✅ NEW
   const [selectedDate, setSelectedDate] = useState(null);
-
+  const [editModal, setEditModal] = useState(false)
+  
+const [selectedExpense, setSelectedExpense] = useState(null); 
   const [range, setRange] = useState([
     {
       startDate: new Date("2025-01-01"),
@@ -483,32 +489,34 @@ const ExpenseReport = () => {
             }}
           >
             <tr>
-              <th style={{ padding: "15px 20px" }}><input type="checkbox" /></th>
-              <th style={{ padding: "15px 20px" }}>Date</th>
-              <th style={{ padding: "15px 20px" }}>Title</th>
-              <th style={{ padding: "15px 20px" }}>Notes</th>
-              <th style={{ padding: "15px 20px" }}>Payment Mode</th>
-              <th style={{ padding: "15px 20px" }}>Paid To</th>
-              <th style={{ padding: "15px 20px" }}>Status</th>
-              <th style={{ padding: "15px 20px" }}>Amount</th>
+              <th style={{ padding: "10px" }}><input type="checkbox" /></th>
+              <th style={{ padding: "10px" }}>Date</th>
+              <th style={{ padding: "10px" }}>Title</th>
+              <th style={{ padding: "10px" }}>Notes</th>
+              <th style={{ padding: "10px" }}>Payment Mode</th>
+              <th style={{ padding: "10px" }}>Paid To</th>
+              <th style={{ padding: "10px" }}>Status</th>
+              <th style={{ padding: "10px" }}>Product</th>
+              <th style={{ padding: "10px" }}>Amount</th>
+              <th style={{ padding: "10px" }}>Actions</th>
             </tr>
           </thead>
           <tbody style={{ color: "#262626", fontFamily: '"Roboto", sans-serif', fontWeight: "400", fontSize: "16px" }}>
             {currentExpenses.map((item, index) => (
               <tr key={index} style={{ borderBottom: "1px solid #E6E6E6" }}>
-                <td style={{ padding: "10px 20px" }}><input type="checkbox" /></td>
-                <td style={{ padding: "10px 20px" }}>
+                <td style={{ padding: "10px" }}><input type="checkbox" /></td>
+                <td style={{ padding: "10px" }}>
                   {new Date(item.date).toLocaleDateString("en-GB")}
                 </td>
-                <td style={{ padding: "10px 20px" }}>{item.expenseTitle}</td>
+                <td style={{ padding: "10px" }}>{item.expenseTitle}</td>
                 <td
-                  style={{ padding: "10px 20px" }}
+                  style={{ padding: "10px" }}
                   dangerouslySetInnerHTML={{ __html: item.notes }}
                 ></td>
 
-                <td style={{ padding: "10px 20px" }}>{item.paymentMode}</td>
-                <td style={{ padding: "10px 20px" }}>{item.paidTo}</td>
-                <td style={{ padding: "10px 20px" }}>
+                <td style={{ padding: "10px" }}>{item.paymentMode}</td>
+                <td style={{ padding: "10px" }}>{item.paidTo}</td>
+                <td style={{ padding: "10px" }}>
                   <span
                     style={{
                       padding: "5px",
@@ -520,8 +528,9 @@ const ExpenseReport = () => {
                     {item.paymentStatus}
                   </span>
                 </td>
-                <td style={{ padding: "10px 20px",  display:"flex", alignItems:"center", gap:"5px"}}>
-                   {item.receipt && item.receipt.length > 0 && (
+                {/* <td style={{ padding: "10px"}}>
+                  <LuEye>
+                     {item.receipt && item.receipt.length > 0 && (
     <img
       src={item.receipt[0].url}
       alt="receipt"
@@ -533,7 +542,42 @@ const ExpenseReport = () => {
       }}
     />
   )}
-                ₹{item.amount}</td>
+                  </LuEye>
+               </td> */}
+             
+               <td style={{ padding: "10px", cursor: "pointer" }}>
+ <Link
+  to={`/expensereportproduct-modal?file=${
+    encodeURIComponent(item.receipt && item.receipt.length > 0 ? item.receipt[0].url : "")
+  }`}
+  target="_blank"
+  rel="noopener noreferrer"
+   style={{textDecoration:"none"}}
+>
+  <LuEye size={22} style={{color:"grey"}}/>
+</Link>
+
+</td>
+
+               <td style={{ padding: "10px"}}> ₹{item.amount}</td>
+              <OverlayTrigger
+  placement="top"
+  overlay={<Tooltip id="tooltip-bottom"  style={{
+        color: "#fff",
+        borderRadius: "8px",
+      }}>Edit</Tooltip>}
+>
+  <td  style={{ padding: "10px", fontWeight: "bold", cursor: "pointer", position:"relative"}}>
+   {/* <TiEdit onClick={setEditModal} style={{color:"grey"}}/> */}
+  <TiEdit
+      onClick={() => {
+        setSelectedExpense(item);  // ✅ store the clicked expense
+        setEditModal(true);        // ✅ open modal
+      }}
+      style={{ color: "grey" }}
+    />
+  </td>
+</OverlayTrigger>
               </tr>
             ))}
           </tbody>
@@ -580,6 +624,13 @@ const ExpenseReport = () => {
           </button>
         </span>
       </div>
+    {/* {editModal && <ExpenseFromEdit onClose={() => setEditModal(false)}/>} */}
+    {editModal && selectedExpense && (
+  <ExpenseFromEdit
+    onClose={() => setEditModal(false)}
+    expense={selectedExpense} // ✅ pass data to modal
+  />
+)}
     </div>
   );
 };

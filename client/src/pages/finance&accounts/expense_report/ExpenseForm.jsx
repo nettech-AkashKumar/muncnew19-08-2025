@@ -18,6 +18,7 @@ const ExpenseFormSecond = () => {
   const [showCalendar, setShowCalendar] = useState(false);
   const [notes, setNotes] = useState("");
   const [isSaved, setIsSaved] = useState(false);
+  
   const [expenseTitle, setExpenseTitle] = useState("");
   const [amount, setAmount] = useState("");
   const [paymentMode, setPaymentMode] = useState("");
@@ -80,6 +81,12 @@ const ExpenseFormSecond = () => {
     } catch (error) {
       console.error("❌ Error saving expense:", error.response?.data || error.message);
     }
+     setIsSaved(true);
+
+    // ✅ 1 second baad "expense-report" page par navigate
+    setTimeout(() => {
+      navigate("/expense-report");
+    }, 2000);
   };
 
   // ✅ Save Draft
@@ -111,14 +118,23 @@ const ExpenseFormSecond = () => {
     setFiles(selectedFiles);
   };
 
+  // const handleDrop = (e) => {
+  //   e.preventDefault();
+  //   setIsDragging(false);
+  //   const droppedFiles = Array.from(e.dataTransfer.files).filter(f =>
+  //     f.type === "image/png" || f.type === "image/jpeg"
+  //   );
+  //   setFiles(droppedFiles);
+  // };
   const handleDrop = (e) => {
-    e.preventDefault();
-    setIsDragging(false);
-    const droppedFiles = Array.from(e.dataTransfer.files).filter(f =>
-      f.type === "image/png" || f.type === "image/jpeg"
-    );
-    setFiles(droppedFiles);
-  };
+  e.preventDefault();
+  setIsDragging(false);
+  const droppedFiles = Array.from(e.dataTransfer.files).filter(f =>
+    f.type === "image/png" || f.type === "image/jpeg" || f.type === "application/pdf"
+  );
+  setFiles(droppedFiles);
+};
+
 
   // --- styles ---
   const formContainerStyle = { backgroundColor: "#fff", padding: "20px", borderRadius: "12px", maxWidth: "807px", margin: "10px auto", boxShadow: "rgba(0, 0, 0, 0.35) 0px 5px 15px", fontFamily:'"Roboto", sans-serif' };
@@ -223,7 +239,7 @@ const ExpenseFormSecond = () => {
         </div>
 
         {/* Receipt Upload */}
-        <div style={{ ...receiptContainerStyle, border: isDragging ? "2px solid #1368EC" : "2px dashed #ccc", backgroundColor: isDragging ? "#f0f8ff" : "white" }}
+        {/* <div style={{ ...receiptContainerStyle, border: isDragging ? "2px solid #1368EC" : "2px dashed #ccc", backgroundColor: isDragging ? "#f0f8ff" : "white" }}
           onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
           onDragLeave={() => setIsDragging(false)}
           onDrop={handleDrop}
@@ -247,7 +263,55 @@ const ExpenseFormSecond = () => {
             onChange={handleFileChange}
             style={{ display: "none" }}
           />
-        </div>
+        </div> */}
+        {/* Receipt Upload */}
+<div 
+  style={{ 
+    ...receiptContainerStyle, 
+    border: isDragging ? "2px solid #1368EC" : "2px dashed #ccc", 
+    backgroundColor: isDragging ? "#f0f8ff" : "white" 
+  }}
+  onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
+  onDragLeave={() => setIsDragging(false)}
+  onDrop={handleDrop}
+>
+  <label htmlFor="receipt-upload" style={uploadContentStyle}>
+    <div style={uploadContentStyle}>
+      <span role="img" aria-label="upload" style={uploadIconStyle}>
+        {files.length > 0 ? files.map((f, i) => (
+          f.type === "application/pdf" ? (
+            <div key={i} style={{ 
+              width: "120px", height: "120px", 
+              display: "flex", alignItems: "center", justifyContent: "center",
+              border: "1px solid #ddd", borderRadius: "6px", marginRight:"10px",
+              backgroundColor:"#f9f9f9", fontSize:"12px", fontWeight:"500"
+            }}>
+              📄 {f.name}
+            </div>
+          ) : (
+            <img 
+              key={i} 
+              src={URL.createObjectURL(f)} 
+              alt="preview" 
+              style={{ width: "120px", height: "120px", objectFit: "cover", borderRadius: "6px", marginRight:"10px" }} 
+            />
+          )
+        )) : <img src={image} alt="placeholder" />}
+      </span>
+      <p>Drag your file here, or <span style={browseTextStyle}>browse</span></p>
+      <small>Supports JPEG, PNG, JPG, PDF</small>
+    </div>
+  </label>
+  <input
+    id="receipt-upload"
+    type="file"
+    accept="image/png, image/jpeg, application/pdf"
+    multiple
+    onChange={handleFileChange}
+    style={{ display: "none" }}
+  />
+</div>
+
 
         {/* Actions */}
         <div style={formActionsStyle}>

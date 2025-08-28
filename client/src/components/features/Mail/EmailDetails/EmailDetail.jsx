@@ -152,9 +152,23 @@ const EmailDetail = ({ email, onBack, handleToggleStar }) => {
     if (typeof recipients === "string") return recipients;
     if (Array.isArray(recipients)) {
       return recipients
-        .map((r) => (typeof r === "object" ? r.email : r))
-        .join(", ");
-    }
+    //     .map((r) => (typeof r === "object" ? r.email : r))
+    //     .join(", ");
+    // }
+     .map((r) => {
+        if (!r) return ""; // skip nulls
+        if (typeof r === "string") return r;
+       if (typeof r === "object") {
+          // use firstName + lastName if available, else email
+          return r.firstName || r.lastName
+            ? `${r.firstName || ""} ${r.lastName || ""}`.trim()
+            : r.email || "";
+        }
+        return "";
+      })
+      .filter(Boolean) // remove empty strings
+      .join(", ");
+  }
     if (typeof recipients === "object") return recipients.email || "";
     return "";
   };
@@ -357,6 +371,7 @@ const EmailDetail = ({ email, onBack, handleToggleStar }) => {
       </div>
       {showDetails && (
         <div className="email-meta">
+          {console.log("📌 Email detailsws:", email)}
           <p
             style={{
               fontSize: '12px', fontWeight: 400, lineHeight: '14px', color: '#676767'
