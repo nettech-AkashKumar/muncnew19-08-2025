@@ -39,6 +39,67 @@ function ProductList() {
     setActiveTabs((prev) => ({ ...prev, [productId]: tab }));
   };
 
+//expiry code----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+const [expiringProducts, setExpiringProducts] = useState([]);
+
+const getExpiryStatus = (expiryValue) => {
+  const qtyString = Array.isArray(expiryValue) && expiryValue.length > 0 ? expiryValue[0] : expiryValue;
+
+  if (typeof qtyString === "string" && qtyString.match(/^\d{2}-\d{2}-\d{4}$/)) {
+    const [day, month, year] = qtyString.split("-").map(Number);
+    const expiryDate = new Date(year, month - 1, day);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    expiryDate.setHours(0, 0, 0, 0);
+
+    if (!isNaN(expiryDate.getTime())) {
+      const diffTime = expiryDate - today;
+      const daysDiff = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+      if (daysDiff <= 0) return "Expired";
+      if (daysDiff <= 2) return "Expiring Soon";
+    }
+  }
+  return "";
+};
+
+const [expiringCount, setExpiringCount] = useState(0);
+
+useEffect(() => {
+  const fetchProducts = async () => {
+    try {
+      const res = await axios.get(`${BASE_URL}/api/products`);
+      setProducts(res.data);
+
+      let names = [];
+      const count = res.data.reduce((acc, product) => {
+        if (product.variants && product.variants.Expiry) {
+          const status = getExpiryStatus(product.variants.Expiry);
+          if (status === "Expired" || status === "Expiring Soon") {
+            acc++;
+            names.push(product.productName); // collect product name
+          }
+        }
+        return acc;
+      }, 0);
+
+      setExpiringCount(count);
+      setExpiringProducts(names);
+
+      // Initialize tabs
+      const initialTabs = res.data.reduce((acc, product) => {
+        acc[product._id] = "general";
+        return acc;
+      }, {});
+      setActiveTabs(initialTabs);
+    } catch (err) {
+      console.error("Failed to fetch products", err);
+    }
+  };
+  fetchProducts();
+}, []);
+
+
+
   return (
     <div className="page-wrapper ">
       <div className="content">
@@ -46,7 +107,11 @@ function ProductList() {
           <div className="add-item d-flex">
             <div className="page-title">
               <h4 className="fw-bold">Products</h4>
-              <h6>Manage your products</h6>
+              <h6>Manage your products </h6>
+              <h6>Expiring soon: {expiringCount}</h6>
+              {expiringProducts.length > 0 && (
+              <h6> Products: {expiringProducts.join(", ")}</h6>
+              )}
             </div>
           </div>
 
@@ -111,6 +176,54 @@ function ProductList() {
                               {/* SKU-KAPL-021 • Goods • Available Qty - 76kg */}
                               SKU-{product.sku} • Available Qty -{" "}
                               {product.quantity} {product.unit}
+
+    {product.variants && Object.keys(product.variants).includes("Expiry") ? (
+    Object.entries(product.variants)
+      .filter(([variant]) => variant === "Expiry")
+      .map(([variant, qty]) => {
+        let statusText = "";
+        let displayQty = "0"; // Default display value
+        let statusdisc = "";
+        // Extract qtyString from array or use qty directly
+        const qtyString = Array.isArray(qty) && qty.length > 0 ? qty[0] : qty;
+        // Set displayQty to qtyString if it's a string, else keep "0"
+        if (typeof qtyString === "string") {
+          displayQty = qtyString;
+        }
+        // Process date if qtyString matches DD-MM-YYYY format
+        if (typeof qtyString === "string" && qtyString.match(/^\d{2}-\d{2}-\d{4}$/)) {
+          try {
+            const [day, month, year] = qtyString.split("-").map(Number);
+            const expiryDate = new Date(year, month - 1, day);
+            const today = new Date(); // Current date (August 27, 2025, 5:44 PM IST)
+            today.setHours(0, 0, 0, 0); // Reset time to midnight
+            expiryDate.setHours(0, 0, 0, 0); // Reset time for expiry
+            if (!isNaN(expiryDate.getTime())) {
+              const diffTime = expiryDate - today;
+              const daysDiff = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+              if (daysDiff <= 0) {
+                statusdisc = "Expired";
+              } else if (daysDiff <= 2) {
+                statusdisc = "Expiring Soon";
+              } else {
+                statusdisc = "";
+              }
+            } else {
+              console.log("Invalid date for qtyString:", qtyString); // Debug: Log invalid date
+            }
+          } catch (error) {
+            console.log("Error parsing date for qtyString:", qtyString, error); // Debug: Log errors
+          }
+        } else {
+          console.log("Non-string or invalid format qtyString:", qtyString); // Debug: Log invalid format
+        }
+        return (
+          <span key={variant} style={{color:"red"}}>{statusdisc ? " • " + statusdisc : ""}</span>
+        );
+        })
+        ) : (
+          <span key="Expiry"></span>
+        )}
                             </p>
                           </div>
                         </div>
@@ -207,7 +320,7 @@ function ProductList() {
                             <p className="section-title-text">{product.productName}</p>
                             <p className="section-subtitle">
                               SKU-{product.sku} • Available Qty -{" "}
-                              {product.quantity} {product.unit}
+                              {product.quantity} {product.unit}   
                             </p>
                           </div>
                         </div>
