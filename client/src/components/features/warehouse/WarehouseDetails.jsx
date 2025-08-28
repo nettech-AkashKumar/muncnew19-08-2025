@@ -5,6 +5,7 @@ import DonutChart from "react-donut-chart";
 import { Box, Typography } from "@mui/material";
 import { LineChart } from "@mui/x-charts";
 
+// icons
 import { MdArrowForwardIos } from "react-icons/md";
 import { FaSackDollar } from "react-icons/fa6";
 import { RiAlertFill } from "react-icons/ri";
@@ -17,7 +18,6 @@ import { LuArrowUpDown } from "react-icons/lu";
 
 //
 import BASE_URL from "../../../pages/config/config";
-import AddWarehouseModal from "../../../pages/Modal/warehouse/AddWarehouseModal";
 import axios from "axios";
 import { Link } from "react-router-dom";
 import { useParams } from "react-router-dom";
@@ -960,7 +960,8 @@ function WarehouseDetails() {
             }}
           >
             <Link
-              to="/Godown"
+              
+              to={`/Godown/${id}`}
               style={{ textDecoration: "none", color: "#1368EC" }}
             >
               View All <FaArrowRight />
