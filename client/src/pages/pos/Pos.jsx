@@ -1459,10 +1459,10 @@ const handleSubmit = async (e) => {
                     <LuScanLine/>
                     Scan
                   </div>
-                  <div style={{border:'1px solid #ccc',backgroundColor:'white',padding:'2px 10px',borderRadius:'8px',display:'flex',gap:'5px',alignItems:'center',cursor:'pointer'}}>
+                  {/* <div style={{border:'1px solid #ccc',backgroundColor:'white',padding:'2px 10px',borderRadius:'8px',display:'flex',gap:'5px',alignItems:'center',cursor:'pointer'}}>
                     <AiOutlineTransaction/>
                     Credit Scale
-                  </div>
+                  </div> */}
                   <div style={{border:'1px solid #ccc',backgroundColor:'white',padding:'2px 10px',borderRadius:'8px',display:'flex',gap:'5px',alignItems:'center',cursor:'pointer'}} onClick={handleTransactionPopupChange}>
                     <AiOutlineRetweet />
                     Transaction

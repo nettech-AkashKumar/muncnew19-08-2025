@@ -15,6 +15,7 @@ const emailSchema = new mongoose.Schema(
     subject: { type: String },
     body: { type: String },
     attachments: { type: [String], default: [] }, //stores file names or URLs
+    isRead: { type: Boolean, default: false },
     date: { type: Date, default: Date.now },
     image: { type: [String], default: [] },
     name: { type: String },

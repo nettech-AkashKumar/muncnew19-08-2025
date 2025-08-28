@@ -372,7 +372,7 @@ function StockMovementLog() {
               }}
             >
               <span>
-                Reference No.:{" "}
+                Reference No :{" "}
                 <strong>{selectedStock.referenceNumber || "N/A"}</strong>
               </span>
               <span>Date: {new Date().toLocaleDateString()}</span>
@@ -411,7 +411,7 @@ function StockMovementLog() {
                 </div>
               </div>
               <div style={{ marginBottom: "30px" }}>
-                <span style={{ fontSize: "16px", color: "#262626" }}>
+                <span style={{ fontSize: "16px", color: "#262626", fontWeight:"bold" }}>
                   Products
                 </span>
                 <div
@@ -429,6 +429,7 @@ function StockMovementLog() {
                           backgroundColor: "#f5f5f5",
                           color: "#444",
                           textAlign: "left",
+                          fontWeight:"400"
                         }}
                       >
                         <th style={{ padding: "10px" }}>

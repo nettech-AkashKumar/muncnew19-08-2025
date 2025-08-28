@@ -2,9 +2,12 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import EmailMessages from "../EmailMessages/EmailMessages";
 import BASE_URL from "../../../../pages/config/config";
+import { useInbox } from "../../../../components/features/Mail/SideBar/InboxContext";
 
 const Inbox = () => {
   const [emails, setEmails] = useState([]);
+    const { setEmails: updateEmailList, fetchInboxCount, setInboxCount  } = useInbox();
+
 
   // useEffect(() => {
   //   const fetchInboxEmails = async () => {
@@ -70,7 +73,7 @@ const Inbox = () => {
   //   }, 1000);
   //   return () => clearInterval(interval)
   // }, []);
-useEffect(() => {
+
   const fetchInboxEmails = async () => {
     try {
       const token = localStorage.getItem("token");
@@ -121,19 +124,19 @@ useEffect(() => {
 
       const inboxOnly = formatted.filter((email) => email.type === "inbox");
       setEmails(inboxOnly);
+      const unreadCount = inboxOnly.filter((e) => !e.isRead).length;
+setInboxCount(unreadCount);
     } catch (error) {
       console.error("Failed to fetch inbox emails", error);
     }
   };
 
+useEffect(() => {
   fetchInboxEmails();
-
-  const interval = setInterval(() => {
-    fetchInboxEmails();
-  }, 1000);
-
-  return () => clearInterval(interval);
 }, []);
+
+
+
 
   const handleToggleStar = async (id, currentStarred) => {
     try {
@@ -158,10 +161,91 @@ useEffect(() => {
     }
   };
 
+  //  const fetchInboxCount = async () => {
+  //     try {
+  //        const token = localStorage.getItem("token");
+  //       const res = await axios.get(`${BASE_URL}/api/email/mail/inbox-count`, {
+  //         headers: { Authorization: `Bearer ${token}` }
+  //       });
+  //       if (res.data.success) {
+  //         setInboxCount(res.data.count);
+  //       }
+  //       console.log('dd', res.data.count)
+  //     } catch (error) {
+  //       console.log("Error fetching inbox count:", error);
+  //     }
+  //   };
+
+// const markAsRead = async (emailId) => {
+//   try {
+//     const token = localStorage.getItem("token");
+
+//     const res = await axios.put(
+//       `${BASE_URL}/api/email/mail/read/${emailId}`,
+//       {},
+//       { headers: { Authorization: `Bearer ${token}` } }
+//     );
+
+//     if (res.data.success) {
+//       // update local state
+//       setEmails((prevEmails) =>
+//         prevEmails.map((email) =>
+//           email._id === emailId && !email.isRead
+//             ? { ...email, status: { ...email.status, dotColor: "transparent" }, isRead: true }
+//             : email
+//         )
+//       );
+
+//       // update global count immediately
+//       setInboxCount((prev) => Math.max(prev - 1, 0));
+//     }
+//   } catch (error) {
+//     console.error("Failed to mark email as read", error);
+//   }
+// };
+
+const markAsRead = async (emailId) => {
+  try {
+    const token = localStorage.getItem("token");
+        console.log("🔹 markAsRead called for emailId:", emailId);
+    console.log("Token present:", !!token);
+
+    const res = await axios.put(
+      `${BASE_URL}/api/email/mail/read/${emailId}`,
+      {},
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
+
+    console.log("Response from backend:", res.data);
+
+    if (res.data.success) {
+        console.log("Backend confirmed email marked as read");
+       fetchInboxCount();
+      // update local state
+      updateEmailList((prevEmails) =>
+        prevEmails.map((email) =>
+          email._id === emailId && !email.isRead
+            ? { ...email, status: { ...email.status, dotColor: "transparent" }, isRead: true }
+            : email
+        )
+      );
+       console.log("📄 Updated local email list");
+
+       setInboxCount((prev) => Math.max(prev - 1, 0));
+
+      // 3️⃣ Optional: fetch fresh count from backend to be sure
+      // fetchInboxCount();
+    }
+  } catch (error) {
+    console.error("Failed to mark email as read", error);
+  }
+};
+
   return (
     <EmailMessages
       filteredEmails={emails}
       handleToggleStar={handleToggleStar}
+       handleEmailClick={markAsRead}
     />
   );
 };

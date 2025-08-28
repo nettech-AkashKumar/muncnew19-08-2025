@@ -452,9 +452,10 @@ const ProductForm = () => {
           </div>
 
           <div className="page-btn mt-0">
-            <button className="btn" style={{color:'#fff', outline:'none', border:'none', cursor:'pointer'}}>
-              <Link to="back"></Link>{t("backToProduct")}
-            </button>
+             <div className="d-flex gap-2">
+              {/* <Link to="/product"></Link>{t("backToProduct")} */}
+              <Link to="/product"><a className="btn btn-primary" >Back to Product</a></Link>
+            </div>
           </div>
         </div>
         {/* <h5 className="mb-3">{steps[step]}</h5> */}
@@ -1165,7 +1166,7 @@ const ProductForm = () => {
                 <div className="mb-3">
                   <label>{t("enterVariants", { tab: activeTab })}</label>
                   <input
-                    type="text"
+                    type={activeTab === t("expiry") ? "date" : "text"}
                     className="form-control"
                     value={formData.variants[activeTab]?.join(", ") || ""}
                     onChange={(e) => inputChange(activeTab, e.target.value)}

@@ -122,8 +122,12 @@ import ViewSupplierModal from "../pages/Modal/suppliers/ViewSupplierModal.jsx";
 import ViewProductStock from "../pages/ViewProductStock.jsx";
 import ViewReturnProduct from "../pages/ViewReturnProduct.jsx";
 import PurchaseReport from "../components/features/inventory/report/PurchaseReport.jsx";
+<<<<<<< HEAD
 import ExpenseReportProductModal from "../pages/finance&accounts/expense_report/ExpenseReportProductModal.jsx"
 
+=======
+import EditProduct from "../components/features/inventory/product/EditProduct.jsx";
+>>>>>>> 2919fb8925c29d9492b34b8b18930a0c73737cb7
 
 const AppRoutes = () => {
   return (
@@ -170,6 +174,7 @@ const AppRoutes = () => {
         <Route path="/choose-adproduct" element={<ChooseToAddProduct />} />
         <Route path="/scan-product" element={<ScanToAddProduct />} />
         <Route path="/add-product" element={<ProductCreate />} />
+        <Route path="/product/edit/:id" element={<EditProduct />} />
         <Route path="/expired-products" element={<ExpriedProduct />} />
         <Route path="/category-list" element={<Category />} />
         <Route path="/sub-categories" element={<SubCategory />} />
