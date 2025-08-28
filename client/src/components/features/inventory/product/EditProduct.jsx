@@ -1371,6 +1371,7 @@ const EditProduct = () => {
     const [brandId, setBrandId] = useState(null);
     const [categoryId, setCategoryId] = useState(null);
     const [subCategoryId, setSubCategoryId] = useState(null);
+    const [supplierId, setSupplierId] = useState(null);
 
     // Image state
     const [images, setImages] = useState([]);
@@ -1417,6 +1418,9 @@ const EditProduct = () => {
                 if (data.subCategory) {
                     setSubCategoryId(data.subCategory._id || data.subCategory)
                 }
+                if(data.supplier) {
+                    setSupplierId(data.supplier._id || data.supplier) 
+                }
 
                 if (data.unit) setSelectedUnits({ value: data.unit, label: data.unit });
                 if (data.supplier) setSelectedSupplier({ value: data.supplier._id || data.supplier, label: data.supplier.firstName ? `${data.supplier.firstName}${data.supplier.lastName} (${data.supplier.supplierCode})` : data.supplier });
@@ -1458,6 +1462,7 @@ const EditProduct = () => {
         const fetchSuppliers = async () => {
             try {
                 const res = await axios.get(`${BASE_URL}/api/suppliers/active`);
+                console.log('supplier id are ', res.data)
                 const options = res.data.suppliers.map((supplier) => ({ value: supplier._id, label: `${supplier.firstName}${supplier.lastName} (${supplier.supplierCode})` }));
                 setOptions(options);
             } catch (error) { }
@@ -1534,6 +1539,16 @@ const EditProduct = () => {
             setSubcategories([]);
         }
     };
+
+    // supplier
+    // useEffect(() => {
+    //     if (selectedSupplier.length > 0 && supplierId) {
+    //         const found = selectedSupplier.find((opt) => opt.value === supplierId);
+    //         if (found) {
+    //             setSelectedSupplier(found)
+    //         }
+    //     }
+    // }, [selectedSupplier, supplierId]);
 
     // Fetch subcategories when selectedCategory changes    
     // useEffect(() => {
