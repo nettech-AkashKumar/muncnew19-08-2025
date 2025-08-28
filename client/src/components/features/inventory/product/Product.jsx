@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { FaFileExcel, FaFilePdf, FaPencilAlt } from "react-icons/fa";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { FaShoppingBag } from "react-icons/fa";
 import "../../../../styles/product/product-list.css";
 import BASE_URL from "../../../../pages/config/config";
@@ -56,7 +56,8 @@ function ProductList() {
             <li><button type="button" className="icon-btn" title="Export Excel"><FaFileExcel /></button></li>
           </div>
           <div className="d-flex gap-2">
-            <a className="btn btn-primary" data-bs-toggle="modal" data-bs-target="#add-purchase"><CiCirclePlus className="me-1" />Add Products</a>
+            <Link to="/add-product"><a className="btn btn-primary" ><CiCirclePlus className="me-1" />Add Products</a></Link>
+            
             <a className="btn btn-secondary" data-bs-toggle="modal" data-bs-target="#view-notes"><i data-feather="download" className="me-2" />Import Purchase</a>
           </div>
         </div>
