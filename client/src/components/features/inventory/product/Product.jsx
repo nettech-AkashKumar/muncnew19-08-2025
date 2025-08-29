@@ -10,12 +10,18 @@ import { CiCirclePlus } from "react-icons/ci";
 import { IoEyeOutline } from "react-icons/io5";
 import { FiEdit } from "react-icons/fi";
 import { RiDeleteBinLine } from "react-icons/ri";
+import { FaAngleLeft } from "react-icons/fa6";
+import { FaChevronRight } from "react-icons/fa";
 
 function ProductList() {
+
   const [products, setProducts] = useState([]);
-  console.log("Products:", products);
+  // console.log("Products:", products);
   const [activeTabs, setActiveTabs] = useState({});
   const navigate = useNavigate();
+
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage] = useState(12);
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -125,8 +131,15 @@ useEffect(() => {
   };
 }, []);
 
+const totalItems = products.length;
+const totalPages = Math.ceil(totalItems / itemsPerPage);
+const startIndex = (currentPage - 1) * itemsPerPage;
+const endIndex = startIndex + itemsPerPage;
+const paginatedData = products.slice(startIndex, endIndex);
+
   return (
     <>
+
     {/* <div className="page-wrapper ">
       <div className="content">
         <div className="page-header">
@@ -493,21 +506,21 @@ useEffect(() => {
       </div>
     </div> */}
 
-      {/* new section is here */}
       <div>
         <div
           style={{
             background: "#fff",
-            padding: "20px",
+            padding: "10px 20px",
             borderRadius: "12px",
             boxShadow: "0 4px 8px rgba(0,0,0,0.1)",
-            marginTop: "20px",
+            marginTop: "0px",
           }}
         >
-          <h5 style={{ marginBottom: "15px", fontWeight: "600", color: "#333" }}>
+          <h5 style={{ marginBottom: "10px", fontWeight: "700", color: "#333" }}>
            Products
           </h5>
-          <div style={{ }}>
+          <h6 style={{fontWeight:'400'}}>Manage Your Products</h6>
+          <div style={{marginTop:'15px'}}>
             <table
               style={{
                 width: "100%",
@@ -550,8 +563,15 @@ useEffect(() => {
                 </tr>
               </thead>
               <tbody>
-              {products.map((product,idx)=>( 
-                <tr key={product} style={{ borderBottom: "1px solid #eee", }}>
+    {paginatedData.length === 0 ? (
+      <tr>
+        <td colSpan="6" style={{ textAlign: "center", padding: "12px" }}>
+          No products available
+        </td>
+      </tr>
+    ) : (
+      paginatedData.map((product) => (
+                <tr key={product._id} style={{ borderBottom: "1px solid #eee", }}>
                   <td style={{ display:"flex", alignItems:'center',gap:'10px',padding:'5px' }}>
                     {product.images?.[0] && (
                     <div style={{
@@ -564,6 +584,7 @@ useEffect(() => {
                       borderRadius:'8px',
                       overflow:'hidden',
                       border:'1px solid #ccc',
+                      padding:'2px',
                       }}>
                       <img
                       src={product.images[0].url}
@@ -587,6 +608,7 @@ useEffect(() => {
                       borderRadius:'8px',
                       overflow:'hidden',
                       border:'1px solid #ccc',
+                      padding:'2px',
                       }}>
                       <span style={{color:'#ccc', fontSize:'8px'}}>No Image</span>
                     </div>
@@ -673,13 +695,54 @@ useEffect(() => {
                      </div>
                   </td>
                 </tr>
-                ))}
+                )))}
               </tbody>
             </table>
           </div>
         </div>
 
       </div>
+
+      <div
+    style={{
+      display: "flex",
+      justifyContent: "end",
+      alignItems: "center",
+      marginTop: "20px",
+      gap: "20px",
+    }}
+  >
+    <div>{itemsPerPage} per page</div>
+    <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+      <span>
+        {startIndex + 1}-{Math.min(endIndex, totalItems)} of {totalItems}
+      </span>
+      <span style={{ color: "grey" }}>|</span>
+      <button
+        disabled={currentPage === 1}
+        onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+        style={{
+          border: "none",
+          background: "none",
+          cursor: currentPage === 1 ? "not-allowed" : "pointer",
+        }}
+      >
+        <FaAngleLeft />
+      </button>
+      <button
+        disabled={currentPage === totalPages}
+        onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+        style={{
+          border: "none",
+          background: "none",
+          cursor: currentPage === totalPages ? "not-allowed" : "pointer",
+        }}
+      >
+        <FaChevronRight />
+      </button>
+    </div>
+  </div>
+
 
       {/* popup */}
       {popup && (
@@ -697,7 +760,7 @@ useEffect(() => {
                   overflowY: 'auto',
                 }}
                 >
-            <div ref={formRef} style={{width:'1300px',height:'600px',margin:'auto',padding:'10px 16px',overflowY:'auto',borderRadius:'8px',backgroundColor:'#fff',boxShadow: '0 4px 8px rgba(0,0,0,0.2)',  }}>
+            <div ref={formRef} style={{width:'1300px',height:'670px',margin:'auto',padding:'10px 16px',overflowY:'auto',borderRadius:'8px',backgroundColor:'#fff',boxShadow: '0 4px 8px rgba(0,0,0,0.2)',  }}>
                   
               <div className="">
               {/* All Content */}
@@ -982,7 +1045,7 @@ useEffect(() => {
                               src={selectedProduct.images[0].url}
                               alt={selectedProduct.productName}
                               className="media-image"
-                              style={{ height: "250px", width: "255px" }}
+                              style={{ height: "200px", width: "200px" }}
                             />
                           )}
 
