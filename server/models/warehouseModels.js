@@ -93,7 +93,12 @@ const warehouseSchema = new mongoose.Schema(
     },
 
     capacityEstimate: { type: Number }, // Optional but useful
-    racks: [rackSchema], //  Racks embedded here
+    racks: [rackSchema],
+    isFavorite: {
+      type: Boolean,
+      default: false,
+    },
+     //  Racks embedded here
   },
   { timestamps: true }
 );
