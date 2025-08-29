@@ -1349,6 +1349,7 @@ const EditProduct = () => {
         batchNumber: "",
         returnable: false,
         expirationDate: "",
+        hsn:"",
     });
     const [loading, setLoading] = useState(true);
     // Dropdown states
@@ -1370,6 +1371,8 @@ const EditProduct = () => {
     const [brandId, setBrandId] = useState(null);
     const [categoryId, setCategoryId] = useState(null);
     const [subCategoryId, setSubCategoryId] = useState(null);
+    const [supplierId, setSupplierId] = useState(null);
+    const [warehouseId, setWarehouseId] = useState(null);
 
     // Image state
     const [images, setImages] = useState([]);
@@ -1418,9 +1421,30 @@ const EditProduct = () => {
                 }
 
                 if (data.unit) setSelectedUnits({ value: data.unit, label: data.unit });
-                if (data.supplier) setSelectedSupplier({ value: data.supplier._id || data.supplier, label: data.supplier.firstName ? `${data.supplier.firstName}${data.supplier.lastName} (${data.supplier.supplierCode})` : data.supplier });
-                if (data.warehouse) setSelectedWarehouse({ value: data.warehouse._id || data.warehouse, label: data.warehouse.warehouseName || data.warehouse });
-                if (data.hsnCode) setSelectedHSN({ value: data.hsnCode._id || data.hsnCode, label: data.hsnCode.hsnCode ? `${data.hsnCode.hsnCode} - ${data.hsnCode.description || ''}` : data.hsnCode });
+                // if (data.supplier) setSelectedSupplier({ value: data.supplier._id || data.supplier, label: data.supplier.firstName ? `${data.supplier.firstName}${data.supplier.lastName} (${data.supplier.supplierCode})` : data.supplier });
+                if(data.supplier) {
+                    setSupplierId(data.supplier._id || data.supplier)
+                }
+
+                // if (data.warehouse) setSelectedWarehouse({ value: data.warehouse._id || data.warehouse, label: data.warehouse.warehouseName || data.warehouse });
+                 if(data.warehouse) {
+                    setWarehouseId(data.warehouse._id || data.warehouse)
+                }
+                if (data.hsn) {
+    const hsnOption = optionsHsn.find(opt => opt.value === (data.hsn._id || data.hsn));
+    if (hsnOption) setSelectedHSN(hsnOption);
+}
+
+ if (data.images && data.images.length > 0) {
+                const existingImages = data.images.map((img) => ({
+                    preview: img.url,    // Dropzone expects `preview`
+                    url: img.url,        // Keep original URL if you need
+                    public_id: img.public_id
+                }));
+                setImages(existingImages);
+            }
+
+                // if (data.hsnCode) setSelectedHSN({ value: data.hsnCode._id || data.hsnCode, label: data.hsnCode.hsnCode ? `${data.hsnCode.hsnCode} - ${data.hsnCode.description || ''}` : data.hsnCode });
                 setLoading(false);
             } catch (err) {
                 toast.error("Failed to fetch product");
@@ -1473,6 +1497,7 @@ const EditProduct = () => {
         const fetchHSN = async () => {
             try {
                 const res = await axios.get(`${BASE_URL}/api/hsn/all`);
+                console.log('hsnd', res.data.data)
                 if (res.data.success) {
                     const options = res.data.data.map((item) => ({ value: item._id, label: `${item.hsnCode} - ${item.description || ""}` }));
                     setOptionsHsn(options);
@@ -1537,6 +1562,34 @@ useEffect(() => {
         return [];
     }
 };
+
+
+//supplier
+useEffect(() => {
+    if (supplierId && options.length > 0) {
+        const found = options.find((opt) => opt.value === supplierId);
+        if (found) {
+            setSelectedSupplier(found);
+        }
+    }
+}, [supplierId, options]);
+
+useEffect(() => {
+    if (warehouseId && optionsware.length > 0) {
+        const found = optionsware.find((opt) => opt.value === warehouseId);
+        if (found) setSelectedWarehouse(found);
+    }
+}, [warehouseId, optionsware]);
+
+useEffect(() => {
+    if (optionsHsn.length > 0 && formData.hsn) {
+        const hsnValue = typeof formData.hsn === 'object' ? formData.hsn._id : formData.hsn;
+        const found = optionsHsn.find(opt => opt.value === hsnValue);
+        if (found) setSelectedHSN(found);
+    }
+}, [optionsHsn, formData.hsn]);
+
+
 
 
 
@@ -1655,7 +1708,7 @@ useEffect(() => {
         if (formData.quantity) formPayload.append("quantity", formData.quantity);
         formPayload.append("unit", selectedUnits?.value || "");
         if (formData.taxType) formPayload.append("taxType", formData.taxType);
-        if (formData.tax) formPayload.append("tax", formData.tax);
+        if (formData.tax) formPayload.append("tax",parseFloat(formData.tax.replace(/\D/g,'')) || 0);
         if (formData.discountType) formPayload.append("discountType", formData.discountType);
         if (formData.discountValue) formPayload.append("discountValue", formData.discountValue);
         if (formData.quantityAlert) formPayload.append("quantityAlert", formData.quantityAlert);
@@ -1663,26 +1716,37 @@ useEffect(() => {
         if (formData.seoTitle) formPayload.append("seoTitle", formData.seoTitle);
         if (formData.seoDescription) formPayload.append("seoDescription", formData.seoDescription);
         if (formData.itemType) formPayload.append("itemType", formData.itemType);
-        if (formData.isAdvanced) formPayload.append("isAdvanced", formData.isAdvanced);
+        if (formData.isAdvanced) formPayload.append("isAdvanced", formData.isAdvanced ? true : false);
         if (formData.trackType) formPayload.append("trackType", formData.trackType);
-        if (formData.isReturnable) formPayload.append("isReturnable", formData.isReturnable);
+        if (formData.isReturnable) formPayload.append("isReturnable", formData.isReturnable ? true : false);
         if (formData.leadTime) formPayload.append("leadTime", formData.leadTime);
         if (formData.reorderLevel) formPayload.append("reorderLevel", formData.reorderLevel);
         if (formData.initialStock) formPayload.append("initialStock", formData.initialStock);
         if (formData.serialNumber) formPayload.append("serialNumber", formData.serialNumber);
         if (formData.batchNumber) formPayload.append("batchNumber", formData.batchNumber);
-        if (formData.returnable) formPayload.append("returnable", formData.returnable);
+        if (formData.returnable) formPayload.append("returnable", formData.returnable ? true : false);
         if (formData.expirationDate) formPayload.append("expirationDate", formData.expirationDate);
         formPayload.append("hsn", selectedHSN?.value || "");
         if (formData.variants && Object.keys(formData.variants).length > 0) formPayload.append("variants", JSON.stringify(formData.variants));
-        images.forEach((imgFile) => {
+           // append new images only
+    images.forEach((imgFile) => {
+        if (imgFile instanceof File) {  // only new uploads
             formPayload.append("images", imgFile);
-        });
+        }
+    });
+
+    // append existing images as URLs
+    const existingImageUrls = images
+        .filter(img => !(img instanceof File))
+        .map(img => img.url);  // only URL
+
+    formPayload.append("existingImages", JSON.stringify(existingImageUrls));
         try {
             await axios.put(`${BASE_URL}/api/products/${id}`, formPayload, { headers: { "Content-Type": "multipart/form-data" } });
             toast.success("Product updated successfully!");
             navigate("/product");
         } catch (err) {
+             console.log(err.response?.data);
             toast.error("Failed to update product");
         }
     };

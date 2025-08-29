@@ -33,7 +33,7 @@ router.get("/search", searchProductsByName); // ✅ must come before /products/:
 
 router.get("/", getAllProducts);         // Read All
 router.get("/:id", getProductById);      // Read Single
-router.put("/:id", updateProduct);       // Update
+router.put("/:id", upload.array("images", 10), updateProduct);       // Update
 router.delete("/:id", deleteProduct);    // Delete
 
 
