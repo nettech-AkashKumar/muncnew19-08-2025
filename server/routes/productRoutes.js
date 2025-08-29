@@ -12,6 +12,7 @@ const {
   getProductStock,
 
   getPurchaseReturnStock,
+  // getTotalStockValue 
 } = require("../controllers/productController");
 
 
@@ -37,7 +38,7 @@ router.put("/:id", upload.array("images", 10), updateProduct);       // Update
 router.delete("/:id", deleteProduct);    // Delete
 
 
-
+// router.get("/total-stock-value", getTotalStockValue);
 
 
 module.exports = router;
