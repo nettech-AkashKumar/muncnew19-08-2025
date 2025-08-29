@@ -5,6 +5,7 @@ import DonutChart from "react-donut-chart";
 import { Box, Typography } from "@mui/material";
 import { LineChart } from "@mui/x-charts";
 
+// icons
 import { MdArrowForwardIos } from "react-icons/md";
 import { FaSackDollar } from "react-icons/fa6";
 import { RiAlertFill } from "react-icons/ri";
@@ -17,7 +18,6 @@ import { LuArrowUpDown } from "react-icons/lu";
 
 //
 import BASE_URL from "../../../pages/config/config";
-import AddWarehouseModal from "../../../pages/Modal/warehouse/AddWarehouseModal";
 import axios from "axios";
 import { Link } from "react-router-dom";
 import { useParams } from "react-router-dom";
@@ -89,7 +89,10 @@ function WarehouseDetails() {
     let totalPurchased = 0;
     purchases.forEach((purchase) => {
       const purchaseDate = new Date(purchase.date || purchase.createdAt);
-      if (purchaseDate.getMonth() === month && purchaseDate.getFullYear() === year) {
+      if (
+        purchaseDate.getMonth() === month &&
+        purchaseDate.getFullYear() === year
+      ) {
         if (Array.isArray(purchase.products)) {
           purchase.products.forEach((p) => {
             totalPurchased += p.purchaseQty || p.quantity || p.qty || 0;
@@ -99,7 +102,6 @@ function WarehouseDetails() {
     });
     return totalPurchased;
   });
-
 
   const detailsWarehouses = useCallback(async () => {
     setLoading(true);
@@ -174,7 +176,6 @@ function WarehouseDetails() {
   }, []);
 
   //sales map for top selling products
-
   const salesMap = sales.reduce((acc, sale) => {
     if (!sale.products || !Array.isArray(sale.products)) return acc; // skip if no products
 
@@ -288,6 +289,21 @@ function WarehouseDetails() {
   const totalItems = filteredProducts.reduce((sum, item) => {
     return sum + (item.quantity || 0);
   }, 0);
+
+  //storage
+  const [zones, setZones] = useState([]);
+  useEffect(() => {
+    if (warehousesDetails?.layout?.zones) {
+      const zoneCount = Number(warehousesDetails?.layout?.zones || 0);
+      const zoneArray = Array.from(
+        { length: zoneCount },
+        (_, i) => `Zone ${i + 1}`
+      );
+      setZones(zoneArray);
+    } else {
+      setZones([]);
+    }
+  }, [warehousesDetails]);
 
   return (
     <div>
@@ -494,21 +510,26 @@ function WarehouseDetails() {
             {showTooltips && (
               <div>
                 {outOfStockItems.map((item, index) => (
-                  <div key={index} style={{
-                  position: "absolute",
-                  top: "120%", // below number
-                  left: "50%",
-                  transform: "translateX(-50%)",
-                  backgroundColor: "#f1f3f5",
-                  color: "black",
-                  padding: "8px",
-                  borderRadius: "6px",
-                  fontSize: "12px",
-                  whiteSpace: "pre-line", // makes \n line breaks
-                  zIndex: 10,
-                  width: "200px",
-                  height: "auto",
-                  }}>{item.productName} - {item.quantity} {item.unit}</div>
+                  <div
+                    key={index}
+                    style={{
+                      position: "absolute",
+                      top: "120%", // below number
+                      left: "50%",
+                      transform: "translateX(-50%)",
+                      backgroundColor: "#f1f3f5",
+                      color: "black",
+                      padding: "8px",
+                      borderRadius: "6px",
+                      fontSize: "12px",
+                      whiteSpace: "pre-line", // makes \n line breaks
+                      zIndex: 10,
+                      width: "200px",
+                      height: "auto",
+                    }}
+                  >
+                    {item.productName} - {item.quantity} {item.unit}
+                  </div>
                 ))}
               </div>
             )}
@@ -928,7 +949,7 @@ function WarehouseDetails() {
             justifyContent: "space-between",
           }}
         >
-          <span>Godown</span>
+          <span>Store Room {warehousesDetails?.layout?.zones}</span>
           <span
             style={{
               color: "#1368EC",
@@ -939,7 +960,8 @@ function WarehouseDetails() {
             }}
           >
             <Link
-              to="/Godown"
+              
+              to={`/Godown/${id}`}
               style={{ textDecoration: "none", color: "#1368EC" }}
             >
               View All <FaArrowRight />
@@ -947,118 +969,77 @@ function WarehouseDetails() {
           </span>
         </div>
 
-        {/* Content */}
-        <div
-          style={{
-            border: "1px solid #e6e6e6",
-            backgroundColor: "#FBFBFB",
-            borderRadius: "8px",
-            padding: "24px",
-            display: "flex",
-            flexDirection: "column",
-            gap: "10px",
-          }}
-        >
-          {/* Zone */}
-          <div style={{ display: "flex", justifyContent: "space-between" }}>
-            <span
-              style={{
-                color: "#262626",
-                fontWeight: "400",
-                fontSize: "14px",
-                borderRadius: "8px",
-                border: "1px solid #e6e6e6",
-                padding: "8px",
-                alignItems: "center",
-                gap: "4px",
-              }}
-            >
-              <PiWarehouseBold style={{ color: "#1368EC" }} /> Zone 01
-            </span>
-            <span>
-              <FaArrowRight />
-            </span>
-          </div>
+        {/* Content - zone 1 */}
+        {zones.length > 0 ? (
+          zones.slice(0,2).map((zone, idx) => (
+            <>
+              <div
+                key={idx}
+                style={{
+                  border: "1px solid #e6e6e6",
+                  backgroundColor: "#FBFBFB",
+                  borderRadius: "8px",
+                  padding: "24px",
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: "10px",
+                  marginBottom: "16px",
+                }}
+              >
+                {/* Zone */}
 
-          {/* Used */}
-          <span style={{ color: "#1368EC", fontWeight: "500" }}>86% Used</span>
+                <div
+                  style={{ display: "flex", justifyContent: "space-between" }}
+                >
+                  <span
+                    style={{
+                      color: "#262626",
+                      fontWeight: "400",
+                      fontSize: "14px",
+                      borderRadius: "8px",
+                      border: "1px solid #e6e6e6",
+                      padding: "8px",
+                      alignItems: "center",
+                      gap: "4px",
+                    }}
+                  >
+                    <PiWarehouseBold style={{ color: "#1368EC" }} /> Zone
+                    {idx + 1}
+                  </span>
+                  <span>
+                    <FaArrowRight />
+                  </span>
+                </div>
 
-          {/* Tags */}
-          <div
-            style={{
-              display: "flex",
-              flexWrap: "wrap",
-              gap: "8px",
-            }}
-          >
-            <span style={tagStyle}>Construction Material</span>
-            <span style={tagStyle}>Plywood Material</span>
-            <span style={tagStyle}>Paint</span>
-            <span style={tagStyle}>Adhesive</span>
-            <span style={tagStyle}>Cements</span>
-            <span style={tagStyle}>Iron Rods</span>
-            <span style={tagStyle}>Water Heater</span>
-            <span style={tagStyle}>Plywood</span>
-            <span style={tagStyle}>Sunmica</span>
-          </div>
-        </div>
+                {/* Used */}
+                <span style={{ color: "#1368EC", fontWeight: "500" }}>
+                  86% Used
+                </span>
 
-        {/* Content */}
-        <div
-          style={{
-            border: "1px solid #e6e6e6",
-            backgroundColor: "#FBFBFB",
-            borderRadius: "8px",
-            padding: "24px",
-            display: "flex",
-            flexDirection: "column",
-            gap: "10px",
-            marginTop: "20px",
-          }}
-        >
-          {/* Zone */}
-          <div style={{ display: "flex", justifyContent: "space-between" }}>
-            <span
-              style={{
-                color: "#262626",
-                fontWeight: "400",
-                fontSize: "14px",
-                borderRadius: "8px",
-                border: "1px solid #e6e6e6",
-                padding: "8px",
-                alignItems: "center",
-                gap: "4px",
-              }}
-            >
-              <PiWarehouseBold style={{ color: "#1368EC" }} /> Zone 01
-            </span>
-            <span>
-              <FaArrowRight />
-            </span>
-          </div>
-
-          {/* Used */}
-          <span style={{ color: "#1368EC", fontWeight: "500" }}>86% Used</span>
-
-          {/* Tags */}
-          <div
-            style={{
-              display: "flex",
-              flexWrap: "wrap",
-              gap: "8px",
-            }}
-          >
-            <span style={tagStyle}>Construction Material</span>
-            <span style={tagStyle}>Plywood Material</span>
-            <span style={tagStyle}>Paint</span>
-            <span style={tagStyle}>Adhesive</span>
-            <span style={tagStyle}>Cements</span>
-            <span style={tagStyle}>Iron Rods</span>
-            <span style={tagStyle}>Water Heater</span>
-            <span style={tagStyle}>Plywood</span>
-            <span style={tagStyle}>Sunmica</span>
-          </div>
-        </div>
+                {/* Tags */}
+                <div
+                  style={{
+                    display: "flex",
+                    flexWrap: "wrap",
+                    gap: "8px",
+                  }}
+                >
+                  <span style={tagStyle}>Construction Material</span>
+                  <span style={tagStyle}>Plywood Material</span>
+                  <span style={tagStyle}>Paint</span>
+                  <span style={tagStyle}>Adhesive</span>
+                  <span style={tagStyle}>Cements</span>
+                  <span style={tagStyle}>Iron Rods</span>
+                  <span style={tagStyle}>Water Heater</span>
+                  <span style={tagStyle}>Plywood</span>
+                  <span style={tagStyle}>Sunmica</span>
+                </div>
+              </div>
+            </>
+          ))
+        ) : (
+          <div></div>
+        )}
       </div>
 
       {/* Stock Movement History */}
@@ -1334,6 +1315,7 @@ function WarehouseDetails() {
           </table>
         </div>
       </div>
+
     </div>
   );
 }

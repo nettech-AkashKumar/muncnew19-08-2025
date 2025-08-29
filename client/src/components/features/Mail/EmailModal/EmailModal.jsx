@@ -13,7 +13,7 @@ import { FaMinus } from "react-icons/fa";
 import { GoScreenFull } from "react-icons/go";
 import { toast } from "react-toastify";
 import BASE_URL from "../../../../pages/config/config";
-import Ma from "../../../../assets/images/sewc.png"
+import Ma from "../../../../assets/images/sewc.png";
 
 const EmailModal = ({
   show,
@@ -23,7 +23,7 @@ const EmailModal = ({
   subject: initialSubject = "",
   body: initialBody = "",
   onSent,
-  onDelete
+  onDelete,
 }) => {
   const [showCc, setShowCc] = useState(false);
   const [showBcc, setShowBcc] = useState(false);
@@ -40,6 +40,12 @@ const EmailModal = ({
   const [linkUrl, setLinkUrl] = useState("");
   const [showCalendar, setShowCalendar] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [emailHistory, setEmailHistory] = useState([]);
+
+  useEffect(() => {
+    const stored = JSON.parse(localStorage.getItem("emailHistory")) || [];
+    setEmailHistory(stored);
+  }, [show]); // reload every time modal opens
 
   // sync when props change for (reply and forward)
   //   useEffect(() => {
@@ -69,9 +75,6 @@ const EmailModal = ({
       setBody(initialBody);
     }
   }, [show]); // <-- only depend on `show`
-
-
-
 
   const fileInputRef = useRef();
   const imageInputRef = useRef();
@@ -103,14 +106,56 @@ const EmailModal = ({
 
   if (!show) return null;
 
+  const isValidEmail = (email) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
+  const validateEmails = (emails) => {
+    if (!emails) return true; // allow empty cc/bcc
+    return emails
+      .split(",")
+      .map((e) => e.trim())
+      .every(isValidEmail);
+  };
+
+  const saveEmailsToHistory = (emails) => {
+    if (!emails) return;
+    const history = JSON.parse(localStorage.getItem("emailHistory")) || [];
+    const newEmails = emails
+      .split(",")
+      .map((e) => e.trim())
+      .filter(Boolean);
+    const merged = Array.from(new Set([...history, ...newEmails])); // unique
+    localStorage.setItem("emailHistory", JSON.stringify(merged));
+  };
+
   const handleSend = async () => {
+    if (!validateEmails(to)) {
+      toast.error("Invalid email address in To field");
+      return;
+    }
+    if (!validateEmails(cc)) {
+      toast.error("Invalid email address in Cc field");
+      return;
+    }
+    if (!validateEmails(bcc)) {
+      toast.error("Invalid email address in Bcc field");
+      return;
+    }
     try {
       setLoading(true);
       const token = localStorage.getItem("token"); // get token
       const formData = new FormData();
-      to.split(",").map(t => t.trim()).forEach(email => formData.append("to", email));
-      cc.split(",").map(t => t.trim()).forEach(email => formData.append("cc", email));
-      bcc.split(",").map(t => t.trim()).forEach(email => formData.append("bcc", email));
+      to.split(",")
+        .map((t) => t.trim())
+        .forEach((email) => formData.append("to", email));
+      cc.split(",")
+        .map((t) => t.trim())
+        .forEach((email) => formData.append("cc", email));
+      bcc
+        .split(",")
+        .map((t) => t.trim())
+        .forEach((email) => formData.append("bcc", email));
       // formData.append("from", ""); // use default or actual
       formData.append("subject", subject);
       formData.append("body", body);
@@ -130,11 +175,14 @@ const EmailModal = ({
       await axios.post(`${BASE_URL}/api/email/mail/send`, formData, {
         headers: {
           "Content-Type": "multipart/form-data",
-          Authorization: `Bearer ${token}` // ✅ include token here
+          Authorization: `Bearer ${token}`, // ✅ include token here
         },
       });
+      saveEmailsToHistory(to);
+      saveEmailsToHistory(cc);
+      saveEmailsToHistory(bcc);
       toast.success("Email sent successfully!", {
-        position: 'top-center'
+        position: "top-center",
       });
       if (onSent) {
         onSent();
@@ -201,10 +249,10 @@ const EmailModal = ({
         type: "draft",
       };
 
-          let existingDrafts =
+      let existingDrafts =
         JSON.parse(localStorage.getItem("emailDrafts")) || [];
       if (draft?.timestamp) {
-        existingDrafts = existingDrafts.map(d =>
+        existingDrafts = existingDrafts.map((d) =>
           d.timestamp === draft.timestamp ? newDraft : d
         );
       } else {
@@ -229,47 +277,107 @@ const EmailModal = ({
 
   return (
     <div className="mailmdl-modal-overlay">
-      <div className={`mailmdl-email-modal ${isExpanded ? "expanded-modal" : ""}`}>
+      <div
+        className={`mailmdl-email-modal ${isExpanded ? "expanded-modal" : ""}`}
+      >
         <div className="mailmdl-modal-header">
           <span className="mailmdl-nwemsfg">New Message</span>
           <div className="mailmdl-header-actions">
-            <button className="mailmdlbutton" style={{ color: 'black', border: 'none', backgroundColor: 'transparent' }} onClick={onClose}>
+            <button
+              className="mailmdlbutton"
+              style={{
+                color: "black",
+                border: "none",
+                backgroundColor: "transparent",
+              }}
+              onClick={onClose}
+            >
               <MdOutlineMinimize style={{ fontWeight: 300 }} />
             </button>
-            <button className="mailmdlbutton" style={{ color: 'black', border: 'none', backgroundColor: 'transparent' }} onClick={toggleExpanded}>
+            <button
+              className="mailmdlbutton"
+              style={{
+                color: "black",
+                border: "none",
+                backgroundColor: "transparent",
+              }}
+              onClick={toggleExpanded}
+            >
               <GoScreenFull style={{ fontWeight: 300 }} />
             </button>
-            <button className="mailmdlbutton" style={{ color: 'black', border: 'none', backgroundColor: 'transparent' }} onClick={handleDraftDelete}>
+            <button
+              className="mailmdlbutton"
+              style={{
+                color: "black",
+                border: "none",
+                backgroundColor: "transparent",
+              }}
+              onClick={handleDraftDelete}
+            >
               ✕
             </button>
           </div>
         </div>
 
-        <div className="mailmdl-modal-body" style={{ margin: '10px' }}>
-          <div className="mailmdl-to-field" style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-            <label style={{ color: '#676767', fontWeight: 400, fontSize: '16px', lineHeight: '10px', letterSpacing: '0', marginTop: '10px' }}>To:</label>
+        <div className="mailmdl-modal-body" style={{ margin: "10px" }}>
+        <div>
+          <div
+            className="mailmdl-to-field"
+            style={{ display: "flex", alignItems: "center", gap: "10px" }}
+          >
+            <label
+              style={{
+                color: "#676767",
+                fontWeight: 400,
+                fontSize: "16px",
+                lineHeight: "10px",
+                letterSpacing: "0",
+                marginTop: "10px",
+              }}
+            >
+              To:
+            </label>
             {/* <hr style={{width:'100%', height:'1px'}} /> */}
             <input
               className="mailmdl"
-              type="email"
+              type="text"
+              list="email-suggestions"
               value={to}
               onChange={(e) => setTo(e.target.value)}
               style={{
-                border: 'none',
-                borderBottom: '1px solid #D9D9D9',
-                outline: 'none',
-                background: 'transparent',
-                fontSize: '16px',
-                marginLeft: '-10px',
-                padding: '4px 0',
-                width: '100%',
+                border: "none",
+                borderBottom: "1px solid #D9D9D9",
+                outline: "none",
+                background: "transparent",
+                fontSize: "16px",
+                marginLeft: "-10px",
+                padding: "4px 0",
+                width: "100%",
               }}
             />
-            <span style={{ color: '#676767', fontWeight: 400, fontSize: '16px', lineHeight: '10px', letterSpacing: '0', cursor: 'pointer' }} className="cc-bcc" onClick={() => setShowCc(!showCc)}>
+            <span
+              style={{
+                color: "#676767",
+                fontWeight: 400,
+                fontSize: "16px",
+                lineHeight: "10px",
+                letterSpacing: "0",
+                cursor: "pointer",
+              }}
+              className="cc-bcc"
+              onClick={() => setShowCc(!showCc)}
+            >
               Cc
             </span>
             <span
-              style={{ color: '#676767', fontWeight: 400, fontSize: '16px', lineHeight: '10px', letterSpacing: '0', cursor: 'pointer' }}
+              style={{
+                color: "#676767",
+                fontWeight: 400,
+                fontSize: "16px",
+                lineHeight: "10px",
+                letterSpacing: "0",
+                cursor: "pointer",
+              }}
               className=""
               onClick={() => setShowBcc(!showBcc)}
             >
@@ -279,21 +387,33 @@ const EmailModal = ({
           {/* for cc */}
           {showCc && (
             <div className="mailmdl-to-field">
-              <label style={{ color: '#676767', fontWeight: 400, fontSize: '16px', lineHeight: '10px', letterSpacing: '0' }} htmlFor="">Cc:</label>
+              <label
+                style={{
+                  color: "#676767",
+                  fontWeight: 400,
+                  fontSize: "16px",
+                  lineHeight: "10px",
+                  letterSpacing: "0",
+                }}
+                htmlFor=""
+              >
+                Cc:
+              </label>
               <input
                 className="mailmdl"
-                type="email"
+                type="text"
+                list="email-suggestions"
                 // placeholder="Add Cc"
                 value={cc}
                 onChange={(e) => setCc(e.target.value)}
                 style={{
-                  border: 'none',
-                  borderBottom: '1px solid #D9D9D9',
-                  outline: 'none',
-                  background: 'transparent',
-                  fontSize: '16px',
-                  padding: '4px 0',
-                  width: '100%',
+                  border: "none",
+                  borderBottom: "1px solid #D9D9D9",
+                  outline: "none",
+                  background: "transparent",
+                  fontSize: "16px",
+                  padding: "4px 0",
+                  width: "100%",
                 }}
               />
             </div>
@@ -301,28 +421,57 @@ const EmailModal = ({
           {/* for Bcc */}
           {showBcc && (
             <div className="mailmdl-to-field">
-              <label style={{ color: '#676767', fontWeight: 400, fontSize: '16px', lineHeight: '10px', letterSpacing: '0' }} htmlFor="">Bcc:</label>
+              <label
+                style={{
+                  color: "#676767",
+                  fontWeight: 400,
+                  fontSize: "16px",
+                  lineHeight: "10px",
+                  letterSpacing: "0",
+                }}
+                htmlFor=""
+              >
+                Bcc:
+              </label>
               <input
                 className="mailmdl"
-                type="email"
+                type="text"
+                list="email-suggestions"
                 // placeholder="Add Bcc"
                 value={bcc}
                 onChange={(e) => setBcc(e.target.value)}
                 style={{
-                  border: 'none',
-                  borderBottom: '1px solid #D9D9D9',
-                  outline: 'none',
-                  background: 'transparent',
-                  fontSize: '16px',
-                  padding: '4px 0',
-                  width: '100%',
+                  border: "none",
+                  borderBottom: "1px solid #D9D9D9",
+                  outline: "none",
+                  background: "transparent",
+                  fontSize: "16px",
+                  padding: "4px 0",
+                  width: "100%",
                 }}
               />
             </div>
           )}
+           <datalist id="email-suggestions">
+              {emailHistory.map((email, i) => (
+                <option key={i} value={email} />
+              ))}
+            </datalist>
+          </div>
           <div>
             <div className="mailmdl-to-field">
-              <label style={{ color: '#676767', fontWeight: 400, fontSize: '16px', lineHeight: '10px', letterSpacing: '0', }} htmlFor="">Subject: </label>
+              <label
+                style={{
+                  color: "#676767",
+                  fontWeight: 400,
+                  fontSize: "16px",
+                  lineHeight: "10px",
+                  letterSpacing: "0",
+                }}
+                htmlFor=""
+              >
+                Subject:{" "}
+              </label>
               <input
                 type="text"
                 className="subject mailmdl"
@@ -330,13 +479,13 @@ const EmailModal = ({
                 value={subject}
                 onChange={(e) => setSubject(e.target.value)}
                 style={{
-                  border: 'none',
-                  borderBottom: '1px solid #D9D9D9',
-                  outline: 'none',
-                  background: 'transparent',
-                  fontSize: '16px',
-                  padding: '4px 0',
-                  width: '100%',
+                  border: "none",
+                  borderBottom: "1px solid #D9D9D9",
+                  outline: "none",
+                  background: "transparent",
+                  fontSize: "16px",
+                  padding: "4px 0",
+                  width: "100%",
                 }}
               />
             </div>
@@ -373,26 +522,47 @@ const EmailModal = ({
           </div>
         </div>
         <div className="mailmdl-modal-footer">
-          <div style={{ display: 'flex', gap: '10px' }}>
+          <div style={{ display: "flex", gap: "10px" }}>
             <button
               className="mailmdl-send-btn"
               onClick={handleSend}
               disabled={loading}
             >
-              <img src={Ma} alt="mma" style={{ color: 'white', marginRight: '10px' }} />
+              <img
+                src={Ma}
+                alt="mma"
+                style={{ color: "white", marginRight: "10px" }}
+              />
               {loading ? "Sending" : "Send "}
             </button>
-            <div className="mailmdl-footer-icons" style={{ display: 'flex', gap: '10px', color: '#676767' }}>
-              <button className="mailmdlbutton" mailmdlbutton onClick={handleAttachmentClick}>
+            <div
+              className="mailmdl-footer-icons"
+              style={{ display: "flex", gap: "10px", color: "#676767" }}
+            >
+              <button
+                className="mailmdlbutton"
+                mailmdlbutton
+                onClick={handleAttachmentClick}
+              >
                 <RiAttachment2 />
               </button>
-              <button className="mailmdlbutton" mailmdlbutton onClick={() => imageInputRef.current.click()}>
+              <button
+                className="mailmdlbutton"
+                mailmdlbutton
+                onClick={() => imageInputRef.current.click()}
+              >
                 <HiOutlinePhotograph />
               </button>
-              <button className="mailmdlbutton" onClick={() => setShowLinkInput((prev) => !prev)}>
+              <button
+                className="mailmdlbutton"
+                onClick={() => setShowLinkInput((prev) => !prev)}
+              >
                 <AiOutlineLink />
               </button>
-              <button className="mailmdlbutton" onClick={() => setShowEmojiPicker(!showEmojiPicker)}>
+              <button
+                className="mailmdlbutton"
+                onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+              >
                 <CiFaceSmile />
               </button>
 
@@ -463,7 +633,9 @@ const EmailModal = ({
               onChange={(e) => setLinkUrl(e.target.value)}
               className="mailmdl"
             />
-            <button className="mailmdlbutton" onClick={handleInsertLink}>Insert</button>
+            <button className="mailmdlbutton" onClick={handleInsertLink}>
+              Insert
+            </button>
           </div>
         )}
       </div>
@@ -472,4 +644,3 @@ const EmailModal = ({
 };
 
 export default EmailModal;
-

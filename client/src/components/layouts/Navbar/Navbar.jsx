@@ -20,8 +20,11 @@ import { toast } from "react-toastify"
 import "react-toastify/dist/ReactToastify.css"
 import { io } from 'socket.io-client';
 import { useAuth } from '../../auth/AuthContext.jsx';
+import {useInbox} from "../../../components/features/Mail/SideBar/InboxContext"
+
 
 function Navbar() {
+ const { inboxCount, fetchInboxCount } = useInbox();
     // state for company logo
   const [companyImages, setCompanyImages] = useState(null)
   const [isDarkMode, setIsDarkMode] = useState(false)
@@ -243,6 +246,33 @@ function Navbar() {
     }
   }, [companyImages])
 
+//   const fetchInboxCount = async () => {
+//     try {
+//        const token = localStorage.getItem("token");
+//       const res = await axios.get(`${BASE_URL}/api/email/mail/inbox-count`, {
+//         headers: { Authorization: `Bearer ${token}` }
+//       },
+//     );
+//     console.log('dd', res.data.count)
+//       if (res.data?.count !== undefined) {
+//         setInboxCount(res.data.count);
+//       }
+//     } catch (error) {
+//       console.log("Error fetching inbox count:", error);
+//     }
+//   };
+//   useEffect(() => {
+//   fetchInboxCount();
+// }, []);
+
+useEffect(() => {
+  const interval = setInterval(() => {
+    fetchInboxCount();
+  }, 5000); // every 5 seconds
+  return () => clearInterval(interval);
+}, []);
+
+
 
 
   return (
@@ -405,10 +435,11 @@ function Navbar() {
           </li>
 
           {/* Email */}
+          {console.log('ftchcnt', inboxCount)}
           <li className="nav-item nav-item-box">
             <Link to="/mail">
               <TbMail />
-              <span className="badge rounded-pill">1</span>
+              <span className="badge rounded-pill">{inboxCount}</span>
             </Link>
           </li>
           {/* Notifications */}
