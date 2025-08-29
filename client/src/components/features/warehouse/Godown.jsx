@@ -17,6 +17,7 @@ import { Link, useParams } from "react-router-dom";
 
 import BASE_URL from "../../../pages/config/config";
 import axios from "axios";
+import { se } from "date-fns/locale";
 
 function Godown() {
   const { id } = useParams();
@@ -148,25 +149,24 @@ function Godown() {
   }, [warehousesDetails]);
 
   const [popup, setIsPopupOpen] = useState(false);
-    const formRef = useRef(null);
-    const handlePopup = () => {
-      setIsPopupOpen(!popup);
-    }
-    const closeForm = () => {
-      setIsPopupOpen(false);
+  const formRef = useRef(null);
+  const handlePopup = () => {
+    setIsPopupOpen(!popup);
+  };
+  const closeForm = () => {
+    setIsPopupOpen(false);
+  };
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (formRef.current && !formRef.current.contains(event.target)) {
+        closeForm();
+      }
     };
-    useEffect(() => {
-      const handleClickOutside = (event) => {
-        if (formRef.current && !formRef.current.contains(event.target)) {
-          closeForm();
-        }
-      };
-      document.addEventListener('mousedown', handleClickOutside);
-      return () => {
-        document.removeEventListener('mousedown', handleClickOutside);
-      };
-    }, []);
-
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
 
   const [allProducts, setAllProducts] = useState([]); // Store all products for filtering
   const [activeTabs, setActiveTabs] = useState({});
@@ -178,7 +178,7 @@ function Godown() {
   const [showDropdown, setShowDropdown] = useState(false);
   const [searchResults, setSearchResults] = useState([]);
 
-useEffect(() => {
+  useEffect(() => {
     const fetchProducts = async () => {
       try {
         const res = await axios.get(`${BASE_URL}/api/products`);
@@ -212,7 +212,6 @@ useEffect(() => {
     const searchTerm = query.toLowerCase();
     const filteredProducts = allProducts.filter((product) => {
       return (
-
         product.productName?.toLowerCase().includes(searchTerm) ||
         (product.brand &&
           typeof product.brand === "object" &&
@@ -238,16 +237,23 @@ useEffect(() => {
     });
 
     setProducts(filteredProducts);
-    setSearchResults(filteredProducts);  // ✅ update dropdown
-    setShowDropdown(true);  
+    setSearchResults(filteredProducts); // ✅ update dropdown
+    setShowDropdown(true);
   };
 
   const handleSelectedProduct = (product) => {
     setSelectedProduct(product);
-    setSearchQuery(product.productName || '');
+    setSearchQuery(product.productName || "");
     setShowDropdown(false);
   };
+
   
+  const handleClearCustomer = () => {
+    setSelectedProduct(null);
+    setSearchQuery('');
+    setSearchResults([]);
+    setShowDropdown(false);
+  };
 
   return (
     <div>
@@ -477,7 +483,7 @@ useEffect(() => {
                         justifyContent: "center",
                         display: "flex",
                         cursor: "pointer",
-                        backgroundColor: '#ffffff',
+                        backgroundColor: "#ffffff",
                       }}
                     >
                       {item}
@@ -990,245 +996,285 @@ useEffect(() => {
 
         {/* popup */}
         {popup && (
-                <div style={{
-                    position: 'fixed',
-                    top: '0',
-                    left: '0',
-                    width: '100%',
-                    height: '100%',
-                    backgroundColor: 'rgba(199, 197, 197, 0.4)',
-                    backdropFilter: 'blur(1px)',
-                    display: 'flex',
-                    justifyContent: 'center',
-                    zIndex: '10',
-                    overflowY: 'auto',
-                    padding: '100px',
+          <div
+            style={{
+              position: "fixed",
+              top: "0",
+              left: "0",
+              width: "100%",
+              height: "100%",
+              backgroundColor: "rgba(199, 197, 197, 0.4)",
+              backdropFilter: "blur(1px)",
+              display: "flex",
+              justifyContent: "center",
+              zIndex: "10",
+              overflowY: "auto",
+              padding: "100px",
+            }}
+          >
+            <div
+              ref={formRef}
+              style={{
+                width: "800px",
+                height: "600px",
+                margin: "auto",
+                marginTop: "10px",
+                padding: "10px 16px",
+                overflowY: "auto",
+                borderRadius: "8px",
+              }}
+            >
+              {/* Search Box */}
+              <div
+                style={{
+                  top: "0",
+                  left: "0",
+                  width: "100%",
+                  height: "100%",
+                  backgroundColor: "#ffffff",
+                  display: "flex",
+                  justifyContent: "center",
+                  //  alignItems: 'center',
+                  zIndex: "1000",
+                }}
+              >
+                <div
+                  style={{
+                    backgroundColor: "#fff",
+                    padding: "20px",
+                    borderRadius: "8px",
+                    textAlign: "center",
+                    width: "100%",
+                    overflowY: "auto",
+                    boxShadow: "0 2px 10px rgba(0, 0, 0, 0.1)",
+                    position: "relative",
                   }}
+                >
+                  <div
+                    style={{
+                      backgroundColor: "#1368ec",
+                      color: "#fff",
+                      padding: "16px 18px",
+                      borderTopLeftRadius: "8px",
+                      borderTopRightRadius: "8px",
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                    }}
                   >
-                  <div ref={formRef} style={{width:'800px',height:'600px',margin:'auto',marginTop:'10px',padding:'10px 16px',overflowY:'auto',borderRadius:'8px'}}>
-        
-                    {/* Search Box */}
-                    
-        
-                    {/* Add New Customer Button */}
+                    <h2 style={{ margin: "0" }}>Assign Product</h2>
+                  </div>
+
+                  <div style={{ marginTop: "10px" }}>
                     <div
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "8px",
+                        marginBottom: "20px",
+                        padding: "5px 10px",
+                      }}
+                    >
+                      <span
+                        style={{
+                          color: "#676767",
+                          fontFamily: "roboto",
+                          fontWeight: "400",
+                          fontSize: "16px",
+                        }}
+                      >
+                        zone -
+                      </span>
+                      {/* grid name */}
+                      <span
+                        style={{
+                          color: "#262626",
+                          fontFamily: "roboto",
+                          fontWeight: "400",
+                          fontSize: "16px",
+                        }}
+                      >
+                        {selectedItem.productName}
+                      </span>
+                    </div>
+
+                    {/* Search Box */}
+                    <div style={{ position: "relative", marginBottom: "20px" }}>
+                      <div
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          border: "1px solid #E1E1E1",
+                          borderRadius: "8px",
+                          backgroundColor: "#fff",
+                          padding: "6px 12px",
+                        }}
+                      >
+                        <IoSearch
                           style={{
-                            top: "0",
-                            left: "0",
+                            fontSize: "20px",
+                            marginRight: "10px",
+                            color: "#C2C2C2",
+                          }}
+                        />
+                        <input
+                          type="text"
+                          placeholder="Search by name, email, or phone number..."
+                          value={searchQuery}
+                          onChange={(e) => handleProductSearch(e.target.value)}
+                          style={{
                             width: "100%",
-                            height: "100%",
-                            backgroundColor: "#ffffff",
-                            display: "flex",
-                            justifyContent: "center",
-                            //  alignItems: 'center',
-                            zIndex: "1000",
+                            padding: "8px",
+                            fontSize: "16px",
+                            border: "none",
+                            outline: "none",
+                            color: "#333",
+                          }}
+                        />
+                      </div>
+
+                      {/* Search Results Dropdown */}
+                      {showDropdown && searchResults.length > 0 && (
+                        <div
+                          style={{
+                            position: "absolute",
+                            top: "100%",
+                            left: 0,
+                            right: 0,
+                            backgroundColor: "white",
+                            border: "1px solid #E1E1E1",
+                            borderRadius: "8px",
+                            boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
+                            maxHeight: "300px",
+                            overflowY: "auto",
+                            zIndex: 1000,
                           }}
                         >
-                          <div
-                            style={{
-                              backgroundColor: "#fff",
-                              padding: "20px",
-                              borderRadius: "8px",
-                              textAlign: "center",
-                              width: "100%",
-                              overflowY: "auto",
-                              boxShadow: "0 2px 10px rgba(0, 0, 0, 0.1)",
-                              position: "relative",
-                            }}
-                          >
+                          {searchResults.map((product) => (
                             <div
+                              key={product._id}
+                              onClick={() => handleSelectedProduct(product)} // you can replace with select handler
                               style={{
-                                backgroundColor: "#1368ec",
-                                color: "#fff",
-                                padding: "16px 18px",
-                                borderTopLeftRadius: "8px",
-                                borderTopRightRadius: "8px",
-                                display: "flex",
-                                justifyContent: "space-between",
-                                alignItems: "center",
+                                padding: "12px 16px",
+                                cursor: "pointer",
                               }}
                             >
-                              <h2 style={{ margin: "0" }}>Assign Product</h2>
-                              
-                            </div>
-                    
-                            <div style={{ marginTop: "10px" }}>
                               <div
-                                style={{
-                                  display: "flex",
-                                  alignItems: "center",
-                                  gap: "8px",
-                                  marginBottom: "20px",
-                                  padding: "5px 10px",
-                                }}
+                                style={{ fontWeight: "600", textAlign: "left" }}
                               >
-                                <span
-                                  style={{
-                                    color: "#676767",
-                                    fontFamily: "roboto",
-                                    fontWeight: "400",
-                                    fontSize: "16px",
-                                  }}
-                                >
-                                  zone - 
-                                </span>
-                                {/* grid name */}
-                                <span
-                                  style={{
-                                    color: "#262626",
-                                    fontFamily: "roboto",
-                                    fontWeight: "400",
-                                    fontSize: "16px",
-                                  }}
-                                >
-                                  {selectedItem.productName}
-                                </span>
+                                {product.productName || "No Name"}
                               </div>
-                    
-                              {/* search bar */}
-                    
-                              {/* Search Box */}
-                              <div style={{ position: "relative", marginBottom: "20px" }}>
-                                <div
-                                  style={{
-                                    display: "flex",
-                                    alignItems: "center",
-                                    border: "1px solid #E1E1E1",
-                                    borderRadius: "8px",
-                                    backgroundColor: "#fff",
-                                    padding: "6px 12px",
-                                  }}
-                                >
-                                  <IoSearch
-                                    style={{
-                                      fontSize: "20px",
-                                      marginRight: "10px",
-                                      color: "#C2C2C2",
-                                    }}
-                                  />
-                                  <input
-                                    type="text"
-                                    placeholder="Search by name, email, or phone number..."
-                                    value={searchQuery}
-                                    onChange={(e) => handleProductSearch(e.target.value)}
-                                    style={{
-                                      width: "100%",
-                                      padding: "8px",
-                                      fontSize: "16px",
-                                      border: "none",
-                                      outline: "none",
-                                      color: "#333",
-                                    }}
-                                  />
-                                </div>
-                    
-                                {/* Search Results Dropdown */}
-                                {showDropdown && searchResults.length > 0 && (
-                                  <div
-                                    style={{
-                                      position: "absolute",
-                                      top: "100%",
-                                      left: 0,
-                                      right: 0,
-                                      backgroundColor: "white",
-                                      border: "1px solid #E1E1E1",
-                                      borderRadius: "8px",
-                                      boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
-                                      maxHeight: "300px",
-                                      overflowY: "auto",
-                                      zIndex: 1000,
-                                    }}
-                                  >
-                                    {searchResults.map((product) => (
-                                      <div
-                                        key={product._id}
-                                        onClick={() => handleSelectedProduct(product)} // you can replace with select handler
-                                        style={{ padding: "12px 16px", cursor: "pointer" }}
-                                      >
-                                        <div style={{ fontWeight: "600", textAlign: "left" }}>
-                                          {product.productName || "No Name"}
-                                        </div>
-                                        <div style={{ fontSize: "14px", color: "#666" }}>
-                                        </div>
-                                      </div>
-                                    ))}
-                                  </div>
-                                )}
-                    
-                                {/* No Results Message */}
-                                {showDropdown &&
-                                  searchResults.length === 0 &&
-                                  searchQuery.trim() !== "" && (
-                                    <div
-                                      style={{
-                                        position: "absolute",
-                                        top: "100%",
-                                        left: 0,
-                                        right: 0,
-                                        backgroundColor: "white",
-                                        border: "1px solid #E1E1E1",
-                                        borderRadius: "8px",
-                                        padding: "16px",
-                                        textAlign: "center",
-                                        color: "#666",
-                                        zIndex: 1000,
-                                      }}
-                                    >
-                                      No product found matching "{searchQuery}"
-                                    </div>
-                                  )}
-                              </div>
-                    
                               <div
-                                style={{
-                                  border: "1px solid #c2c2c2",
-                                  color: "#ffffff",
-                                  borderRadius: "8px",
-                                  gap: "10px",
-                                  marginTop: "5px",
-                                }}
-                              >
-                                <div style={{ padding: "10px 16px" }}>
-                                  <p style={{ color: "#676767", margin: "20px 0" }}>
-                                    You haven't added any products yet.
-                                    <br /> Use <span style={{ color: "#177ecc" }}>
-                                      browse
-                                    </span> or <span style={{ color: "#177ecc" }}>search</span> to
-                                    get started.
-                                  </p>
-                                </div>
-                                <div
-                                  style={{
-                                    position: "absolute",
-                                    bottom: "10px",
-                                    right: "20px",
-                                    justifyContent: "right",
-                                    display: "flex",
-                                  }}
-                                >
-                                  <button
-                                    
-                                    style={{
-                                      padding: "8px 16px",
-                                      backgroundColor: "#007bff",
-                                      color: "#fff",
-                                      border: "none",
-                                      borderRadius: "4px",
-                                      cursor: "pointer",
-                                    }}
-                                  >
-                                    Done
-                                  </button>
-                                </div>
-                              </div>
+                                style={{ fontSize: "14px", color: "#666" }}
+                              ></div>
                             </div>
+                          ))}
+                        </div>
+                      )}
+
+                      {/* No Results Message */}
+                      {showDropdown &&
+                        searchResults.length === 0 &&
+                        searchQuery.trim() !== "" && (
+                          <div
+                            style={{
+                              position: "absolute",
+                              top: "100%",
+                              left: 0,
+                              right: 0,
+                              backgroundColor: "white",
+                              border: "1px solid #E1E1E1",
+                              borderRadius: "8px",
+                              padding: "16px",
+                              textAlign: "center",
+                              color: "#666",
+                              zIndex: 1000,
+                            }}
+                          >
+                            No product found matching "{searchQuery}"
                           </div>
+                        )}
                     </div>
-                    
+
+                    {/* Message Box */}
+                    {selectedproduct ? (
+                        <>
+                      <div style={{ textAlign: "left", marginTop: "20px" }}>
+                        <div style={{ color: "#676767", margin: "",textAlign:"left",color:"#262626",fontWeight:"500", display:"flex",alignItems:"center",justifyContent:"space-between",gap:"10px" }}>
+                          <div><img src={selectedproduct?.images[0]?.url} style={{width:"40px",height:"40px",marginRight:"10px",border:"none"}} /></div>
+                          <div>{selectedproduct.productName}</div>
+                          <button 
+                            onClick={handleClearCustomer}
+                            style={{
+                              background:'none',
+                              border:'none',
+                              color:'#dc3545',
+                              cursor:'pointer',
+                              fontSize:'12px',
+                              padding:'2px 6px',
+                              borderRadius:'4px'
+                            }}
+                            title="Clear customer"
+                          >
+                            ✕
+                          </button>
+                        </div>
+                      </div>
+                      </>
+                      ) : (
+                    <div
+                      style={{
+                        border: "1px solid #c2c2c2",
+                        color: "#ffffff",
+                        borderRadius: "8px",
+                        gap: "10px",
+                        marginTop: "5px",
+                      }}
+                    >
+                      
+                        <div style={{ padding: "10px 16px" }}>
+                          <p style={{ color: "#676767", margin: "20px 0" }}>
+                            You haven't added any products yet.
+                            <br /> Use
+                            <span style={{ color: "#177ecc" }}> browse</span> or
+                            <span style={{ color: "#177ecc" }}>search</span> to
+                            get started.
+                          </p>
+                        </div>
+                      
+
+                      {/* Done Button */}
+                      
+                    </div>
+                    )}
+                    <div
+                        style={{
+                          position: "absolute",
+                          bottom: "10px",
+                          right: "20px",
+                          justifyContent: "right",
+                          display: "flex",
+                        }}
+                      >
+                        <button
+                          style={{
+                            padding: "8px 16px",
+                            backgroundColor: "#007bff",
+                            color: "#fff",
+                            border: "none",
+                            borderRadius: "4px",
+                            cursor: "pointer",
+                          }}
+                        >
+                          Done
+                        </button>
+                      </div>
                   </div>
-        
                 </div>
-              )}
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Footer */}
