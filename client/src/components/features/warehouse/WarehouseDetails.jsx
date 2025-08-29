@@ -826,11 +826,8 @@ function WarehouseDetails() {
                   fontWeight: "400",
                 }}
               >
-                <th style={{ padding: "12px 24px" }}>
-                  <input type="checkbox" />
-                </th>
-                <th></th>
-                <th style={{ padding: "12px 24px" }}>Product</th>
+                <th style={{ padding: "12px 24px", display: "flex", gap: "20px" }}>
+                  <input type="checkbox" />Product</th>
                 <th style={{ padding: "12px 24px" }}>SKU</th>
                 <th style={{ padding: "12px 24px" }}>MRP</th>
                 <th style={{ padding: "12px 24px" }}>Available QTY</th>
@@ -855,17 +852,12 @@ function WarehouseDetails() {
                         style={{
                           padding: "12px 24px",
                           borderBottom: "1px solid #e6e6e6",
+                          display: "flex",
+                          gap: "20px",
                         }}
                       >
                         <input type="checkbox" />
-                      </td>
-                      <td
-                        style={{
-                          // padding: "12px 24px",
-                          borderBottom: "1px solid #e6e6e6",
-                        }}
-                      >
-                        <img
+                         <img
                           src={item.images[0]?.url}
                           alt=""
                           style={{
@@ -874,13 +866,7 @@ function WarehouseDetails() {
                             border: "1px solid #f1f1f1",
                             backgroundColor: "#D9D9D9",
                           }}
-                        />
-                      </td>
-                      <td
-                        style={{
-                          borderBottom: "1px solid #e6e6e6",
-                        }}
-                      >
+                          />
                         {item.productName}
                       </td>
                       <td
@@ -1218,10 +1204,9 @@ function WarehouseDetails() {
                   fontWeight: "400",
                 }}
               >
-                <th style={{ padding: "12px 24px", textAlign: "left" }}>
+                <th style={{ padding: "12px 24px", textAlign: "left", display: "flex", gap: "20px" }}>
                   <input type="checkbox" />
-                </th>
-                <th style={{ padding: "12px 24px", textAlign: "left" }}>
+
                   Product
                 </th>
                 <th style={{ padding: "12px 24px", textAlign: "left" }}>
@@ -1247,16 +1232,18 @@ function WarehouseDetails() {
                     style={{
                       padding: "12px 24px",
                       borderBottom: "1px solid #e6e6e6",
+                      display: "flex",
+                      gap: "20px",
                     }}
                   >
                     <input type="checkbox" />
-                  </td>
-                  <td
+                    <img src="" alt="" 
                     style={{
-                      padding: "12px 24px",
-                      borderBottom: "1px solid #e6e6e6",
-                    }}
-                  >
+                            width: "35px",
+                            borderRadius: "4px",
+                            border: "1px solid #f1f1f1",
+                            backgroundColor: "#D9D9D9",
+                          }} />
                     {purchase.products[0]?.product?.productName}
                   </td>
                   <td
