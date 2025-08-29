@@ -486,39 +486,6 @@ const ExpenseFormSecond = ({ onClose, expense }) => {
     setFiles(droppedFiles);
   };
 
-  // const handleSave = async () => {
-  //   try {
-  //     const formData = new FormData();
-  //     formData.append("paymentStatus", paymentStatus);
-  //     formData.append("notes", notes);
-  //     formData.append("expenseTitle", expenseTitle);
-  //     formData.append("amount", amount);
-  //     formData.append("paymentMode", paymentMode);
-  //     formData.append("paidTo", paidTo);
-  //     formData.append("date", date.toISOString());
-
-  //     files.forEach((file, index) => {
-  //       formData.append("files", file);
-  //     });
-
-  //     if (expense && expense._id) {
-  //       // Update existing expense
-  //       await axios.put(`/api/expenses/${expense._id}`, formData, {
-  //         headers: { "Content-Type": "multipart/form-data" },
-  //       });
-  //     } else {
-  //       // Create new expense
-  //       await axios.post("/api/expenses", formData, {
-  //         headers: { "Content-Type": "multipart/form-data" },
-  //       });
-  //     }
-
-  //     handleClose();
-  //   } catch (error) {
-  //     console.error("Error saving expense:", error);
-  //     alert("Failed to save expense.");
-  //   }
-  // };
 
   const handleSave = async () => {
   try {
