@@ -196,3 +196,28 @@ exports.updateRack = async (req, res) => {
     await wh.save();
     res.json({ success: true, rack });
 };
+
+exports.toggleFavoriteWarehouse = async (req, res) => {
+  try {
+    const warehouse = await Warehouse.findById(req.params.id);
+    if (!warehouse) return res.status(404).json({ success: false, message: "Warehouse not found" });
+    warehouse.isFavorite = !warehouse.isFavorite;
+    await warehouse.save();
+    res.json({ success: true, warehouse });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+};
+
+exports.getFavoriteWarehouses = async (req, res) => {
+  try {
+    const favoriteWarehouses = await Warehouse.find({ isFavorite: true })
+      .populate("contactPerson", "firstName lastName email")
+      .populate("country", "name")
+      .populate("state", "stateName")
+      .populate("city", "cityName");
+    res.json({ success: true, data: favoriteWarehouses });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+};

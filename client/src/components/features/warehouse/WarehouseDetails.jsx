@@ -21,7 +21,7 @@ import BASE_URL from "../../../pages/config/config";
 import axios from "axios";
 import { Link } from "react-router-dom";
 import { useParams } from "react-router-dom";
-import { he } from 'date-fns/locale';
+import { he } from "date-fns/locale";
 
 function WarehouseDetails() {
   const [activeTab, setActiveTab] = useState("All");
@@ -438,29 +438,35 @@ function WarehouseDetails() {
             <b>{lowStockItems.length}</b>
 
             {showTooltip && (
-              <div
-                style={{
-                  position: "absolute",
-                  top: "120%", // below number
-                  left: "50%",
-                  transform: "translateX(-50%)",
-                  backgroundColor: "#f1f3f5",
-                  color: "black",
-                  padding: "8px",
-                  borderRadius: "6px",
-                  fontSize: "12px",
-                  whiteSpace: "pre-line", // makes \n line breaks
-                  zIndex: 10,
-                  width: "200px",
-                  height: "auto",
-                }}
-              >
-                {lowStockItems
-                  .map(
-                    (item) =>
-                      `${item.productName} - ${item.quantity} ${item.unit}`
-                  )
-                  .join("\n")}
+              <div>
+                {lowStockItems.length > 0 && (
+                  <div
+                    style={{
+                      position: "absolute",
+                      top: "120%",
+                      left: "50%",
+                      transform: "translateX(-50%)",
+                      backgroundColor: "#f1f3f5",
+                      color: "black",
+                      padding: "8px",
+                      borderRadius: "6px",
+                      fontSize: "12px",
+                      zIndex: 10,
+                      width: "250px",
+                      height: "auto",
+                      marginTop: "10px",
+                      fontFamily: "Roboto",
+                      fontWeight: "500",
+                    }}
+                  >
+                    {lowStockItems.map((product, index) => (
+                      <p key={index} style={{ margin: "4px 0" }}>
+                        {product.productName} - {product.quantity}{" "}
+                        {product.unit}
+                      </p>
+                    ))}
+                  </div>
+                )}
               </div>
             )}
           </div>
@@ -510,12 +516,11 @@ function WarehouseDetails() {
 
             {showTooltips && (
               <div>
-                {outOfStockItems.map((item, index) => (
+                {outOfStockItems.length > 0 && (
                   <div
-                    key={index}
                     style={{
                       position: "absolute",
-                      top: "120%", // below number
+                      top: "120%",
                       left: "50%",
                       transform: "translateX(-50%)",
                       backgroundColor: "#f1f3f5",
@@ -523,15 +528,21 @@ function WarehouseDetails() {
                       padding: "8px",
                       borderRadius: "6px",
                       fontSize: "12px",
-                      whiteSpace: "pre-line", // makes \n line breaks
                       zIndex: 10,
-                      width: "200px",
+                      width: "250px",
                       height: "auto",
+                      marginTop: "10px",
+                      fontFamily: "Roboto",
+                      fontWeight: "500",
                     }}
                   >
-                    {item.productName} - {item.quantity} {item.unit}
+                    {outOfStockItems.map((product, index) => (
+                      <p key={index} style={{ margin: "4px 0" }}>
+                        {product.productName}
+                      </p>
+                    ))}
                   </div>
-                ))}
+                )}
               </div>
             )}
           </div>
@@ -827,8 +838,12 @@ function WarehouseDetails() {
                   fontWeight: "400",
                 }}
               >
-                <th style={{ padding: "12px 24px", display: "flex", gap: "20px" }}>
-                  <input type="checkbox" />Product</th>
+                <th
+                  style={{ padding: "12px 24px", display: "flex", gap: "20px" }}
+                >
+                  <input type="checkbox" />
+                  Product
+                </th>
                 <th style={{ padding: "12px 24px" }}>SKU</th>
                 <th style={{ padding: "12px 24px" }}>MRP</th>
                 <th style={{ padding: "12px 24px" }}>Available QTY</th>
@@ -839,79 +854,94 @@ function WarehouseDetails() {
 
             <tbody>
               {product
-                .filter(
-                  (item) =>
-                    item.warehouseName === warehousesDetails?.warehouseName
-                ) // filter by warehouse
-                .sort((a, b) => (salesMap[b._id] || 0) - (salesMap[a._id] || 0))
-                .slice(0, 5) // limit to 5 products
-                .map((item, idx) => {
-                  const soldUnits = salesMap[item._id] || 0; // total sold across all sales
-                  return (
-                    <tr key={idx} style={{ cursor: "pointer" }}>
-                      <td
-                        style={{
-                          padding: "12px 24px",
-                          borderBottom: "1px solid #e6e6e6",
-                          display: "flex",
-                          gap: "20px",
-                        }}
-                      >
-                        <input type="checkbox" />
-                         <div style={{display:"flex",alignItems:"center",gap:"10px",width:"50px",justifyContent:"center",height:"50px",border:"1px solid #e6e6e6",borderRadius:"8px",padding:"5px"}}>
-                          <img
-                          src={item.images[0]?.url}
-                          alt=""
+                  .filter(
+                    (item) =>
+                      item.warehouseName === warehousesDetails?.warehouseName
+                  )
+                  .sort(
+                    (a, b) => (salesMap[b._id] || 0) - (salesMap[a._id] || 0)
+                  )
+                  .slice(0, 5)
+                  .map((item, idx) => {
+                    const soldUnits = salesMap[item._id] || 0;
+                    return (
+                      <tr key={idx} style={{ cursor: "pointer" }}>
+                        <td
                           style={{
-                            width: "35px",
+                            padding: "12px 24px",
+                            borderBottom: "1px solid #e6e6e6",
+                            display: "flex",
+                            gap: "20px",
                           }}
-                          />
-                         </div>
-                        {item.productName}
-                      </td>
-                      <td
-                        style={{
-                          padding: "12px 24px",
-                          borderBottom: "1px solid #e6e6e6",
-                        }}
-                      >
-                        {item.sku}
-                      </td>
-                      <td
-                        style={{
-                          padding: "12px 24px",
-                          borderBottom: "1px solid #e6e6e6",
-                        }}
-                      >
-                        {item.sellingPrice}
-                      </td>
-                      <td
-                        style={{
-                          padding: "12px 24px",
-                          borderBottom: "1px solid #e6e6e6",
-                        }}
-                      >
-                        {item.quantity} {item.unit}
-                      </td>
-                      <td
-                        style={{
-                          padding: "12px 24px",
-                          borderBottom: "1px solid #e6e6e6",
-                        }}
-                      >
-                        {soldUnits} {/* ✅ total sold from all sales */}
-                      </td>
-                      <td
-                        style={{
-                          padding: "12px 24px",
-                          borderBottom: "1px solid #e6e6e6",
-                        }}
-                      >
-                        {soldUnits * item.sellingPrice} {/* ✅ total revenue */}
-                      </td>
-                    </tr>
-                  );
-                })}
+                        >
+                          <input type="checkbox" />
+                          <div
+                            style={{
+                              display: "flex",
+                              alignItems: "center",
+                              gap: "10px",
+                              width: "50px",
+                              justifyContent: "center",
+                              height: "50px",
+                              border: "1px solid #e6e6e6",
+                              borderRadius: "8px",
+                              padding: "5px",
+                            }}
+                          >
+                            <img
+                              src={item.images[0]?.url}
+                              alt=""
+                              style={{
+                                width: "35px",
+                              }}
+                            />
+                          </div>
+                          {item.productName}
+                        </td>
+                        <td
+                          style={{
+                            padding: "12px 24px",
+                            borderBottom: "1px solid #e6e6e6",
+                          }}
+                        >
+                          {item.sku}
+                        </td>
+                        <td
+                          style={{
+                            padding: "12px 24px",
+                            borderBottom: "1px solid #e6e6e6",
+                          }}
+                        >
+                          {item.sellingPrice}
+                        </td>
+                        <td
+                          style={{
+                            padding: "12px 24px",
+                            borderBottom: "1px solid #e6e6e6",
+                          }}
+                        >
+                          {item.quantity} {item.unit}
+                        </td>
+                        <td
+                          style={{
+                            padding: "12px 24px",
+                            borderBottom: "1px solid #e6e6e6",
+                          }}
+                        >
+                          {soldUnits}
+                        </td>
+                        <td
+                          style={{
+                            padding: "12px 24px",
+                            borderBottom: "1px solid #e6e6e6",
+                          }}
+                        >
+                          {soldUnits * item.sellingPrice}
+                        </td>
+                      </tr>
+                    );
+                  })
+              }
             </tbody>
           </table>
         </div>
@@ -946,7 +976,6 @@ function WarehouseDetails() {
             }}
           >
             <Link
-              
               to={`/Godown/${id}`}
               style={{ textDecoration: "none", color: "#1368EC" }}
             >
@@ -957,7 +986,7 @@ function WarehouseDetails() {
 
         {/* Content - zone 1 */}
         {zones.length > 0 ? (
-          zones.slice(0,2).map((zone, idx) => (
+          zones.slice(0, 2).map((zone, idx) => (
             <>
               <div
                 key={idx}
@@ -1056,7 +1085,7 @@ function WarehouseDetails() {
             }}
           >
             <span>Stock Movement history</span>
-            <div
+            {/* <div
               style={{
                 borderRadius: "4px",
                 border: "1px solid #e6e6e6",
@@ -1077,7 +1106,8 @@ function WarehouseDetails() {
               >
                 <option value="Warehouse">Select Warehouse</option>
               </select>
-            </div>
+              
+            </div> */}
           </div>
         </div>
 
@@ -1118,7 +1148,8 @@ function WarehouseDetails() {
                 cursor: "pointer",
                 borderRadius: "4px",
                 padding: "8px",
-                backgroundColor: activeTab === "Stock In" ? "#d1d1d1" : "#f1f1f1",
+                backgroundColor:
+                  activeTab === "Stock In" ? "#d1d1d1" : "#f1f1f1",
               }}
               onClick={() => setActiveTab("Stock In")}
             >
@@ -1135,11 +1166,24 @@ function WarehouseDetails() {
                 cursor: "pointer",
                 borderRadius: "4px",
                 padding: "8px",
-                backgroundColor: activeTab === "Stock Out" ? "#d1d1d1" : "#f1f1f1",
+                backgroundColor:
+                  activeTab === "Stock Out" ? "#d1d1d1" : "#f1f1f1",
               }}
               onClick={() => setActiveTab("Stock Out")}
             >
               Stock Out
+            </span>
+
+            {/* <span
+              style={{
+                font: "Robot",
+                fontWeight: "400",
+                fontSize: "16px",
+                color: "#262626",
+                padding: "8px",
+              }}
+            >
+              Transfer
             </span>
 
             <span
@@ -1151,19 +1195,8 @@ function WarehouseDetails() {
                 padding: "8px",
               }}
             >
-              Transfer
-            </span>
-            <span
-              style={{
-                font: "Robot",
-                fontWeight: "400",
-                fontSize: "16px",
-                color: "#262626",
-                padding: "8px",
-              }}
-            >
               Processing
-            </span>
+            </span> */}
           </div>
 
           {/* three icon */}
@@ -1213,9 +1246,15 @@ function WarehouseDetails() {
                   fontWeight: "400",
                 }}
               >
-                <th style={{ padding: "12px 24px", textAlign: "left", display: "flex", gap: "20px" }}>
+                <th
+                  style={{
+                    padding: "12px 24px",
+                    textAlign: "left",
+                    display: "flex",
+                    gap: "20px",
+                  }}
+                >
                   <input type="checkbox" />
-
                   Product
                 </th>
                 <th style={{ padding: "12px 24px", textAlign: "left" }}>
@@ -1235,83 +1274,105 @@ function WarehouseDetails() {
             </thead>
 
             <tbody>
-              {filteredPurchases.slice(0, 5).map((purchase) => (
-                <tr key={purchase._id} style={{ cursor: "pointer" }}>
-                  <td
-                    style={{
-                      padding: "12px 24px",
-                      borderBottom: "1px solid #e6e6e6",
-                      display: "flex",
-                      gap: "20px",
-                    }}
-                  >
-                    <input type="checkbox" />
-                    <img src="" alt="" 
-                    style={{
-                            width: "35px",
-                            borderRadius: "4px",
-                            border: "1px solid #f1f1f1",
-                            backgroundColor: "#D9D9D9",
-                          }} />
-                    {purchase.products[0]?.product?.productName ? purchase.products[0]?.product?.productName : "N/A"}
-                  </td>
-                  <td
-                    style={{
-                      padding: "12px 24px",
-                      borderBottom: "1px solid #e6e6e6",
-                    }}
-                  >
-                    {formatDateTime(purchase.createdAt)}
-                  </td>
-                  <td
-                    style={{
-                      padding: "12px 24px",
-                      borderBottom: "1px solid #e6e6e6",
-                    }}
-                  >
-                    {purchase.products[0]?.product?.quantity}
-                  </td>
-                  <td
-                    style={{ borderBottom: "1px solid #ddd", padding: "8px" }}
-                  >
-                    <span
+              {filteredPurchases &&
+                filteredPurchases.slice(0, 5).map((purchase) => (
+                  <tr key={purchase._id} style={{ cursor: "pointer" }}>
+                    <td
                       style={{
-                        padding: "4px 12px",
-                        borderRadius: "20px",
-                        fontSize: "13px",
-                        fontWeight: "500",
-                        color:
-                          purchase.status === "Ordered" ? "#DFFFE0" : "#FCE4E6",
-                        backgroundColor:
-                          purchase.status === "Ordered" ? "#2bAE66" : "#D64550",
+                        padding: "12px 24px",
+                        borderBottom: "1px solid #e6e6e6",
+                        display: "flex",
+                        gap: "20px",
                       }}
                     >
-                      {purchase.status}
-                    </span>
-                  </td>
+                      <input type="checkbox" />
+                      <img
+                        src=""
+                        alt=""
+                        style={{
+                          width: "35px",
+                          borderRadius: "4px",
+                          border: "1px solid #f1f1f1",
+                          backgroundColor: "#D9D9D9",
+                        }}
+                      />
+                      {purchase.products[0]?.product?.productName
+                        ? purchase.products[0]?.product?.productName
+                        : "N/A"}
+                    </td>
+                    <td
+                      style={{
+                        padding: "12px 24px",
+                        borderBottom: "1px solid #e6e6e6",
+                      }}
+                    >
+                      {formatDateTime(purchase.createdAt)}
+                    </td>
+                    <td
+                      style={{
+                        padding: "12px 24px",
+                        borderBottom: "1px solid #e6e6e6",
+                      }}
+                    >
+                      {purchase.products[0]?.product?.quantity}
+                    </td>
+                    <td
+                      style={{ borderBottom: "1px solid #ddd", padding: "8px" }}
+                    >
+                      <span
+                        style={{
+                          padding: "4px 12px",
+                          borderRadius: "20px",
+                          fontSize: "13px",
+                          fontWeight: "500",
+                          color:
+                            purchase.status === "Ordered"
+                              ? "#DFFFE0"
+                              : "#FCE4E6",
+                          backgroundColor:
+                            purchase.status === "Ordered"
+                              ? "#2bAE66"
+                              : "#D64550",
+                        }}
+                      >
+                        {purchase.status}
+                      </span>
+                    </td>
+                    <td
+                      style={{
+                        padding: "12px 24px",
+                        borderBottom: "1px solid #e6e6e6",
+                      }}
+                    >
+                      {purchase.products[0]?.product?.warehouse?.warehouseName}
+                    </td>
+                    <td
+                      style={{
+                        padding: "12px 24px",
+                        borderBottom: "1px solid #e6e6e6",
+                      }}
+                    >
+                      {purchase.referenceNumber}
+                    </td>
+                  </tr>
+                ))}
+              {filteredPurchases.length === 0 && (
+                <tr>
                   <td
                     style={{
-                      padding: "12px 24px",
-                      borderBottom: "1px solid #e6e6e6",
+                      textAlign: "center",
+                      padding: "20px",
+                      color: "#676767",
                     }}
                   >
-                    {purchase.products[0]?.product?.warehouse?.warehouseName}
-                  </td>
-                  <td
-                    style={{
-                      padding: "12px 24px",
-                      borderBottom: "1px solid #e6e6e6",
-                    }}
-                  >
-                    {purchase.referenceNumber}
+                    No stock movement history available.
                   </td>
                 </tr>
-              ))}
+              )}
             </tbody>
           </table>
         </div>
       </div>
-
     </div>
   );
 }
