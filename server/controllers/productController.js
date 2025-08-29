@@ -392,41 +392,49 @@ exports.updateProduct = async (req, res) => {
       discountType,
       discountValue,
       quantityAlert,
-      images,
       description,
       seoTitle,
       seoDescription,
-      variants,
+      hsn,
+      variants: variantsString
     } = req.body;
+
+ // Parse variants if sent as JSON string
+    const variants = variantsString ? JSON.parse(variantsString) : {};
+
+    // Upload new images if provided
+    let newImages = [];
+    if (req.files && req.files.length > 0) {
+      const uploadedImages = await Promise.all(
+        req.files.map(file => cloudinary.uploader.upload(file.path, { folder: "product_images" }))
+      );
+      newImages = uploadedImages.map(img => ({ url: img.secure_url, public_id: img.public_id }));
+    }
+
+    // Merge existing images from frontend
+    let existingImages = [];
+    if (req.body.existingImages) {
+  const parsed = JSON.parse(req.body.existingImages);
+
+  // Make sure each item is an object with url & public_id
+  existingImages = parsed.map(img => {
+    if (typeof img === "string") {
+      return { url: img, public_id: "" }; // no public_id if not sent
+    } else {
+      return img;
+    }
+  });
+}
+
+    const allImages = [...existingImages, ...newImages];
+    
 
     const updatedProduct = await Product.findByIdAndUpdate(
       req.params.id,
       {
-        productName,
-        sku,
-        brand,
-        category,
-        subcategory,
-        supplier,
-        itemBarcode,
-        store,
-        warehouse,
-        purchasePrice,
-        sellingPrice,
-        wholesalePrice,
-        retailPrice,
-        quantity,
-        unit,
-        taxType,
-        tax,
-        discountType,
-        discountValue,
-        quantityAlert,
-        images,
-        description,
-        seoTitle,
-        seoDescription,
-        variants,
+       ...req.body,
+       images: allImages,
+       variants
       },
       { new: true }
     );

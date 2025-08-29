@@ -351,7 +351,9 @@ function Pos() {
   const [activeTabs, setActiveTabs] = useState({});
   
 // Search functionality
-  const [productSearchQuery, setProductSearchQuery] = useState('');
+ 
+  const [productSearchQuery, setProductSearchQuery] = useState('')
+
   const [transactionSearchQuery, setTransactionSearchQuery] = useState('');
       // Product search functionality
   const handleProductSearch = (query) => {

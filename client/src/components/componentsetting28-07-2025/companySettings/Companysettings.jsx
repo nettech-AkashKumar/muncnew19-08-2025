@@ -1,3 +1,4 @@
+//
 import React, { useRef, useState, useEffect } from "react";
 import { BiBuilding } from "react-icons/bi";
 import company_icon from "../../../assets/images/upload.webP";
