@@ -21,6 +21,7 @@ import BASE_URL from "../../../pages/config/config";
 import axios from "axios";
 import { Link } from "react-router-dom";
 import { useParams } from "react-router-dom";
+import { he } from 'date-fns/locale';
 
 function WarehouseDetails() {
   const [activeTab, setActiveTab] = useState("All");
@@ -857,16 +858,15 @@ function WarehouseDetails() {
                         }}
                       >
                         <input type="checkbox" />
-                         <img
+                         <div style={{display:"flex",alignItems:"center",gap:"10px",width:"50px",justifyContent:"center",height:"50px",border:"1px solid #e6e6e6",borderRadius:"8px",padding:"5px"}}>
+                          <img
                           src={item.images[0]?.url}
                           alt=""
                           style={{
                             width: "35px",
-                            borderRadius: "4px",
-                            border: "1px solid #f1f1f1",
-                            backgroundColor: "#D9D9D9",
                           }}
                           />
+                         </div>
                         {item.productName}
                       </td>
                       <td
@@ -1090,7 +1090,7 @@ function WarehouseDetails() {
             alignItems: "center",
           }}
         >
-          <div>
+          <div style={{ display: "flex", gap: "16px" }}>
             <span
               style={{
                 fontFamily: "Roboto",
@@ -1099,6 +1099,9 @@ function WarehouseDetails() {
                 color: activeTab === "All" ? "#2BAE66" : "#262626",
                 padding: "8px",
                 cursor: "pointer",
+                borderRadius: "4px",
+                padding: "8px",
+                backgroundColor: activeTab === "All" ? "#d1d1d1" : "#f1f1f1",
               }}
               onClick={() => setActiveTab("All")}
             >
@@ -1113,6 +1116,9 @@ function WarehouseDetails() {
                 color: activeTab === "Stock In" ? "#2BAE66" : "#262626",
                 padding: "8px",
                 cursor: "pointer",
+                borderRadius: "4px",
+                padding: "8px",
+                backgroundColor: activeTab === "Stock In" ? "#d1d1d1" : "#f1f1f1",
               }}
               onClick={() => setActiveTab("Stock In")}
             >
@@ -1127,6 +1133,9 @@ function WarehouseDetails() {
                 color: activeTab === "Stock Out" ? "#2BAE66" : "#262626",
                 padding: "8px",
                 cursor: "pointer",
+                borderRadius: "4px",
+                padding: "8px",
+                backgroundColor: activeTab === "Stock Out" ? "#d1d1d1" : "#f1f1f1",
               }}
               onClick={() => setActiveTab("Stock Out")}
             >
@@ -1244,7 +1253,7 @@ function WarehouseDetails() {
                             border: "1px solid #f1f1f1",
                             backgroundColor: "#D9D9D9",
                           }} />
-                    {purchase.products[0]?.product?.productName}
+                    {purchase.products[0]?.product?.productName ? purchase.products[0]?.product?.productName : "N/A"}
                   </td>
                   <td
                     style={{
