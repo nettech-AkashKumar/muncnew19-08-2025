@@ -554,7 +554,7 @@ const handleDelete = async (product) => {
             >
               <thead>
                 <tr style={{ background: "#f5f5f5", textAlign: "left" }}>
-                  <th style={{ padding: "12px", }}>Product Name</th>
+                  <th style={{ padding: "12px", borderTopLeftRadius:'12px' }}>Product Name</th>
                   <th style={{ }}>SKU</th>
                   <th style={{ }}>Available QTY</th>
                   {/* <th style={{ padding: "12px", borderBottom: "2px solid #ddd" }}>Category</th> */}
@@ -583,7 +583,7 @@ const handleDelete = async (product) => {
                   {/* <th style={{ padding: "12px", borderBottom: "2px solid #ddd" }}>SEO META Description</th> */}
                   {/* <th style={{ padding: "12px", borderBottom: "2px solid #ddd" }}>Description</th> */}
                   {/* <th style={{ padding: "12px", borderBottom: "2px solid #ddd" }}>Varient</th> */}
-                  <th style={{ textAlign:'center' }}>Action</th>
+                  <th style={{ textAlign:'center',borderTopRightRadius:'12px' }}>Action</th>
                   
                 </tr>
               </thead>
@@ -699,7 +699,6 @@ const handleDelete = async (product) => {
                         borderRadius: "6px",
                         cursor: "pointer",
                         marginRight: "8px",
-                        cursor:'pointer',
                       }}
                       onClick={() => navigate(`/product/edit/${product._id}`)}
                     >
