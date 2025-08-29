@@ -3173,9 +3173,6 @@ const ProductForm = () => {
           </div>
 
           <div className="page-btn mt-0">
-            <button className="btn btn-secondary">
-              <Link to="back"></Link>{t("backToProduct")}
-            </button>
             <div className="d-flex gap-2">
               {/* <Link to="/product"></Link>{t("backToProduct")} */}
               <Link to="/product"><a className="btn btn-primary" >Back to Product</a></Link>
@@ -3575,7 +3572,7 @@ const ProductForm = () => {
                         <div className="col-sm-6 col-12 mb-3">
                           <label className="form-label">{t("leadTime")}</label>
                           <input
-                            type="text"
+                            type="number"
                             className="form-control"
                             placeholder={t("enterLeadTime")}
                             name="leadTime"
@@ -3587,7 +3584,7 @@ const ProductForm = () => {
                         <div className="col-sm-6 col-12 mb-3">
                           <label className="form-label">{t("reorderLevel")}</label>
                           <input
-                            type="text"
+                            type="number"
                             className="form-control"
                             placeholder={t("enterReorderLevel")}
                             name="reorderLevel"
@@ -3599,7 +3596,7 @@ const ProductForm = () => {
                         <div className="col-sm-6 col-12 mb-3">
                           <label className="form-label">{t("initialStock")}</label>
                           <input
-                            type="text"
+                            type="number"
                             className="form-control"
                             placeholder={t("enterInitialStock")}
                             name="initialStock"
@@ -3773,7 +3770,7 @@ const ProductForm = () => {
                       <span className="text-danger">*</span>
                     </label>
                     <input
-                      type="text"
+                      type="number"
                       className="form-control"
                       name={field.name}
                       value={formData[field.name] || ""}
@@ -3788,7 +3785,7 @@ const ProductForm = () => {
                     {t("quantity")}<span className="text-danger">*</span>
                   </label>
                   <input
-                    type="text"
+                    type="number"
                     className="form-control"
                     name="quantity"
                     value={formData.quantity}
@@ -3835,12 +3832,18 @@ const ProductForm = () => {
                     value={formData.tax}
                     onChange={handleChange}
                   >
-                    <option value="">{t("select")}</option>
+                    {/* <option value="">{t("select")}</option>
                     <option>{t("igst8")}</option>
                     <option>{t("gst5")}</option>
                     <option>{t("sgst4")}</option>
                     <option>{t("cgst16")}</option>
-                    <option>{t("gst18")}</option>
+                    <option>{t("gst18")}</option> */}
+                    <option value="">{t("select")}</option>
+                    <option value="8">{t("igst8")}</option>
+                    <option value="5">{t("gst5")}</option>
+                    <option value="4">{t("sgst4")}</option>
+                    <option value="16">{t("cgst16")}</option>
+                    <option value="18">{t("gst18")}</option>
                   </select>
                 </div>
 
@@ -3865,7 +3868,7 @@ const ProductForm = () => {
                     {t("discountValue")}<span className="text-danger">*</span>
                   </label>
                   <input
-                    type="text"
+                    type="number"
                     className="form-control"
                     name="discountValue"
                     value={formData.discountValue}
@@ -3879,7 +3882,7 @@ const ProductForm = () => {
                     {t("quantityAlert")}<span className="text-danger">*</span>
                   </label>
                   <input
-                    type="text"
+                    type="number"
                     className="form-control"
                     name="quantityAlert"
                     value={formData.quantityAlert}
@@ -3958,44 +3961,49 @@ const ProductForm = () => {
 
             {/* Step 3 - Variants */}
             {step === 3 && (
-              <>
-                <div className="variant-tabs mb-3 d-flex flex-wrap gap-2">
-                  {variantTabs.map((tab) => (
-                    <button
-                      type="button"
-                      key={tab}
-                      className={`variant-tab btn btn-sm ${activeTab === tab
-                        ? "btn-success"
-                        : "btn-outline-secondary"
-                        }`}
-                      onClick={() => setActiveTab(tab)}
-                    >
-                      {tab}
-                    </button>
-                  ))}
-                </div>
-                {/* <div className="mb-3">
-                  <label>{t("enterVariants", { tab: activeTab })}</label>
-                  <input
-                    type="text"
-                    className="form-control"
-                    value={formData.variants[activeTab]?.join(", ") || ""}
-                    onChange={(e) => inputChange(activeTab, e.target.value)}
-                    placeholder={t("enterVariantsPlaceholder", { tab: activeTab })}
-                  />
-                </div> */}
-                <div className="mb-3">
-  <label>{t("enterVariants", { tab: activeTab })}</label>
-  <input
-    type={activeTab === "Expiry" ? "date" : "text"}
-    className="form-control"
-    value={formData.variants[activeTab]?.join(", ") || ""}
-    onChange={(e) => inputChange(activeTab, e.target.value)}
-    placeholder={t("enterVariantsPlaceholder", { tab: activeTab })}
-  />
-</div>
-              </>
-            )}
+  <>
+    <div className="variant-tabs mb-3 d-flex flex-wrap gap-2">
+      {variantTabs.map((tab) => (
+        <button
+          type="button"
+          key={tab}
+          className={`variant-tab btn btn-sm ${activeTab === tab
+            ? "btn-success"
+            : "btn-outline-secondary"
+            }`}
+          onClick={() => setActiveTab(tab)}
+        >
+          {tab}
+        </button>
+      ))}
+    </div>
+    <div className="mb-3">
+      <label>{t("enterVariants", { tab: activeTab })}</label>
+      {activeTab === "Expiry" ? (
+        <input
+          type="date"
+          className="form-control"
+          value={
+            formData.variants.Expiry?.[0]
+              ? // Convert dd-mm-yyyy to yyyy-mm-dd for display
+                formData.variants.Expiry[0].split("-").reverse().join("-")
+              : ""
+          }
+          onChange={(e) => inputChange(activeTab, e.target.value)}
+          placeholder={t("enterVariantsPlaceholder", { tab: activeTab })}
+        />
+      ) : (
+        <input
+          type="text"
+          className="form-control"
+          value={formData.variants[activeTab]?.join(", ") || ""}
+          onChange={(e) => inputChange(activeTab, e.target.value)}
+          placeholder={t("enterVariantsPlaceholder", { tab: activeTab })}
+        />
+      )}
+    </div>
+  </>
+)}
           </div>
 
           {/* Navigation Buttons */}
