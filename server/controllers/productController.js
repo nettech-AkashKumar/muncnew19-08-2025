@@ -447,6 +447,28 @@ exports.updateProduct = async (req, res) => {
     res.status(400).json({ message: err.message });
   }
 };
+exports.deleteProductImage = async(req, res) => {
+  try {
+    const {id} = req.params;
+    const {public_id} = req.body;
+    if(!public_id) return res.status(400).json({message:"public_id is required"})
+      // delete from cloudinary
+    await cloudinary.uploader.destroy(public_id)
+    // remove from mongodb
+    const updatedProduct = await Product.findByIdAndUpdate(
+      id,
+      {$pull:{images:{public_id}}},
+      {new: true}
+    );
+    if (!updatedProduct) return res.status(404).json({ message: "Product not found" });
+
+    res.status(200).json({ message: "Image deleted", images: updatedProduct.images });
+  }
+  catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+
+}
 
 // Delete Product
 exports.deleteProduct = async (req, res) => {
@@ -516,6 +538,53 @@ exports.importProducts = async (req, res) => {
     res.status(500).json({ message: "Import failed", error: error.message });
   }
 };
+
+// // ✅ Total stock in hand (sellingPrice * quantity)
+// exports.getTotalStockValue = async (req, res) => {
+//   try {
+//     const result = await Product.aggregate([
+//       {
+//         $project: {
+//           sellingPrice: { $ifNull: ["$sellingPrice", 0] },
+//           // if quantity exists, use it
+//           quantity: { $ifNull: ["$quantity", 0] },
+//           // sum of newQuantity[] if present
+//           newQuantityTotal: { $sum: { $ifNull: ["$newQuantity", []] } }
+//         }
+//       },
+//       {
+//         $project: {
+//           stockValue: {
+//             $cond: [
+//               { $gt: ["$quantity", 0] }, // if normal quantity exists
+//               { $multiply: ["$sellingPrice", "$quantity"] },
+//               { $multiply: ["$sellingPrice", "$newQuantityTotal"] }
+//             ]
+//           }
+//         }
+//       },
+//       {
+//         $group: {
+//           _id: null,
+//           totalStockValue: { $sum: "$stockValue" }
+//         }
+//       }
+//     ]);
+
+//     res.json({
+//       success: true,
+//       totalStockValue: result[0]?.totalStockValue || 0
+//     });
+//   } catch (err) {
+//     console.error("❌ Aggregation Error:", err);
+//     res.status(500).json({ success: false, error: err.message });
+//   }
+// };
+
+
+
+
+
 
 // optional
 // const Product = require("../models/productModels");

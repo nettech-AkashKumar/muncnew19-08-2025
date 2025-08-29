@@ -6,12 +6,14 @@ const {
   getAllProducts,
   getProductById,
   updateProduct,
+  deleteProductImage,
   deleteProduct,
   searchProductsByName,
   importProducts,
   getProductStock,
 
   getPurchaseReturnStock,
+  // getTotalStockValue 
 } = require("../controllers/productController");
 
 
@@ -34,10 +36,11 @@ router.get("/search", searchProductsByName); // ✅ must come before /products/:
 router.get("/", getAllProducts);         // Read All
 router.get("/:id", getProductById);      // Read Single
 router.put("/:id", upload.array("images", 10), updateProduct);       // Update
+router.delete("/:id", deleteProductImage)
 router.delete("/:id", deleteProduct);    // Delete
 
 
-
+// router.get("/total-stock-value", getTotalStockValue);
 
 
 module.exports = router;

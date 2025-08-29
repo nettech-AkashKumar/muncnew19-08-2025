@@ -165,6 +165,7 @@ router.post("/", upload.single("receipt"), async (req, res) => {
 router.get("/", async (req, res) => {
   try {
     const expenses = await Expense.find().sort({ createdAt: -1 });
+
     res.status(200).json(expenses);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -225,6 +226,7 @@ router.put("/:id", upload.single("receipt"), async (req, res) => {
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
-});
+}); 
+
 
 module.exports = router;
