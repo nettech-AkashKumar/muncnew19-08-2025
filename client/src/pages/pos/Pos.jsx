@@ -352,6 +352,7 @@ function Pos() {
   
 // Search functionality
  
+  const [productSearchQuery, setProductSearchQuery] = useState('')
 
   const [transactionSearchQuery, setTransactionSearchQuery] = useState('');
       // Product search functionality
