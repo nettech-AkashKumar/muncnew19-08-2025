@@ -509,6 +509,53 @@ exports.importProducts = async (req, res) => {
   }
 };
 
+// // ✅ Total stock in hand (sellingPrice * quantity)
+// exports.getTotalStockValue = async (req, res) => {
+//   try {
+//     const result = await Product.aggregate([
+//       {
+//         $project: {
+//           sellingPrice: { $ifNull: ["$sellingPrice", 0] },
+//           // if quantity exists, use it
+//           quantity: { $ifNull: ["$quantity", 0] },
+//           // sum of newQuantity[] if present
+//           newQuantityTotal: { $sum: { $ifNull: ["$newQuantity", []] } }
+//         }
+//       },
+//       {
+//         $project: {
+//           stockValue: {
+//             $cond: [
+//               { $gt: ["$quantity", 0] }, // if normal quantity exists
+//               { $multiply: ["$sellingPrice", "$quantity"] },
+//               { $multiply: ["$sellingPrice", "$newQuantityTotal"] }
+//             ]
+//           }
+//         }
+//       },
+//       {
+//         $group: {
+//           _id: null,
+//           totalStockValue: { $sum: "$stockValue" }
+//         }
+//       }
+//     ]);
+
+//     res.json({
+//       success: true,
+//       totalStockValue: result[0]?.totalStockValue || 0
+//     });
+//   } catch (err) {
+//     console.error("❌ Aggregation Error:", err);
+//     res.status(500).json({ success: false, error: err.message });
+//   }
+// };
+
+
+
+
+
+
 // optional
 // const Product = require("../models/productModels");
 
