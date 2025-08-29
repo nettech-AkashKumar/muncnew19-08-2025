@@ -486,40 +486,67 @@ const ExpenseFormSecond = ({ onClose, expense }) => {
     setFiles(droppedFiles);
   };
 
+
   const handleSave = async () => {
-    try {
-      const formData = new FormData();
-      formData.append("paymentStatus", paymentStatus);
-      formData.append("notes", notes);
-      formData.append("expenseTitle", expenseTitle);
-      formData.append("amount", amount);
-      formData.append("paymentMode", paymentMode);
-      formData.append("paidTo", paidTo);
-      formData.append("date", date.toISOString());
-
-      files.forEach((file, index) => {
-        formData.append("files", file);
-      });
-
-      if (expense && expense._id) {
-        // Update existing expense
-        await axios.put(`/api/expenses/${expense._id}`, formData, {
-          headers: { "Content-Type": "multipart/form-data" },
-        });
-      } else {
-        // Create new expense
-        await axios.post("/api/expenses", formData, {
-          headers: { "Content-Type": "multipart/form-data" },
-        });
-      }
-
-      handleClose();
-    } catch (error) {
-      console.error("Error saving expense:", error);
-      alert("Failed to save expense.");
+  try {
+    // Validate required fields
+    if (!expenseTitle || !amount || !paymentMode || !paidTo || !paymentStatus) {
+      alert("Please fill all required fields.");
+      return;
     }
-  };
 
+    if (expense && !expense._id) {
+      alert("Invalid expense ID.");
+      return;
+    }
+
+    const parsedAmount = Number(amount);
+    if (isNaN(parsedAmount)) {
+      alert("Amount must be a valid number.");
+      return;
+    }
+
+    const validStatuses = ["Paid", "Pending", "Failed"];
+    if (!validStatuses.includes(paymentStatus)) {
+      alert("Invalid payment status.");
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append("paymentStatus", paymentStatus);
+    formData.append("notes", notes);
+    formData.append("expenseTitle", expenseTitle);
+    formData.append("amount", parsedAmount);
+    formData.append("paymentMode", paymentMode);
+    formData.append("paidTo", paidTo);
+    formData.append("date", date.toISOString());
+    if (files.length > 0) {
+      formData.append("receipt", files[0]); // Use correct field name and single file
+      console.log("Uploading file:", files[0].name, files[0].type);
+    }
+
+    // Log FormData for debugging
+    for (let [key, value] of formData.entries()) {
+      console.log(`${key}:`, value);
+    }
+
+    const token = localStorage.getItem("token"); // Adjust based on your auth
+    const config = token ? { headers: { Authorization: `Bearer ${token}` } } : {};
+
+    if (expense && expense._id) {
+      // console.log("Sending PUT request to:", `http://localhost:5500/api/expenses/${expense._id}`);
+      await axios.put(`http://localhost:5500/api/expenses/${expense._id}`, formData, config);
+    } else {
+      // console.log("Sending POST request to:", `http://localhost:5500/api/expenses`);
+      await axios.post(`http://localhost:5500/api/expenses`, formData, config);
+    }
+
+    handleClose();
+  } catch (error) {
+    console.error("Error saving expense:", error);
+    alert(`Failed to save expense: ${error.response?.data?.error || "Server error"}`);
+  }
+};
   return (
     <div style={{position:"fixed", top:"0px", bottom:"0", left:"0", right:"0", zIndex:"9999", backgroundColor:"#00000063", overflowY:"auto"}}>
       <div style={{ backgroundColor: "#fff", padding: "20px", borderRadius: "12px", maxWidth: "807px", margin: "10px auto", boxShadow: "rgba(0, 0, 0, 0.35) 0px 5px 15px", fontFamily:'"Roboto", sans-serif' }}>

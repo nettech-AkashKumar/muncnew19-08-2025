@@ -1349,12 +1349,12 @@ const EditProduct = () => {
         batchNumber: "",
         returnable: false,
         expirationDate: "",
+        hsn:"",
     });
     const [loading, setLoading] = useState(true);
     // Dropdown states
     const [selectedCategory, setSelectedCategory] = useState(null);
     const [selectedsubCategory, setSelectedsubCategory] = useState(null);
-    console.log(selectedsubCategory);
     const [selectedBrands, setSelectedBrands] = useState(null);
     const [selectedUnits, setSelectedUnits] = useState(null);
     const [categories, setCategories] = useState([]);
@@ -1372,6 +1372,7 @@ const EditProduct = () => {
     const [categoryId, setCategoryId] = useState(null);
     const [subCategoryId, setSubCategoryId] = useState(null);
     const [supplierId, setSupplierId] = useState(null);
+    const [warehouseId, setWarehouseId] = useState(null);
 
     // Image state
     const [images, setImages] = useState([]);
@@ -1418,14 +1419,32 @@ const EditProduct = () => {
                 if (data.subCategory) {
                     setSubCategoryId(data.subCategory._id || data.subCategory)
                 }
-                if(data.supplier) {
-                    setSupplierId(data.supplier._id || data.supplier) 
-                }
 
                 if (data.unit) setSelectedUnits({ value: data.unit, label: data.unit });
-                if (data.supplier) setSelectedSupplier({ value: data.supplier._id || data.supplier, label: data.supplier.firstName ? `${data.supplier.firstName}${data.supplier.lastName} (${data.supplier.supplierCode})` : data.supplier });
-                if (data.warehouse) setSelectedWarehouse({ value: data.warehouse._id || data.warehouse, label: data.warehouse.warehouseName || data.warehouse });
-                if (data.hsnCode) setSelectedHSN({ value: data.hsnCode._id || data.hsnCode, label: data.hsnCode.hsnCode ? `${data.hsnCode.hsnCode} - ${data.hsnCode.description || ''}` : data.hsnCode });
+                // if (data.supplier) setSelectedSupplier({ value: data.supplier._id || data.supplier, label: data.supplier.firstName ? `${data.supplier.firstName}${data.supplier.lastName} (${data.supplier.supplierCode})` : data.supplier });
+                if(data.supplier) {
+                    setSupplierId(data.supplier._id || data.supplier)
+                }
+
+                // if (data.warehouse) setSelectedWarehouse({ value: data.warehouse._id || data.warehouse, label: data.warehouse.warehouseName || data.warehouse });
+                 if(data.warehouse) {
+                    setWarehouseId(data.warehouse._id || data.warehouse)
+                }
+                if (data.hsn) {
+    const hsnOption = optionsHsn.find(opt => opt.value === (data.hsn._id || data.hsn));
+    if (hsnOption) setSelectedHSN(hsnOption);
+}
+
+ if (data.images && data.images.length > 0) {
+                const existingImages = data.images.map((img) => ({
+                    preview: img.url,    // Dropzone expects `preview`
+                    url: img.url,        // Keep original URL if you need
+                    public_id: img.public_id
+                }));
+                setImages(existingImages);
+            }
+
+                // if (data.hsnCode) setSelectedHSN({ value: data.hsnCode._id || data.hsnCode, label: data.hsnCode.hsnCode ? `${data.hsnCode.hsnCode} - ${data.hsnCode.description || ''}` : data.hsnCode });
                 setLoading(false);
             } catch (err) {
                 toast.error("Failed to fetch product");
@@ -1462,7 +1481,6 @@ const EditProduct = () => {
         const fetchSuppliers = async () => {
             try {
                 const res = await axios.get(`${BASE_URL}/api/suppliers/active`);
-                console.log('supplier id are ', res.data)
                 const options = res.data.suppliers.map((supplier) => ({ value: supplier._id, label: `${supplier.firstName}${supplier.lastName} (${supplier.supplierCode})` }));
                 setOptions(options);
             } catch (error) { }
@@ -1479,6 +1497,7 @@ const EditProduct = () => {
         const fetchHSN = async () => {
             try {
                 const res = await axios.get(`${BASE_URL}/api/hsn/all`);
+                console.log('hsnd', res.data.data)
                 if (res.data.success) {
                     const options = res.data.data.map((item) => ({ value: item._id, label: `${item.hsnCode} - ${item.description || ""}` }));
                     setOptionsHsn(options);
@@ -1504,60 +1523,79 @@ const EditProduct = () => {
     }, [brandOptions, brandId]);
 
     // category
-    useEffect(() => {
-        if (categories.length > 0 && categoryId) {
-            const found = categories.find((opt) => opt.value === categoryId);
-            if (found) {
-                setSelectedCategory(found)
-            }
-        }
-    }, [categories, categoryId]);
+useEffect(() => {
+    if (categoryId && categories.length > 0) {
+        const foundCat = categories.find((opt) => opt.value === categoryId);
+        if (foundCat) {
+            setSelectedCategory(foundCat);
 
-    useEffect(() => {
-        if (selectedCategory && selectedCategory.value) {
-            fetchSubcategoriesByCategory(selectedCategory.value);
+            // Fetch subcategories for this category
+            fetchSubcategoriesByCategory(foundCat.value);
         }
-    }, [selectedCategory]);
+    }
+}, [categoryId, categories]);
 
-
-    // Subcategory
-    useEffect(() => {
-        if (subcategories.length > 0 && subCategoryId) {
-            const found = subcategories.find(opt => opt.value === subCategoryId);
-            if (found) setSelectedsubCategory(found);
+useEffect(() => {
+    if (subCategoryId && subcategories.length > 0) {
+        const foundSub = subcategories.find((opt) => opt.value === subCategoryId);
+        if (foundSub) {
+            setSelectedsubCategory(foundSub);
         }
-    }, [subcategories, subCategoryId]);
+    }
+}, [subCategoryId, subcategories]);
 
 
     // Subcategory fetch logic
     const fetchSubcategoriesByCategory = async (categoryId) => {
-        try {
-            const res = await axios.get(`${BASE_URL}/api/subcategory/by-category/${categoryId}`);
-            const options = res.data.map((subcat) => ({ value: subcat._id, label: subcat.subCategoryName }));
-            setSubcategories(options);
-        } catch (error) {
-            setSubcategories([]);
+    try {
+        const res = await axios.get(`${BASE_URL}/api/subcategory/by-category/${categoryId}`);
+        console.log('sbcategryfd', res.data)
+        const options = res.data.map((subcat) => ({
+            value: subcat._id,
+            label: subcat.subCategoryName 
+        }));
+        setSubcategories(options);
+       
+        return options;
+    } catch (error) {
+        setSubcategories([]);
+        return [];
+    }
+};
+
+
+//supplier
+useEffect(() => {
+    if (supplierId && options.length > 0) {
+        const found = options.find((opt) => opt.value === supplierId);
+        if (found) {
+            setSelectedSupplier(found);
         }
-    };
+    }
+}, [supplierId, options]);
 
-    // supplier
-    // useEffect(() => {
-    //     if (selectedSupplier.length > 0 && supplierId) {
-    //         const found = selectedSupplier.find((opt) => opt.value === supplierId);
-    //         if (found) {
-    //             setSelectedSupplier(found)
-    //         }
-    //     }
-    // }, [selectedSupplier, supplierId]);
+useEffect(() => {
+    if (warehouseId && optionsware.length > 0) {
+        const found = optionsware.find((opt) => opt.value === warehouseId);
+        if (found) setSelectedWarehouse(found);
+    }
+}, [warehouseId, optionsware]);
 
-    // Fetch subcategories when selectedCategory changes    
-    // useEffect(() => {
-    //     if (selectedCategory && selectedCategory.value) {
-    //         fetchSubcategoriesByCategory(selectedCategory.value);
-    //     } else {
-    //         setSubcategories([]);
-    //     }
-    // }, [selectedCategory]);
+useEffect(() => {
+    if (optionsHsn.length > 0 && formData.hsn) {
+        const hsnValue = typeof formData.hsn === 'object' ? formData.hsn._id : formData.hsn;
+        const found = optionsHsn.find(opt => opt.value === hsnValue);
+        if (found) setSelectedHSN(found);
+    }
+}, [optionsHsn, formData.hsn]);
+
+
+
+
+
+
+
+
 
     // Handlers for dropdowns
     const handleBrandChange = (selectedOption) => setSelectedBrands(selectedOption);
@@ -1670,7 +1708,7 @@ const EditProduct = () => {
         if (formData.quantity) formPayload.append("quantity", formData.quantity);
         formPayload.append("unit", selectedUnits?.value || "");
         if (formData.taxType) formPayload.append("taxType", formData.taxType);
-        if (formData.tax) formPayload.append("tax", formData.tax);
+        if (formData.tax) formPayload.append("tax",parseFloat(formData.tax.replace(/\D/g,'')) || 0);
         if (formData.discountType) formPayload.append("discountType", formData.discountType);
         if (formData.discountValue) formPayload.append("discountValue", formData.discountValue);
         if (formData.quantityAlert) formPayload.append("quantityAlert", formData.quantityAlert);
@@ -1678,26 +1716,37 @@ const EditProduct = () => {
         if (formData.seoTitle) formPayload.append("seoTitle", formData.seoTitle);
         if (formData.seoDescription) formPayload.append("seoDescription", formData.seoDescription);
         if (formData.itemType) formPayload.append("itemType", formData.itemType);
-        if (formData.isAdvanced) formPayload.append("isAdvanced", formData.isAdvanced);
+        if (formData.isAdvanced) formPayload.append("isAdvanced", formData.isAdvanced ? true : false);
         if (formData.trackType) formPayload.append("trackType", formData.trackType);
-        if (formData.isReturnable) formPayload.append("isReturnable", formData.isReturnable);
+        if (formData.isReturnable) formPayload.append("isReturnable", formData.isReturnable ? true : false);
         if (formData.leadTime) formPayload.append("leadTime", formData.leadTime);
         if (formData.reorderLevel) formPayload.append("reorderLevel", formData.reorderLevel);
         if (formData.initialStock) formPayload.append("initialStock", formData.initialStock);
         if (formData.serialNumber) formPayload.append("serialNumber", formData.serialNumber);
         if (formData.batchNumber) formPayload.append("batchNumber", formData.batchNumber);
-        if (formData.returnable) formPayload.append("returnable", formData.returnable);
+        if (formData.returnable) formPayload.append("returnable", formData.returnable ? true : false);
         if (formData.expirationDate) formPayload.append("expirationDate", formData.expirationDate);
         formPayload.append("hsn", selectedHSN?.value || "");
         if (formData.variants && Object.keys(formData.variants).length > 0) formPayload.append("variants", JSON.stringify(formData.variants));
-        images.forEach((imgFile) => {
+           // append new images only
+    images.forEach((imgFile) => {
+        if (imgFile instanceof File) {  // only new uploads
             formPayload.append("images", imgFile);
-        });
+        }
+    });
+
+    // append existing images as URLs
+    const existingImageUrls = images
+        .filter(img => !(img instanceof File))
+        .map(img => img.url);  // only URL
+
+    formPayload.append("existingImages", JSON.stringify(existingImageUrls));
         try {
             await axios.put(`${BASE_URL}/api/products/${id}`, formPayload, { headers: { "Content-Type": "multipart/form-data" } });
             toast.success("Product updated successfully!");
             navigate("/product");
         } catch (err) {
+             console.log(err.response?.data);
             toast.error("Failed to update product");
         }
     };
@@ -1987,6 +2036,7 @@ const EditProduct = () => {
                                                 options={subcategories}
                                                 value={selectedsubCategory}
                                                 onChange={subCategoryChange}
+                                                
                                                 placeholder={t("searchOrSelectSubcategory")}
                                             />
                                         </div>
