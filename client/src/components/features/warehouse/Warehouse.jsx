@@ -1077,6 +1077,8 @@ import axios from "axios";
 
 function Warehouse() {
   const [warehouses, setWarehouses] = useState([]);
+  const [products, setProducts] = useState([]);
+  const [sales, setSales] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [favourites, setFavourites] = useState([]);
@@ -1092,6 +1094,8 @@ function Warehouse() {
     });
   };
 
+ 
+
   const fetchWarehouses = useCallback(async () => {
     setLoading(true);
     try {
@@ -1106,13 +1110,43 @@ function Warehouse() {
     }
   }, []);
 
+  const fetchProducts = useCallback(async () => {
+    try {
+      const res = await axios.get(`${BASE_URL}/api/products`);
+      setProducts(res.data);
+    } catch (err) {
+      console.error("Error fetching products:", err);
+      setProducts([]);
+    }
+  }, []);
+
+  const fetchSales = useCallback(async () => {
+    try {
+      const res = await axios.get(`${BASE_URL}/api/sales`);
+      setSales(res.data.sales);
+    } catch (err) {
+      console.error("Error fetching sales:", err);
+      setSales([]);
+    }
+  }, []);
+
   useEffect(() => {
     fetchWarehouses();
-    //         const listener = () => fetchWarehouses();
-    //         window.addEventListener("warehouse-added", listener);
-    //         return () => window.removeEventListener("warehouse-added", listener);
-  }, [fetchWarehouses]);
+    fetchProducts();
+    fetchSales();
+  }, [fetchWarehouses, fetchProducts, fetchSales]);
 
+  const salesMap = sales.reduce((acc, sale) => {
+    if (!sale.products || !Array.isArray(sale.products)) return acc;
+    sale.products.forEach((p) => {
+      if (!p || !p.productId) return;
+      const pid = typeof p.productId === "object" ? p.productId._id : p.productId;
+      if (!pid) return;
+      if (!acc[pid]) acc[pid] = 0;
+      acc[pid] += p.saleQty || 0;
+    });
+    return acc;
+  }, {});
   return (
     <div>
       {/* Warehouse header */}
@@ -1182,7 +1216,17 @@ function Warehouse() {
           <div style={{ marginTop: "2px" }}>
             <div className="row">
               {console.log("wre", warehouses)}
-              {warehouses.map((item) => (
+              {warehouses.map((item) => { const filteredProducts = products.filter(
+                (p) => p.warehouseName === item.warehouseName
+              );
+              const totalRevenue = filteredProducts.reduce((sum, p) => {
+                const soldUnits = salesMap[p._id] || 0;
+                const price = parseFloat(p.sellingPrice) || 0;
+                return sum + soldUnits * price;
+              }, 0);
+
+              return (
+                
                 <div className="col-3">
                   <div
                     style={{
@@ -1273,7 +1317,7 @@ function Warehouse() {
                           &nbsp;-&nbsp;{item?.warehouseOwner}
                           {/* {item?.contactPerson?.lastName} */}
                         </p>
-                        <span style={{ color: "#1368EC" }}>$76,000</span>
+                        <span style={{ color: "#1368EC" }}>₹{totalRevenue.toLocaleString("en-IN")}</span>
                         <span style={{ marginLeft: "4px" }}>
                           Stock Valuation
                         </span>
@@ -1288,7 +1332,8 @@ function Warehouse() {
                     </div>
                   </div>
                 </div>
-              ))}
+              );
+              })}
             </div>
           </div>
         </div>
