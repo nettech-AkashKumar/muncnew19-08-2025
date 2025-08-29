@@ -1083,17 +1083,29 @@ function Warehouse() {
   const [error, setError] = useState(null);
   const [favourites, setFavourites] = useState([]);
 
-  const toggleFavourite = (warehouse) => {
-    setFavourites((prev) => {
-      const exists = prev.find((fav) => fav._id === warehouse._id);
-      if (exists) {
-        return prev.filter((fav) => fav._id !== warehouse._id);
-      } else {
-        return [...prev, warehouse];
-      }
-    });
-  };
+  // const toggleFavourite = (warehouse) => {
+  //   setFavourites((prev) => {
+  //     const exists = prev.find((fav) => fav._id === warehouse._id);
+  //     if (exists) {
+  //       return prev.filter((fav) => fav._id !== warehouse._id);
+  //     } else {
+  //       return [...prev, warehouse];
+  //     }
+  //   });
+  // };
 
+  const toggleFavourite = async (warehouse) => {
+    try {
+      const response = await axios.patch(`${BASE_URL}/api/warehouse/${warehouse._id}/toggle-favorite`);
+      setWarehouses((prev) =>
+        prev.map((wh) =>
+          wh._id === warehouse._id ? { ...wh, isFavorite: response.data.warehouse.isFavorite } : wh
+        )
+      );
+    } catch (err) {
+      console.error("Error toggling favorite:", err);
+    }
+  };
  
 
   const fetchWarehouses = useCallback(async () => {
@@ -1227,7 +1239,7 @@ function Warehouse() {
 
               return (
                 
-                <div className="col-3">
+                <div className="col-3" key={item._id}>
                   <div
                     style={{
                       backgroundColor: "#f9f9f9",
@@ -1285,11 +1297,14 @@ function Warehouse() {
                           onClick={() => toggleFavourite(item)}
                           style={{
                             cursor: "pointer",
-                            color: favourites.some(
-                              (fav) => fav._id === item._id
-                            )
-                              ? "red"
-                              : "#1368EC",
+                            // color: favourites.some(
+                            //   (fav) => fav._id === item._id
+                            // )
+                            //   ? "red"
+                            //   : "#1368EC",
+                            // fontWeight: "500",
+                            // fontSize: "26px",
+                            color: item.isFavorite ? "red" : "#1368EC",
                             fontWeight: "500",
                             fontSize: "26px",
                           }}
@@ -1351,103 +1366,120 @@ function Warehouse() {
         }}
       >
         <span>Favourite</span>
+        {/* hwkbf */}
 
         <div style={{ marginTop: "2px" }}>
           <div className="row">
-            {favourites.length === 0 && <p>No favourites yet.</p>}
-            {favourites.map((fav) => (
-              <div className="col-3" key={fav._id}>
-                <div
-                  style={{
-                    backgroundColor: "#f9f9f9",
-                    padding: "10px",
-                    borderRadius: "8px",
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "flex-start",
-                    height: "150px",
-                    position: "relative",
-                  }}
-                >
+            {warehouses
+              .filter((item) => item.isFavorite)
+              .map((fav) => (
+                <div className="col-3" key={fav._id}>
                   <div
                     style={{
+                      backgroundColor: "#f9f9f9",
+                      padding: "10px",
+                      borderRadius: "8px",
                       display: "flex",
                       justifyContent: "space-between",
-                      width: "100%",
-                      marginBottom: "10px",
+                      alignItems: "flex-start",
+                      height: "150px",
+                      position: "relative",
                     }}
                   >
                     <div
                       style={{
-                        backgroundColor: "#f1f1f1",
-                        border: "1px solid #e6e6e6",
-                        borderRadius: "8px",
-                        padding: "10px ",
-                        alignItems: "center",
+                        display: "flex",
+                        justifyContent: "space-between",
+                        width: "100%",
+                        marginBottom: "10px",
                       }}
                     >
-                      <span>
-                        <PiWarehouseFill
+                      <div
+                        style={{
+                          backgroundColor: "#f1f1f1",
+                          border: "1px solid #e6e6e6",
+                          borderRadius: "8px",
+                          padding: "10px",
+                          alignItems: "center",
+                        }}
+                      >
+                        <span>
+                          <PiWarehouseFill
+                            style={{
+                              color: "#1368EC",
+                              fontSize: "20px",
+                              fontWeight: "bold",
+                            }}
+                          />
+                          {fav.warehouseName}
+                        </span>
+                      </div>
+                      <div
+                        style={{
+                          padding: "10px",
+                          backgroundColor: "#f1f1f1",
+                          borderRadius: "8px",
+                          width: "fit-content",
+                        }}
+                      >
+                        <FaHeart
+                          onClick={() => toggleFavourite(fav)}
                           style={{
-                            color: "#1368EC",
-                            fontSize: "20px",
-                            fontWeight: "bold",
+                            cursor: "pointer",
+                            color: "red",
+                            fontWeight: "500",
+                            fontSize: "26px",
                           }}
                         />
-                        {fav.warehouseName}
-                      </span>
+                      </div>
                     </div>
                     <div
                       style={{
-                        padding: "10px",
-                        backgroundColor: "#f1f1f1",
-                        borderRadius: "8px",
-                        width: "fit-content",
+                        position: "absolute",
+                        bottom: "10px",
+                        left: "10px",
+                        right: "10px",
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "flex-end",
                       }}
                     >
-                      <FaHeart
-                        onClick={() => toggleFavourite(fav)}
-                        style={{
-                          cursor: "pointer",
-                          color: "red",
-                          fontWeight: "500",
-                          fontSize: "26px",
-                        }}
-                      />
-                    </div>
-                  </div>
-
-                  <div
-                    style={{
-                      position: "absolute",
-                      bottom: "10px",
-                      left: "10px",
-                      right: "10px",
-                      display: "flex",
-                      justifyContent: "space-between",
-                      alignItems: "flex-end",
-                    }}
-                  >
-                    <div>
-                      <p style={{ margin: "0", fontWeight: "500" }}>
-                        {fav.city} - {fav.warehouseOwner}
-                      </p>
-                      <span style={{ color: "#1368EC" }}>$76,000</span>
-                      <span style={{ marginLeft: "4px" }}>Stock Valuation</span>
-                    </div>
-
-                    <div>
-                      <Link to={`/WarehouseDetails/${fav._id}`}>
-                        <FaArrowRight />
-                      </Link>
+                      <div>
+                        <p style={{ margin: "0", fontWeight: "500" }}>
+                          {fav.city} - {fav.warehouseOwner}
+                        </p>
+                        <span style={{ color: "#1368EC" }}>
+                          ₹{(
+                            products
+                              .filter((p) => p.warehouseName === fav.warehouseName)
+                              .reduce((sum, p) => {
+                                const soldUnits = salesMap[p._id] || 0;
+                                const price = parseFloat(p.sellingPrice) || 0;
+                                return sum + soldUnits * price;
+                              }, 0)
+                          ).toLocaleString("en-IN")}
+                        </span>
+                        <span style={{ marginLeft: "4px" }}>
+                          Stock Valuation
+                        </span>
+                      </div>
+                      <div>
+                        <Link to={`/WarehouseDetails/${fav._id}`}>
+                          <FaArrowRight />
+                        </Link>
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              ))}
+            {warehouses.filter((item) => item.isFavorite).length === 0 && (
+              <p>No favourites yet.</p>
+            )}
           </div>
         </div>
       </div>
+
+      
 
       {/* Owened Warehouse */}
 
