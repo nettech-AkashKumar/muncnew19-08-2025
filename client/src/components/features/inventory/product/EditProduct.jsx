@@ -1354,7 +1354,6 @@ const EditProduct = () => {
     // Dropdown states
     const [selectedCategory, setSelectedCategory] = useState(null);
     const [selectedsubCategory, setSelectedsubCategory] = useState(null);
-    console.log(selectedsubCategory);
     const [selectedBrands, setSelectedBrands] = useState(null);
     const [selectedUnits, setSelectedUnits] = useState(null);
     const [categories, setCategories] = useState([]);
@@ -1371,7 +1370,6 @@ const EditProduct = () => {
     const [brandId, setBrandId] = useState(null);
     const [categoryId, setCategoryId] = useState(null);
     const [subCategoryId, setSubCategoryId] = useState(null);
-    const [supplierId, setSupplierId] = useState(null);
 
     // Image state
     const [images, setImages] = useState([]);
@@ -1418,9 +1416,6 @@ const EditProduct = () => {
                 if (data.subCategory) {
                     setSubCategoryId(data.subCategory._id || data.subCategory)
                 }
-                if(data.supplier) {
-                    setSupplierId(data.supplier._id || data.supplier) 
-                }
 
                 if (data.unit) setSelectedUnits({ value: data.unit, label: data.unit });
                 if (data.supplier) setSelectedSupplier({ value: data.supplier._id || data.supplier, label: data.supplier.firstName ? `${data.supplier.firstName}${data.supplier.lastName} (${data.supplier.supplierCode})` : data.supplier });
@@ -1462,7 +1457,6 @@ const EditProduct = () => {
         const fetchSuppliers = async () => {
             try {
                 const res = await axios.get(`${BASE_URL}/api/suppliers/active`);
-                console.log('supplier id are ', res.data)
                 const options = res.data.suppliers.map((supplier) => ({ value: supplier._id, label: `${supplier.firstName}${supplier.lastName} (${supplier.supplierCode})` }));
                 setOptions(options);
             } catch (error) { }
@@ -1504,60 +1498,51 @@ const EditProduct = () => {
     }, [brandOptions, brandId]);
 
     // category
-    useEffect(() => {
-        if (categories.length > 0 && categoryId) {
-            const found = categories.find((opt) => opt.value === categoryId);
-            if (found) {
-                setSelectedCategory(found)
-            }
-        }
-    }, [categories, categoryId]);
+useEffect(() => {
+    if (categoryId && categories.length > 0) {
+        const foundCat = categories.find((opt) => opt.value === categoryId);
+        if (foundCat) {
+            setSelectedCategory(foundCat);
 
-    useEffect(() => {
-        if (selectedCategory && selectedCategory.value) {
-            fetchSubcategoriesByCategory(selectedCategory.value);
+            // Fetch subcategories for this category
+            fetchSubcategoriesByCategory(foundCat.value);
         }
-    }, [selectedCategory]);
+    }
+}, [categoryId, categories]);
 
-
-    // Subcategory
-    useEffect(() => {
-        if (subcategories.length > 0 && subCategoryId) {
-            const found = subcategories.find(opt => opt.value === subCategoryId);
-            if (found) setSelectedsubCategory(found);
+useEffect(() => {
+    if (subCategoryId && subcategories.length > 0) {
+        const foundSub = subcategories.find((opt) => opt.value === subCategoryId);
+        if (foundSub) {
+            setSelectedsubCategory(foundSub);
         }
-    }, [subcategories, subCategoryId]);
+    }
+}, [subCategoryId, subcategories]);
 
 
     // Subcategory fetch logic
     const fetchSubcategoriesByCategory = async (categoryId) => {
-        try {
-            const res = await axios.get(`${BASE_URL}/api/subcategory/by-category/${categoryId}`);
-            const options = res.data.map((subcat) => ({ value: subcat._id, label: subcat.subCategoryName }));
-            setSubcategories(options);
-        } catch (error) {
-            setSubcategories([]);
-        }
-    };
+    try {
+        const res = await axios.get(`${BASE_URL}/api/subcategory/by-category/${categoryId}`);
+        console.log('sbcategryfd', res.data)
+        const options = res.data.map((subcat) => ({
+            value: subcat._id,
+            label: subcat.subCategoryName 
+        }));
+        setSubcategories(options);
+       
+        return options;
+    } catch (error) {
+        setSubcategories([]);
+        return [];
+    }
+};
 
-    // supplier
-    // useEffect(() => {
-    //     if (selectedSupplier.length > 0 && supplierId) {
-    //         const found = selectedSupplier.find((opt) => opt.value === supplierId);
-    //         if (found) {
-    //             setSelectedSupplier(found)
-    //         }
-    //     }
-    // }, [selectedSupplier, supplierId]);
 
-    // Fetch subcategories when selectedCategory changes    
-    // useEffect(() => {
-    //     if (selectedCategory && selectedCategory.value) {
-    //         fetchSubcategoriesByCategory(selectedCategory.value);
-    //     } else {
-    //         setSubcategories([]);
-    //     }
-    // }, [selectedCategory]);
+
+
+
+
 
     // Handlers for dropdowns
     const handleBrandChange = (selectedOption) => setSelectedBrands(selectedOption);
@@ -1987,6 +1972,7 @@ const EditProduct = () => {
                                                 options={subcategories}
                                                 value={selectedsubCategory}
                                                 onChange={subCategoryChange}
+                                                
                                                 placeholder={t("searchOrSelectSubcategory")}
                                             />
                                         </div>

@@ -37,7 +37,7 @@ export const InboxProvider = ({ children }) => {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (res.data?.count !== undefined) {
-        console.log("📊 Fetched inboxCount from backend:", res.data.count);
+        // console.log("📊 Fetched inboxCount from backend:", res.data.count);
         setInboxCount(res.data.count);
       }
     } catch (error) {
