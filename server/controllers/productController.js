@@ -473,6 +473,7 @@ exports.deleteProductImage = async(req, res) => {
 // Delete Product
 exports.deleteProduct = async (req, res) => {
   try {
+    // const deleted = await Product.findByIdAndDelete(req.params.id);
     const deleted = await Product.findByIdAndDelete(req.params.id);
     if (!deleted) return res.status(404).json({ message: "Product not found" });
     res.status(200).json({ message: "Product deleted successfully" });

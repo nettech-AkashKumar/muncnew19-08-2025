@@ -137,6 +137,31 @@ const startIndex = (currentPage - 1) * itemsPerPage;
 const endIndex = startIndex + itemsPerPage;
 const paginatedData = products.slice(startIndex, endIndex);
 
+//delete product--------------------------------------------------------------------------------------------------------------------------------------------------------
+
+const handleDelete = async (product) => {
+  console.log("Deleting product:", product);
+  if (window.confirm(`Are you sure you want to delete ${product.productName}?`)) {
+    try {
+      await axios.delete(`${BASE_URL}/api/products/pro/${product._id}`);
+      setProducts((prevProducts) =>
+        prevProducts.filter((p) => p._id !== product._id)
+      );
+      if (paginatedData.length === 1 && currentPage > 1) {
+        setCurrentPage((prev) => prev - 1);
+      }
+      alert("Product deleted successfully!");
+    } catch (err) {
+      console.error("Failed to delete product:", err.response?.data || err);
+      alert(
+        `Failed to delete product: ${
+          err.response?.data?.message || err.message
+        }`
+      );
+    }
+  }
+};
+
   return (
     <>
 
@@ -688,8 +713,10 @@ const paginatedData = products.slice(startIndex, endIndex);
                         padding: "6px 12px",
                         borderRadius: "6px",
                         cursor: "pointer",
-                      }}
+                      }} 
+                      onClick={() => handleDelete(product)}
                     >
+                     
                       <RiDeleteBinLine />
                     </button>
                      </div>
