@@ -56,7 +56,7 @@ function AddWarehouse() {
       setCityList(City.getCitiesOfState(selectedCountry, selectedState));
     }
   }, [selectedState]);
-  
+
   // State for import status and message
   const [isImported, setIsImported] = useState(false);
   const [showMessage, setShowMessage] = useState(false);
@@ -823,7 +823,7 @@ function AddWarehouse() {
                   padding: "0",
                   borderRadius: "12px",
                   width: "900px",
-                  maxWidth: "90vw",
+                  
                 }}
               >
                 {(close) => (
@@ -833,6 +833,10 @@ function AddWarehouse() {
                       borderRadius: "12px",
                       boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
                       overflow: "hidden",
+                      margin: "0 auto",
+                      width: "100%",
+                      marginTop: "20px",
+                      marginLeft: "35px",
                     }}
                   >
                     <div
@@ -852,6 +856,7 @@ function AddWarehouse() {
                         <IoMdClose />
                       </span>
                     </div>
+
                     <div
                       style={{
                         display: "flex",

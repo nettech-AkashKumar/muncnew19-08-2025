@@ -116,7 +116,8 @@ function StockMovementLog() {
             Stock Movement Log
           </span>
         </div>
-        <div
+
+        {/* <div
           style={{
             border: "1px solid #e6e6e6",
             borderRadius: "4px",
@@ -140,7 +141,8 @@ function StockMovementLog() {
               Select Warehouse
             </option>
           </select>
-        </div>
+        </div> */}
+
       </div>
       <div
         style={{
@@ -209,10 +211,17 @@ function StockMovementLog() {
                 textAlign: "left",
               }}
             >
-              <th style={{ padding: "10px" }}>
-                <input type="checkbox" />
-              </th>
-              <th style={{ padding: "10px" }}>Product</th>
+                <th
+                  style={{
+                    padding: "12px 24px",
+                    textAlign: "left",
+                    display: "flex",
+                    gap: "20px",
+                  }}
+                >
+                  <input type="checkbox" />
+                  Product
+                </th>
               <th style={{ padding: "10px" }}>Time</th>
               <th style={{ padding: "10px" }}>QTY</th>
               <th style={{ padding: "10px" }}>Movement Type</th>
@@ -231,13 +240,20 @@ function StockMovementLog() {
                 onClick={() => handleCellClick(purchase)}
               >
                 <td 
-                  style={{ padding: "10px" }}
+                  style={{ padding: "12px 24px",  display: "flex",
+                        gap: "20px", alignItems: "center" }}
                 >
                   <input type="checkbox" />
-                </td>
-                <td
-                  style={{ padding: "10px" }}
-                >
+                    <img
+                        src=""
+                        alt=""
+                        style={{
+                          width: "35px",
+                          borderRadius: "4px",
+                          border: "1px solid #f1f1f1",
+                          backgroundColor: "#D9D9D9",
+                        }}
+                        />
                   {purchase.products[0]?.product?.productName}
                 </td>
                 <td
@@ -355,7 +371,6 @@ function StockMovementLog() {
                   borderRadius: "4px",
                 }}
               >
-                {" "}
                 {selectedStock.status === "Ordered" ? (
                   <option value="">In Transit</option>
                 ) : (
