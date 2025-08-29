@@ -21,7 +21,7 @@ const BalanceSheet = () => {
   const [view, setView] = useState("landscape");
    const sheetRef = useRef(null); 
 const [companyInfo, setCompanyInfo] = useState(null);
-const [totalStockValue, setTotalStockValue] = useState(0);
+const [StockValue, setStockValue] = useState(0);
 const [products, setProducts] = useState([]);
 
 
@@ -63,7 +63,7 @@ useEffect(() => {
         return acc + price * qty;
       }, 0);
 
-      setTotalStockValue(total);
+      setStockValue(total);
 
       // Initialize tabs
       const initialTabs = res.data.reduce((acc, product) => {
@@ -396,7 +396,7 @@ const handlePreview = () => {
   // ✅ Assets Table rows
   const assetRows = [
     [{ content: "Current Assets", colSpan: 2, styles: { halign: "left", fontStyle: "bold" } }],
-    [" Inventories (Stock in Hand)",totalStockValue],
+    [" Inventories (Stock in Hand)",values.StockValue],
     ["Bank Balance", values.bankBalance],
     ["Account Receivable", values.accountReceivable],
     ["Cash In Hand", values.cashInHand],
@@ -523,6 +523,7 @@ const handleDownload = () => {
       setShowCalendar(!showCalendar);
     };
     const [values, setValues] = useState({
+      StockValue:0,
     bankBalance: 0,
     accountReceivable: 0,
     cashInHand: 0,
@@ -559,8 +560,8 @@ const [totalNonCurrentLiabilities, setTotalNonCurrentLiabilities] = useState(0);
 
   // recalc totals
   useEffect(() => {
-    setTotalAssets(Object.values(values).reduce((a, b) => a + b, 0));
-  }, [values]);
+    setTotalAssets(StockValue+Object.values(values).reduce((a, b) => a + b, 0));
+  }, [values,StockValue]);
 
   useEffect(() => {
     setTotalLiabilities(Object.values(valuesSecond).reduce((a, b) => a + b, 0));
@@ -572,8 +573,8 @@ const [totalNonCurrentLiabilities, setTotalNonCurrentLiabilities] = useState(0);
   // Current Assets subtotal
 useEffect(() => {
   const { bankBalance, accountReceivable, cashInHand, prepaidExpenses } = values;
-  setTotalCurrentAssets(bankBalance + accountReceivable + cashInHand + prepaidExpenses);
-}, [values]);
+  setTotalCurrentAssets(StockValue+bankBalance + accountReceivable + cashInHand + prepaidExpenses);
+}, [values,StockValue ]);
 
 // Non-Current Assets subtotal
 useEffect(() => {
@@ -649,7 +650,7 @@ useEffect(() => {
               {/* <li className='li-balancesheet' style={{borderBottom:"1px solid #E6E6E6"}}>(a) Inventories (Stock in Hand) <span>xxxx</span></li> */}
               <li className='li-balancesheet' style={{borderBottom:"1px solid #E6E6E6"}}>
   (a) Inventories (Stock in Hand) 
-  <span>₹{totalStockValue.toFixed(2)}</span>
+  <span >₹{StockValue.toFixed(2)}</span>
 </li>
               <li className='li-balancesheet' style={{borderBottom:"1px solid #E6E6E6"}}>(b) Bank Balance <span><input type="number"  name="bankBalance"
                   onChange={handleInputChange} placeholder='---' style={{textAlign:"right",border:"none", outline:"none",  backgroundColor: "transparent"}}/></span></li>
