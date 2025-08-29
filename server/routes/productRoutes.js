@@ -13,6 +13,7 @@ const {
   getProductStock,
 
   getPurchaseReturnStock,
+  // getTotalStockValue 
 } = require("../controllers/productController");
 
 
@@ -39,7 +40,7 @@ router.delete("/:id", deleteProductImage)
 router.delete("/:id", deleteProduct);    // Delete
 
 
-
+// router.get("/total-stock-value", getTotalStockValue);
 
 
 module.exports = router;

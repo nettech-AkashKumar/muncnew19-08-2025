@@ -19,8 +19,30 @@ const Popup = ({ isOpen, onClose, selectedItem, zoneName = "Zone 01" }) => {
   const [showDropdown, setShowDropdown] = useState(false);
   const [searchResults, setSearchResults] = useState([]);
 
+useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        const res = await axios.get(`${BASE_URL}/api/products`);
+        setProducts(res.data);
+        setAllProducts(res.data); // Store all products
+        if (res.data.length > 0) {
+        }
+        // Initialize all to "general"
+        const initialTabs = res.data.reduce((acc, product) => {
+          acc[product._id] = "general";
+          return acc;
+        }, {});
+        setActiveTabs(initialTabs);
+      } catch (err) {
+        console.error("Failed to fetch products", err);
+      }
+    };
+    fetchProducts();
+  }, []);
+
   // Product search functionality
   const handleProductSearch = (query) => {
+    setSearchQuery(query);
     setProductSearchQuery(query);
 
     if (!query.trim()) {
@@ -31,7 +53,7 @@ const Popup = ({ isOpen, onClose, selectedItem, zoneName = "Zone 01" }) => {
     const searchTerm = query.toLowerCase();
     const filteredProducts = allProducts.filter((product) => {
       return (
-        
+
         product.productName?.toLowerCase().includes(searchTerm) ||
         (product.brand &&
           typeof product.brand === "object" &&
@@ -57,28 +79,11 @@ const Popup = ({ isOpen, onClose, selectedItem, zoneName = "Zone 01" }) => {
     });
 
     setProducts(filteredProducts);
+    setSearchResults(filteredProducts);  // ✅ update dropdown
+  setShowDropdown(true);  
   };
 
-  useEffect(() => {
-    const fetchProducts = async () => {
-      try {
-        const res = await axios.get(`${BASE_URL}/api/products`);
-        setProducts(res.data);
-        setAllProducts(res.data); // Store all products
-        if (res.data.length > 0) {
-        }
-        // Initialize all to "general"
-        const initialTabs = res.data.reduce((acc, product) => {
-          acc[product._id] = "general";
-          return acc;
-        }, {});
-        setActiveTabs(initialTabs);
-      } catch (err) {
-        console.error("Failed to fetch products", err);
-      }
-    };
-    fetchProducts();
-  }, []);
+  
 
   return (
     <div
@@ -192,7 +197,7 @@ const Popup = ({ isOpen, onClose, selectedItem, zoneName = "Zone 01" }) => {
                 type="text"
                 placeholder="Search by name, email, or phone number..."
                 value={searchQuery}
-                onChange={handleProductSearch}
+                onChange={(e) => handleProductSearch(e.target.value)}
                 style={{
                   width: "100%",
                   padding: "8px",
@@ -231,8 +236,6 @@ const Popup = ({ isOpen, onClose, selectedItem, zoneName = "Zone 01" }) => {
                       {product.productName || "No Name"}
                     </div>
                     <div style={{ fontSize: "14px", color: "#666" }}>
-                      {product.brand?.name || product.brand || "No Brand"}
-                      {product.category?.name && ` • ${product.category.name}`}
                     </div>
                   </div>
                 ))}
@@ -258,7 +261,7 @@ const Popup = ({ isOpen, onClose, selectedItem, zoneName = "Zone 01" }) => {
                     zIndex: 1000,
                   }}
                 >
-                  No customers found matching "{searchQuery}"
+                  No product found matching "{searchQuery}"
                 </div>
               )}
           </div>
