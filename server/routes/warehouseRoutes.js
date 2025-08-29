@@ -13,6 +13,9 @@ router.get("/active", ctrl.getActiveWarehouses);     // <- /api/warehouse/active
 router.patch("/:id/merge-racks", ctrl.mergeRacks);
 router.put("/:id/update-rack", ctrl.updateRack);
 
+// /api/warehouse/active
+router.get("/favorites", ctrl.getFavoriteWarehouses); // /api/warehouse/favorites
+router.patch("/:id/toggle-favorite", ctrl.toggleFavoriteWarehouse);
 
 // === CRUD ===
 router.post("/", ctrl.createWarehouse);

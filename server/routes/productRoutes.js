@@ -37,7 +37,7 @@ router.get("/", getAllProducts);         // Read All
 router.get("/:id", getProductById);      // Read Single
 router.put("/:id", upload.array("images", 10), updateProduct);       // Update
 router.delete("/:id", deleteProductImage)
-router.delete("/:id", deleteProduct);    // Delete
+router.delete("/pro/:id", deleteProduct);    // Delete
 
 
 // router.get("/total-stock-value", getTotalStockValue);
