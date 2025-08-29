@@ -1542,7 +1542,7 @@ const EditProduct = () => {
       const foundCat = categories.find((opt) => opt.value === categoryId);
       if (foundCat) {
         setSelectedCategory(foundCat);
-
+      console.log("⚡ Fetching subcategories for:", foundCat.value);
         // Fetch subcategories for this category
         fetchSubcategoriesByCategory(foundCat.value);
       }
@@ -1570,7 +1570,15 @@ const EditProduct = () => {
         label: subcat.subCategoryName,
       }));
       setSubcategories(options);
-
+          // ✅ Preselect subcategory here
+    if (subCategoryId) {
+      const found = options.find(
+        (opt) => opt.value === subCategoryId
+      );
+      if (found) {
+        setSelectedsubCategory(found);
+      }
+    }
       return options;
     } catch (error) {
       setSubcategories([]);
@@ -1817,6 +1825,7 @@ const EditProduct = () => {
       setImages((prev) => prev.filter((f) => f !== file));
     }
   };
+
   return (
     <div className="page-wrapper mt-4">
       <div className="content">
