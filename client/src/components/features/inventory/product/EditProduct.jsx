@@ -1391,25 +1391,12 @@ const EditProduct = () => {
         if (data.brand) {
           setBrandId(data.brand._id || data.brand);
         }
-        // const catObj = { value: data.category._id || data.category, label: data.category.categoryName || data.category };
-        // setSelectedCategory(catObj);
-        // Fetch subcategories for this category
-        // const subRes = await axios.get(`${BASE_URL}/api/subcategory/by-category/${catObj.value}`);
-        // const subOptions = subRes.data.map((subcat) => ({
-        //     value: subcat._id,
-        //     label: subcat.subCategoryName,
-        // }));
-        // setSubcategories(subOptions);
-        // // Now set selectedsubCategory
-        // if (data.subCategory) {
-        //     const found = subOptions.find(opt => opt.value === (data.subCategory._id || data.subCategory));
-        //     if (found) setSelectedsubCategory(found);
-        // }
+        
+        if (data.subcategory) {
+  setSubCategoryId(data.subcategory._id || data.subcategory);
+}
         if (data.category) {
           setCategoryId(data.category._id || data.category);
-        }
-        if (data.subCategory) {
-          setSubCategoryId(data.subCategory._id || data.subCategory);
         }
 
         if (data.unit) setSelectedUnits({ value: data.unit, label: data.unit });
@@ -1458,7 +1445,7 @@ const EditProduct = () => {
           label: category.categoryName,
         }));
         setCategories(options);
-      } catch (error) {}
+      } catch (error) { }
     };
     const fetchBrands = async () => {
       try {
@@ -1471,7 +1458,7 @@ const EditProduct = () => {
           label: brand.brandName,
         }));
         setBrandOptions(options);
-      } catch (error) {}
+      } catch (error) { }
     };
     const fetchUnits = async () => {
       try {
@@ -1481,7 +1468,7 @@ const EditProduct = () => {
           label: `${unit.unitsName} (${unit.shortName})`,
         }));
         setUnitsOptions(options);
-      } catch (error) {}
+      } catch (error) { }
     };
     const fetchSuppliers = async () => {
       try {
@@ -1491,7 +1478,7 @@ const EditProduct = () => {
           label: `${supplier.firstName}${supplier.lastName} (${supplier.supplierCode})`,
         }));
         setOptions(options);
-      } catch (error) {}
+      } catch (error) { }
     };
     const fetchWarehouses = async () => {
       try {
@@ -1503,7 +1490,7 @@ const EditProduct = () => {
           }));
           setOptionsWare(options);
         }
-      } catch (error) {}
+      } catch (error) { }
     };
     const fetchHSN = async () => {
       try {
@@ -1516,7 +1503,7 @@ const EditProduct = () => {
           }));
           setOptionsHsn(options);
         }
-      } catch (error) {}
+      } catch (error) { }
     };
 
     fetchCategories();
@@ -1542,21 +1529,13 @@ const EditProduct = () => {
       const foundCat = categories.find((opt) => opt.value === categoryId);
       if (foundCat) {
         setSelectedCategory(foundCat);
-      console.log("⚡ Fetching subcategories for:", foundCat.value);
+        console.log("⚡ Fetching subcategories for:", foundCat.value);
         // Fetch subcategories for this category
         fetchSubcategoriesByCategory(foundCat.value);
       }
     }
   }, [categoryId, categories]);
 
-  useEffect(() => {
-    if (subCategoryId && subcategories.length > 0) {
-      const foundSub = subcategories.find((opt) => opt.value === subCategoryId);
-      if (foundSub) {
-        setSelectedsubCategory(foundSub);
-      }
-    }
-  }, [subCategoryId, subcategories]);
 
   // Subcategory fetch logic
   const fetchSubcategoriesByCategory = async (categoryId) => {
@@ -1570,21 +1549,21 @@ const EditProduct = () => {
         label: subcat.subCategoryName,
       }));
       setSubcategories(options);
-          // ✅ Preselect subcategory here
-    if (subCategoryId) {
-      const found = options.find(
-        (opt) => opt.value === subCategoryId
-      );
-      if (found) {
-        setSelectedsubCategory(found);
-      }
-    }
-      return options;
     } catch (error) {
       setSubcategories([]);
-      return [];
     }
   };
+
+  // ✅ Effect: once subcategories + subCategoryId are both ready → preselect
+  useEffect(() => {
+    if (subCategoryId && subcategories.length > 0) {
+      const found = subcategories.find((opt) => opt.value === subCategoryId);
+      if (found) {
+        setSelectedsubCategory(found);
+        console.log("✅ Preselected subcategory:", found);
+      }
+    }
+  }, [subCategoryId, subcategories]);
 
   //supplier
   useEffect(() => {
@@ -1881,28 +1860,26 @@ const EditProduct = () => {
             return (
               <div key={index} className="step-wrapper">
                 <div
-                  className={`circle ${
-                    isComplete
-                      ? "complete"
-                      : isIncomplete
+                  className={`circle ${isComplete
+                    ? "complete"
+                    : isIncomplete
                       ? "incomplete"
                       : isActive
-                      ? "active"
-                      : ""
-                  }`}
+                        ? "active"
+                        : ""
+                    }`}
                 >
                   {index + 1}
                 </div>
                 <div className="step-text">{label}</div>
                 {index < steps.length - 1 && (
                   <div
-                    className={`progress-line ${
-                      status === "complete"
-                        ? "line-complete"
-                        : status === "incomplete"
+                    className={`progress-line ${status === "complete"
+                      ? "line-complete"
+                      : status === "incomplete"
                         ? "line-incomplete"
                         : "line-pending"
-                    }`}
+                      }`}
                   />
                 )}
               </div>
@@ -2498,9 +2475,8 @@ const EditProduct = () => {
                       value={formData[field.name] || ""}
                       onChange={handleChange}
                       placeholder={t(
-                        `enter${
-                          field.name.charAt(0).toUpperCase() +
-                          field.name.slice(1)
+                        `enter${field.name.charAt(0).toUpperCase() +
+                        field.name.slice(1)
                         }`
                       )}
                     />
@@ -2712,11 +2688,10 @@ const EditProduct = () => {
                     <button
                       type="button"
                       key={tab}
-                      className={`variant-tab btn btn-sm ${
-                        activeTab === tab
-                          ? "btn-success"
-                          : "btn-outline-secondary"
-                      }`}
+                      className={`variant-tab btn btn-sm ${activeTab === tab
+                        ? "btn-success"
+                        : "btn-outline-secondary"
+                        }`}
                       onClick={() => setActiveTab(tab)}
                     >
                       {tab}
