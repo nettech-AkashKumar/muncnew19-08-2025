@@ -549,10 +549,22 @@ const EmailMessages = ({
                       {email.sender.initials}
                     </span> */}
                     {/* </div> */}
-                    <div
+                    {/* <div
                       style={{ display: "flex", flexDirection: 'column' }}
                       onClick={() => { if (isDraftPage && onDraftClick) { onDraftClick(email); } else { setSelectedEmail(email) } }}
-                    >
+                    > */}
+                    <div
+  style={{ display: "flex", flexDirection: 'column' }}
+  onClick={() => {
+    if (!isDraftPage) {
+      setSelectedEmail(email);
+      if (handleEmailClick) handleEmailClick(email._id); // ⬅️ call markAsRead
+    } else if (onDraftClick) {
+      onDraftClick(email);
+    }
+  }}
+>
+
                       <span
                         style={{
                           color: "#262626",

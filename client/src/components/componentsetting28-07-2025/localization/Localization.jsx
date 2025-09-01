@@ -258,12 +258,12 @@ const Localization = () => {
 
                   > <img src={CompyIc} alt='itmimg' style={{ width: 20, height: 20, objectFit: "contain" }} /></span>
                   <div style={{ display: "flex", flexDirection: "column" }}>
-                    <span className="localizatreck">{t("date_format")}</span>
+                    <span className="localizatreck">{t("Date Format")}</span>
                     <span
                       className="localizatreckdes"
                       style={{ color: "rgb(92, 91, 91)" }}
                     >
-                      {t("select_date_format")}
+                      {t("Select date format")}
                     </span>
                   </div>
                 </div>
@@ -351,9 +351,9 @@ const Localization = () => {
 
                   > <img src={CompyIc} alt='itmimg' style={{ width: 20, height: 20, objectFit: "contain" }} /></span>
                   <div style={{ display: "flex", flexDirection: "column" }}>
-                    <span className="localizatreck">{t("time_format")}</span>
+                    <span className="localizatreck">{t("Time Format")}</span>
                     <span className="localizatreckdes">
-                      {t("select_time_format")}
+                      {t("Select time format")}
                     </span>
                   </div>
                 </div>
@@ -396,9 +396,9 @@ const Localization = () => {
 
                   > <img src={CompyIc} alt='itmimg' style={{ width: 20, height: 20, objectFit: "contain" }} /></span>
                   <div style={{ display: "flex", flexDirection: "column" }}>
-                    <span className="localizatreck">{t("financial_year")}</span>
+                    <span className="localizatreck">{t("Financial year")}</span>
                     <span className="localizatreckdes">
-                      {t("select_financial_year")}
+                      {t("Select financial year")}
                     </span>
                   </div>
                 </div>
@@ -444,10 +444,10 @@ const Localization = () => {
 
                   > <img src={CompyIc} alt='itmimg' style={{ width: 20, height: 20, objectFit: "contain" }} /></span>
                   <div style={{ display: "flex", flexDirection: "column" }}>
-                    <span className="localizatreck">{t("starting_month")}</span>
+                    <span className="localizatreck">{t("Starting month")}</span>
                     <span className="localizatreckdes">
-                      {t("select_starting_month")}
-                    </span>
+                      {t("Select starting month")}
+                    </span> 
                   </div>
                 </div>
                 <div>
@@ -476,7 +476,7 @@ const Localization = () => {
 
             <div className="currency-settings-content px-3">
               <h1 className="localization-containerhone">
-                {t("currency_settings")}
+                {t("Currency Settings")}
               </h1>
               <hr style={{ margin: "0", height: '1px', color: '#bdbdbdff' }} />
               <div
@@ -499,9 +499,9 @@ const Localization = () => {
 
                   > <img src={Curny} alt='itmimg' style={{ width: 20, height: 20, objectFit: "contain" }} /></span>
                   <div style={{ display: "flex", flexDirection: "column" }}>
-                    <span className="localizatreck">{t("currency")}</span>
+                    <span className="localizatreck">{t("Currency")}</span>
                     <span className="localizatreckdes">
-                      {t("select_currency")}
+                      {t("Select currency")}
                     </span>
                   </div>
                 </div>
@@ -544,9 +544,9 @@ const Localization = () => {
 
                   > <img src={Curny} alt='itmimg' style={{ width: 20, height: 20, objectFit: "contain" }} /></span>
                   <div style={{ display: "flex", flexDirection: "column" }}>
-                    <span className="localizatreck">{t("currency_symbol")}</span>
+                    <span className="localizatreck">{t("Currency symbol")}</span>
                     <span className="localizatreckdes">
-                      {t("select_currency_symbol")}
+                      {t("Select currency symbol")}
                     </span>
                   </div>
                 </div>
@@ -589,13 +589,13 @@ const Localization = () => {
                   > <img src={Curny} alt='itmimg' style={{ width: 20, height: 20, objectFit: "contain" }} /></span>
                   <div style={{ display: "flex", flexDirection: "column" }}>
                     <span className="localizatreck">
-                      {t("currency_position")}
+                      {t("Currency position")}
                     </span>
                     <span
                       className="localizatreckdes"
                       style={{ color: "rgb(92, 91, 91)" }}
                     >
-                      {t("select_currency_position")}
+                      {t("Select currency position")}
                     </span>
                   </div>
                 </div>
@@ -639,10 +639,10 @@ const Localization = () => {
                   > <img src={Curny} alt='itmimg' style={{ width: 20, height: 20, objectFit: "contain" }} /></span>
                   <div style={{ display: "flex", flexDirection: "column" }}>
                     <span className="localizatreck">
-                      {t("decimal_separator")}
+                      {t("Decimal separator")}
                     </span>
                     <span className="localizatreckdes">
-                      {t("select_decimal_separator")}
+                      {t("select decimal separator")}
                     </span>
                   </div>
                 </div>
@@ -686,13 +686,13 @@ const Localization = () => {
                   > <img src={Curny} alt='itmimg' style={{ width: 20, height: 20, objectFit: "contain" }} /></span>
                   <div style={{ display: "flex", flexDirection: "column" }}>
                     <span className="localizatreck">
-                      {t("thousand_separator")}
+                      {t("Thousand separator")}
                     </span>
                     <span
                       className="localizatreckdes"
                       style={{ color: "rgb(92, 91, 91)" }}
                     >
-                      {t("select_thousand_separator")}
+                      {t("Select thousand separator")}
                     </span>
                   </div>
                 </div>

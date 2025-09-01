@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import "../../../styles/login.css";
 import { MdOutlineEmail } from "react-icons/md";
@@ -16,6 +16,8 @@ const Login = () => {
     email: '',
     password: '',
   });
+    const [rememberMe,setRememberMe] = useState(false)  //state for remember me
+
   // state for two factor authentication
   const [otpStep, setOtpStep] = useState(false)
   const [otp, setOtp] = useState("")
@@ -83,10 +85,28 @@ const Login = () => {
     }
   }
 
+  // useEffect for remember me 
+  useEffect(() => {
+    const savedUseremail = localStorage.getItem('email')
+    const savedPassword = localStorage.getItem('password')
+    if(savedUseremail && savedPassword) {
+     setFormData({
+      email:savedUseremail,
+      password:savedPassword
+     })
+     setRememberMe(true)
+    }
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
+    if(rememberMe) {
+      localStorage.setItem('email', formData.email);
+      localStorage.setItem('password', formData.password)
+    }else {
+       localStorage.removeItem('email');
+      localStorage.removeItem('password')
+    }
     try {
       const res = await axios.post(`${BASE_URL}/api/auth/login`, {
         email: formData.email,
@@ -191,7 +211,7 @@ const Login = () => {
                     <div className="col-12 d-flex align-items-center justify-content-between">
                       <div className="custom-control custom-checkbox">
                         <label className="checkboxs ps-4 mb-0 pb-0 line-height-1 fs-16 text-gray-6">
-                          <input type="checkbox" className="form-control" />
+                          <input type="checkbox" className="form-control" checked={rememberMe} onChange={(e) => setRememberMe(e.target.checked)} />
                           <span className="checkmarks" />Remember me
                         </label>
                       </div>
