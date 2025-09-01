@@ -174,6 +174,8 @@ import BASE_URL from "../config/config";
 import "../../styles/permissions.css"; // Ensure this includes switch styling
 import { useParams } from "react-router-dom";
 import { HiMiniChevronUpDown } from "react-icons/hi2";
+import { toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 const modules = ["Brand", "Category", "Product"];
 const permissionFields = ["Allow All", "Read", "Write", "Update", "Delete", "Import", "Export"];
@@ -292,7 +294,9 @@ const Permission = () => {
 
   const handleSubmit = async () => {
     if (!selectedRole?._id) {
-      alert("Please select a role.");
+      toast.info("Please select a role.", {
+        position:'top-center'
+      });
       return;
     }
 
@@ -300,10 +304,14 @@ const Permission = () => {
       await axios.put(`${BASE_URL}/api/role/update/${selectedRole._id}`, {
         modulePermissions: rolePermissions,
       });
-      alert("Permissions updated successfully.");
+      toast.success("Permissions updated successfully.", {
+        position:'top-center'
+      });
     } catch (err) {
       console.error("Error updating permissions", err);
-      alert("Failed to update permissions.");
+      toast.error("Failed to update permissions.", {
+        position:'top-center'
+      });
     }
   };
 

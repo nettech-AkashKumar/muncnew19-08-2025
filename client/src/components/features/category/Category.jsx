@@ -237,7 +237,7 @@ const Category = () => {
               <div className="search-input">
                 <input
                   type="text"
-                  placeholder="Search country..."
+                  placeholder="Search category..."
                   className="form-control"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}

@@ -62,7 +62,7 @@ const Settings = () => {
               >
                 <span className="settingssh1" style={{ backgroundColor: activeMainItem === "general" ? "#E3F3FF" : "", border: activeMainItem === "general" ? "1px solid #BBE1FF" : "none", borderRadius: activeMainItem === "general" ? "5px" : "", padding: "8px", display: "flex", alignItems: 'center', gap: "8px" }}>
                   {" "}
-                  <RiUserSettingsLine style={{ color: 'gray', color: activeMainItem === "general" ? "#1368EC" : "", }} /> {t("General Settings")}
+                  <RiUserSettingsLine style={{ color: 'gray', color: activeMainItem === "general" ? "#1368EC" : "", }} /> {t("generalSettings")}
                   <RiArrowDropDownLine
                     style={{
                       borderRadius: "50%",
@@ -122,7 +122,7 @@ const Settings = () => {
                         color: activeItem === "security" ? "#1368EC" : "#676767"
                       }}
                     >
-                      {t("Security")}
+                      {t("security")}
                     </span>
                   </Link>
                 </div>
@@ -138,7 +138,7 @@ const Settings = () => {
               >
                 <span className="settingssh1" style={{ backgroundColor: activeMainItem === "website" ? "#E3F3FF" : "", border: activeMainItem === "website" ? "1px solid #BBE1FF" : "none", borderRadius: activeMainItem === "website" ? "5px" : "", padding: "8px", display: "flex", alignItems: 'center', gap: "8px" }}>
                   {" "}
-                  <MdOutlineVideoSettings style={{ color: activeMainItem === "website" ? "#1368EC" : "" }} /> {t("Website Settings")}
+                  <MdOutlineVideoSettings style={{ color: activeMainItem === "website" ? "#1368EC" : "" }} /> {t("websiteSettings")}
                   <RiArrowDropDownLine
                     style={{
                       borderRadius: "50%",
@@ -175,7 +175,7 @@ const Settings = () => {
                         color: activeItem === "company-settings" ? "#1368EC" : "#676767"
                       }}
                     >
-                      {t("Company Settings")}
+                      {t("companySettings")}
                     </span>
                   </Link>
                   <Link to="/language-settings" style={{ textDecoration: "none", color: "black" }} onClick={() => setActiveItem("language-settings")}>
