@@ -3175,7 +3175,7 @@ const ProductForm = () => {
           <div className="page-btn mt-0">
             <div className="d-flex gap-2">
               {/* <Link to="/product"></Link>{t("backToProduct")} */}
-              <Link to="/product"><a className="btn btn-primary" >Back to Product</a></Link>
+              <Link to="/choose-adproduct"><a className="btn btn-primary" >Back to Product</a></Link>
             </div>
           </div>
         </div>

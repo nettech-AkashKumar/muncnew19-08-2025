@@ -18,6 +18,32 @@ const rackSchema = new mongoose.Schema(
   { _id: false }
 );
 
+
+const blockItemSchema = new mongoose.Schema(
+  {
+    itemId: { type: mongoose.Schema.Types.ObjectId, ref: "Item" },
+    quantity: { type: Number, default: 0, min: 0 },
+    barcode: { type: String, required: true },
+  },
+  { _id: false }
+);
+
+const cellSchema = new mongoose.Schema(
+  {
+    name: { type: String, required: true }, // e.g., "1", "2", ..., "15"
+    items: [blockItemSchema],
+  },
+  { _id: false }
+);
+
+const zoneSchema = new mongoose.Schema(
+  {
+    zone: { type: String, required: true }, // e.g., "Zone1", "Zone2"
+    cells: [cellSchema],
+  },
+  { _id: false }
+);
+
 const warehouseSchema = new mongoose.Schema(
   {
     warehouseName: {
@@ -93,6 +119,7 @@ const warehouseSchema = new mongoose.Schema(
     },
 
     capacityEstimate: { type: Number }, // Optional but useful
+    blocks: [zoneSchema],
     racks: [rackSchema],
     isFavorite: {
       type: Boolean,

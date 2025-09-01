@@ -40,7 +40,51 @@ exports.createWarehouse = async (req, res) => {
             ...req.body, 
             contactPerson: req.body.warehouseManager  // map it
         };
+
         delete data.warehouseManager; // optional
+
+    const zonesInput = req.body.layout.zones;
+    const rows = req.body.layout.rows;
+    const columns = req.body.layout.columns;
+    const width = req.body.layout.width;
+
+    // Validate input
+    if (!rows || !columns || zonesInput === undefined) {
+      return res.status(400).json({ success: false, message: "Missing layout parameters" });
+    }
+    if (typeof zonesInput !== "number" || zonesInput <= 0) {
+      return res.status(400).json({ success: false, message: "Zones must be a positive number" });
+    }
+
+    data.layout = {
+      rows: rows,
+      columns: columns,
+      width: width,
+      zones: zonesInput, // Store as number
+    };
+
+    // Initialize blocks array with zone objects
+    data.blocks = [];
+    for (let zoneIdx = 1; zoneIdx <= zonesInput; zoneIdx++) {
+      const zoneName = `Zone${zoneIdx}`;
+      const cells = [];
+      let cellNumber = 1;
+      for (let row = 1; row <= rows; row++) {
+        for (let col = 1; col <= columns; col++) {
+          cells.push({
+            name: String(cellNumber), // e.g., "1", "2", ..., "15"
+            items: [],
+          });
+          cellNumber++;
+        }
+      }
+      data.blocks.push({
+        zone: zoneName,
+        cells: cells,
+      });
+    }
+        // Create and save the warehouse
+
         const warehouse = new Warehouse(data);
         await warehouse.save();
         res.status(201).json({ success: true, warehouse });
@@ -48,6 +92,7 @@ exports.createWarehouse = async (req, res) => {
         res.status(500).json({ success: false, message: err.message });
     }
 };
+
 exports.getAllWarehouses = async (req, res) => {
     try {
         const wh = await Warehouse.find()
@@ -219,5 +264,60 @@ exports.getFavoriteWarehouses = async (req, res) => {
     res.json({ success: true, data: favoriteWarehouses });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
+  }
+};
+
+
+// PATCH Route to Assign Product to Cell
+exports.zoneproducts =  async (req, res) => {
+  const { id, zone, cellIndex } = req.params;
+  const { productId } = req.body;
+
+  try {
+    // Validate inputs
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ message: 'Invalid warehouse ID' });
+    }
+    if (!mongoose.Types.ObjectId.isValid(productId)) {
+      return res.status(400).json({ message: 'Invalid product ID' });
+    }
+    if (isNaN(cellIndex) || cellIndex < 0) {
+      return res.status(400).json({ message: 'Invalid cell index' });
+    }
+
+    // Find the warehouse
+    const warehouse = await Warehouse.findById(id);
+    if (!warehouse) {
+      return res.status(404).json({ message: 'Warehouse not found' });
+    }
+
+    // Find the zone
+    const zoneObj = warehouse.blocks.find((z) => z.zone === zone);
+    if (!zoneObj) {
+      return res.status(404).json({ message: 'Zone not found' });
+    }
+
+    // Validate cell index
+    if (cellIndex >= zoneObj.cells.length) {
+      return res.status(400).json({ message: 'Cell index out of bounds' });
+    }
+
+    // Check if product exists
+    const product = await Product.findById(productId);
+    if (!product) {
+      return res.status(404).json({ message: 'Product not found' });
+    }
+
+    // Update the cell with the product ID
+    zoneObj.cells[cellIndex].product = productId;
+
+    // Save the updated warehouse
+    await warehouse.save();
+
+    // Return the updated warehouse
+    res.status(200).json({ success: true, data: warehouse });
+  } catch (error) {
+    console.error('Error assigning product to cell:', error);
+    res.status(500).json({ message: 'Server error', error: error.message });
   }
 };

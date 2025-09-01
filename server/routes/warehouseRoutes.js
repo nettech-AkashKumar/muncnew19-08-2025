@@ -24,6 +24,8 @@ router.get("/:id", ctrl.getWarehouseById);
 router.put("/:id", ctrl.updateWarehouse);
 router.delete("/:id", ctrl.deleteWarehouse);
 
+router.patch('/:id/zone/:zone/cell/:cellIndex', ctrl.zoneproducts),
+
 module.exports = router;
 
 

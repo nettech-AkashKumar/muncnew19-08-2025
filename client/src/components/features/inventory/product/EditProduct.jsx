@@ -1854,10 +1854,10 @@ const EditProduct = () => {
           </div>
 
           <div className="page-btn mt-0">
-            <button className="btn btn-secondary">
-              <Link to="back"></Link>
-              {t("backToProduct")}
-            </button>
+            <div className="d-flex gap-2">
+              {/* <Link to="/product"></Link>{t("backToProduct")} */}
+              <Link to="/product"><a className="btn btn-primary" >Back to Product</a></Link>
+            </div>
           </div>
         </div>
         {/* <h5 className="mb-3">{steps[step]}</h5> */}
