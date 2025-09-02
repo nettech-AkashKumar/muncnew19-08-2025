@@ -1,6 +1,8 @@
 const Warehouse = require("../models/warehouseModels");
 const { Parser } = require("json2csv");
 const PDFDocument = require("pdfkit");
+const mongoose = require("mongoose"); // Ensure mongoose is imported
+const Product = require("../models/productModels"); // Ensure Product model is imported
 
 // exports.createWarehouse = async (req, res) => {
 //     try {
@@ -268,56 +270,73 @@ exports.getFavoriteWarehouses = async (req, res) => {
 };
 
 
-// PATCH Route to Assign Product to Cell
-exports.zoneproducts =  async (req, res) => {
+
+exports.zoneproducts = async (req, res) => {
   const { id, zone, cellIndex } = req.params;
   const { productId } = req.body;
 
   try {
     // Validate inputs
+    console.log("Request params:", { id, zone, cellIndex, productId });
     if (!mongoose.Types.ObjectId.isValid(id)) {
-      return res.status(400).json({ message: 'Invalid warehouse ID' });
+      return res.status(400).json({ message: "Invalid warehouse ID" });
     }
     if (!mongoose.Types.ObjectId.isValid(productId)) {
-      return res.status(400).json({ message: 'Invalid product ID' });
+      return res.status(400).json({ message: "Invalid product ID" });
     }
     if (isNaN(cellIndex) || cellIndex < 0) {
-      return res.status(400).json({ message: 'Invalid cell index' });
+      return res.status(400).json({ message: "Invalid cell index" });
     }
 
     // Find the warehouse
     const warehouse = await Warehouse.findById(id);
     if (!warehouse) {
-      return res.status(404).json({ message: 'Warehouse not found' });
+      return res.status(404).json({ message: "Warehouse not found" });
     }
+    console.log("Warehouse found:", warehouse);
 
     // Find the zone
     const zoneObj = warehouse.blocks.find((z) => z.zone === zone);
     if (!zoneObj) {
-      return res.status(404).json({ message: 'Zone not found' });
+      return res.status(404).json({ message: "Zone not found" });
     }
+    console.log("Zone found:", zoneObj);
 
     // Validate cell index
+    console.log("Cells in zone:", zoneObj.cells);
     if (cellIndex >= zoneObj.cells.length) {
-      return res.status(400).json({ message: 'Cell index out of bounds' });
+      return res.status(400).json({ message: "Cell index out of bounds" });
     }
 
     // Check if product exists
     const product = await Product.findById(productId);
     if (!product) {
-      return res.status(404).json({ message: 'Product not found' });
+      return res.status(404).json({ message: "Product not found" });
     }
+    console.log("Product found:", product);
 
     // Update the cell with the product ID
+    console.log("Cell before update:", zoneObj.cells[cellIndex]);
+zoneObj.cells[cellIndex].items.push({
+  productId: productId,
+  quantity: 1,
+  barcode: product.barcode || `BARCODE-${productId}`,
+});
+console.log("Cell after update:", zoneObj.cells[cellIndex]);
+
+    // Optionally update the product field (if you want to keep it for backward compatibility)
     zoneObj.cells[cellIndex].product = productId;
 
     // Save the updated warehouse
-    await warehouse.save();
+    await warehouse.validate(); // Validate before saving
+  await warehouse.save();
+  console.log("Warehouse saved successfully");
 
-    // Return the updated warehouse
-    res.status(200).json({ success: true, data: warehouse });
-  } catch (error) {
-    console.error('Error assigning product to cell:', error);
-    res.status(500).json({ message: 'Server error', error: error.message });
+  res.status(200).json({ success: true, data: warehouse });
+} catch (error) {
+  console.error("Error assigning product to cell:", error);
+  if (error.name === "ValidationError") {
+    return res.status(400).json({ message: "Validation error", errors: error.errors });
   }
-};
+  res.status(500).json({ message: "Server error", error: error.message });
+}};
