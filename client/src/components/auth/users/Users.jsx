@@ -175,8 +175,40 @@ const Users = () => {
     currentPage * itemsPerPage
   );
 
+  // validation rules
+const nameRegex = /^[A-Za-z]{2,}$/; // only letters, min 2 chars
+const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const phoneRegex = /^[0-9]{10}$/;
+const zipRegex = /^[0-9]{5,6}$/;
+const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+
+const [errors, setErrors] = useState({});
+
+const validateForm = () => {
+  let newErrors = {};
+
+  if (!nameRegex.test(firstName)) newErrors.firstName = "Enter a valid first name";
+  if (!nameRegex.test(lastName)) newErrors.lastName = "Enter a valid last name";
+  if (!emailRegex.test(email)) newErrors.email = "Invalid email format";
+  if (!phoneRegex.test(phone)) newErrors.phone = "Phone must be 10 digits";
+  if (!selectedRole) newErrors.role = "Role is required";
+  if (!selectedCountry) newErrors.country = "Country is required";
+  if (!selectedState) newErrors.state = "State is required";
+  if (!selectedCity) newErrors.city = "City is required";
+  if (!zipRegex.test(zip)) newErrors.zip = "Postal code must be 5–6 digits";
+  if (address.length < 5) newErrors.address = "Address must be at least 5 characters";
+  if (!passwordRegex.test(password)) 
+    newErrors.password = "Password must be 8+ chars, include uppercase, lowercase, number & symbol";
+  if (confirmPassword !== password) 
+    newErrors.confirmPassword = "Passwords do not match";
+
+  setErrors(newErrors);
+  return Object.keys(newErrors).length === 0;
+};
+
   const handleAddUser = async (e) => {
     e.preventDefault();
+    if(!validateForm()) return;
 
     // if (!selectedRole) {
     //   return toast.error("Please select a role.");
@@ -268,9 +300,28 @@ const Users = () => {
       toast.error("Failed to delete user");
     }
   };
+  const validateUpdateForm = () => {
+  let newErrors = {};
+
+  if(!nameRegex.test(editUserData.firstName))  newErrors.firstName = "Enter a valid first name (letters only, min 2 chars)";
+  if (!nameRegex.test(editUserData.lastName))  newErrors.lastName = "Enter a valid last name (letters only, min 2 chars)";
+
+  if (!emailRegex.test(editUserData.email)) newErrors.email = "Invalid email format";
+  else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(editUserData.email))
+    newErrors.email = "Invalid email address";
+
+  if (!phoneRegex.test(editUserData.phone)) newErrors.phone = "Phone must be 10 digits";
+  else if (!/^\d{10}$/.test(editUserData.phone))
+    newErrors.phone = "Phone must be 10 digits";
+
+  setErrors(newErrors);
+  return Object.keys(newErrors).length === 0;
+};
+
 
   const handleUpdate = async (e) => {
     e.preventDefault();
+    if(!validateUpdateForm()) return;
 
     try {
       const formData = new FormData();
@@ -947,58 +998,7 @@ const Users = () => {
                 </div>
                 <form onSubmit={handleAddUser} style={{ padding: "0px 20px" }}>
                   {/* immg */}
-                  {/* <div className="profile-pic-upload mb-2">
-                              <div className="profile-pic">
-                                <span>
-                                  {selectedImages.length > 0 ? (
-                                    <img
-                                      src={URL.createObjectURL(
-                                        selectedImages[0]
-                                      )}
-                                      alt="Preview"
-                                      style={{
-                                        height: "120px",
-                                        width: "120px",
-                                        borderRadius: "13px",
-                                      }}
-                                    />
-                                  ) : (
-                                    <>
-                                      <CiCirclePlus className="plus-down-add" />{" "}
-                                      Add Image
-                                    </>
-                                  )}{" "}
-                                </span>
-                              </div>
-                              <div className="mb-0">
-                                <div className="image-upload mb-0">
-                                  <input
-                                    type="file"
-                                    accept="image/*"
-                                    ref={addFileInputRef}
-                                    style={{ display: "none" }}
-                                    onChange={(e) =>
-                                      setSelectedImages(
-                                        Array.from(e.target.files)
-                                      )
-                                    }
-                                  />
-
-                                  <div className="image-uploads">
-                                    <h4
-                                      style={{ cursor: "pointer" }}
-                                      onClick={addHandleIconClick}
-                                    >
-                                      Upload Image
-                                    </h4>
-                                  </div>
-                                </div>
-                                <p className="fs-13 mt-2">
-                                  JPEG, PNG up to 2 MB
-                                </p>
-                              </div>
-                            </div> */}
-                  {/* immg closed */}
+                 
                   {/*  */}
                   <div
                     style={{
@@ -1154,6 +1154,7 @@ const Users = () => {
                             placeholder="Akash"
                             required
                           />
+                          {errors.firstName && <p style={{color:'red', fontSize:'12px'}}>{errors.firstName}</p>}
                         </div>
                       </div>
                       <div style={{ flex: 1 }}>
@@ -1184,6 +1185,7 @@ const Users = () => {
                             placeholder="Kumar"
                             required
                           />
+                          {errors.lastName && <p style={{color:'red', fontSize:'12px'}}>{errors.lastName}</p>}
                         </div>
                       </div>
                     </div>
@@ -1249,6 +1251,7 @@ const Users = () => {
                               }),
                             }}
                           />
+                          {errors.role && <p style={{color:'red', fontSize:'12px'}}>{errors.role}</p>}
                         </div>
                       </div>
                       <div
@@ -1286,6 +1289,7 @@ const Users = () => {
                               placeholder="akash@gmail.com"
                               required
                             />
+                            {errors.email && <p style={{color:'red', fontSize:'12px'}}>{errors.email}</p>}
                           </div>
                         </div>
                         <div style={{ flex: 1 }}>
@@ -1316,6 +1320,7 @@ const Users = () => {
                               placeholder="9876543210"
                               required
                             />
+                            {errors.phone && <p style={{color:'red', fontSize:'12px'}}>{errors.phone}</p>}
                           </div>
                         </div>
                       </div>
@@ -1488,6 +1493,7 @@ const Users = () => {
                             outline: "none",
                           }}
                         />
+                        {errors.zip && <p style={{color:'red', fontSize:'12px'}}>{errors.zip}</p>}
                       </div>
                     </div>
                     {/* country end */}
@@ -1520,6 +1526,7 @@ const Users = () => {
                           placeholder="Address"
                           required
                         />
+                        {errors.address && <p style={{color:'red', fontSize:'12px'}}>{errors.address}</p>}
                       </div>
                     </div>
                     {/* address end */}
@@ -1565,6 +1572,7 @@ const Users = () => {
                               placeholder="Password@123"
                               required
                             />
+                            {errors.password && <p style={{color:'red', fontSize:'12px'}}>{errors.password}</p>}
                           </div>
                         </div>
                         <div style={{ flex: "1" }}>
@@ -1597,6 +1605,7 @@ const Users = () => {
                               placeholder="Password@123"
                               required
                             />
+                            {errors.confirmPassword && <p style={{color:'red', fontSize:'12px'}}>{errors.confirmPassword}</p>}
                             <i className="ti ti-eye-off toggle-password" />
                           </div>
                         </div>
@@ -1654,6 +1663,7 @@ const Users = () => {
                           >
                             <li>
                               <button
+                              type="button"
                                 className="dropdown-item"
                                 onClick={() => setStatus(true)}
                                 onMouseOver={(e) => {
@@ -1670,6 +1680,7 @@ const Users = () => {
                             </li>
                             <li>
                               <button
+                              type="button"
                                 className="dropdown-item"
                                 onClick={() => setStatus(false)}
                                 onMouseOver={(e) => {
@@ -1726,6 +1737,7 @@ const Users = () => {
                     </button>
                     <button
                       // className="settingbtn"
+                      type="submit"
                       style={{
                         border: "1px solid #676767",
                         borderRadius: "4px",
@@ -1899,50 +1911,6 @@ const Users = () => {
                     <div className="invisible">.</div>
                   </div>
 
-                  {/* <img
-                            src={
-                              typeof editUserData.profileImage ===
-                                "string"
-                                ? editUserData.profileImage
-                                : editUserData.profileImage
-                                  ? URL.createObjectURL(
-                                    editUserData.profileImage
-                                  ) //newly selected file
-                                  : "assets/img/users/user-49.png"
-                            }
-                            className="object-fit-cover h-100 rounded-1"
-                            alt="user"
-                            style={{
-                              height: "120px",
-                              width: "120px",
-                              borderRadius: "13px",
-                            }}
-                          />
-                       
-                        <div className="mb-3">
-                          <div className="image-upload mb-0">
-                            <input
-                              type="file"
-                              accept="image/*"
-                              ref={editFileInputRef}
-                              onChange={(e) =>
-                                setEditUserData({
-                                  ...editUserData,
-                                  profileImage: e.target.files[0],
-                                })
-                              }
-                            />
-                            <div className="image-uploads">
-                              <h4
-                                style={{ cursor: "pointer" }}
-                                onClick={editHandleIconClick}
-                              >
-                                Change Image
-                              </h4>
-                            </div>
-                          </div>
-                          <p className="mt-2">JPEG, PNG up to 2 MB</p>
-                        </div> */}
 
                   {/* First Name */}
                   <div
@@ -1982,6 +1950,7 @@ const Users = () => {
                             })
                           }
                         />
+                        {errors.firstName && <p style={{color:'red', fontSize:'12px'}}>{errors.firstName}</p>}
                       </div>
                     </div>
 
@@ -2016,6 +1985,7 @@ const Users = () => {
                             })
                           }
                         />
+                        {errors.lastName && <p style={{color:'red', fontSize:'12px'}}>{errors.lastName}</p>}
                       </div>
                     </div>
                   </div>
@@ -2121,6 +2091,7 @@ const Users = () => {
                               })
                             }
                           />
+                          {errors.email && <p style={{color:'red', fontSize:'12px'}}>{errors.email}</p>}
                         </div>
                       </div>
 
@@ -2155,6 +2126,7 @@ const Users = () => {
                               })
                             }
                           />
+                          {errors.phone && <p style={{color:'red', fontSize:'12px'}}>{errors.phone}</p>}
                         </div>
                       </div>
                     </div>
@@ -2530,6 +2502,7 @@ const Users = () => {
                         >
                           <li>
                             <button
+                            type="button"
                               className="dropdown-item"
                               onClick={() =>
                                 setEditUserData({
@@ -2551,6 +2524,7 @@ const Users = () => {
                           </li>
                           <li>
                             <button
+                            type="button"
                               className="dropdown-item"
                               onClick={() =>
                                 setEditUserData({
@@ -2572,22 +2546,6 @@ const Users = () => {
                           </li>
                         </ul>
                       </div>
-                      {/* <input
-                              type="checkbox"
-                              id="user-status"
-                              className="check"
-                              checked={editUserData.status}
-                              onChange={(e) =>
-                                setEditUserData({
-                                  ...editUserData,
-                                  status: e.target.checked,
-                                })
-                              }
-                            />
-                            <label
-                              htmlFor="user-status"
-                              className="checktoggle"
-                            /> */}
                     </div>
                   </div>
                   <div
