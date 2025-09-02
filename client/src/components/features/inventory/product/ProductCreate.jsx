@@ -2620,12 +2620,41 @@ import { MdImageSearch } from "react-icons/md";
 import CategoryModal from "../../../../pages/Modal/categoryModals/CategoryModal";
 import { TbChevronUp, TbEye, TbRefresh } from "react-icons/tb";
 import { useTranslation } from "react-i18next";
-
-
+import DOMPurify from "dompurify";
 
 const ProductForm = () => {
 
   const { t } = useTranslation();
+  
+    // Validation regex patterns
+  const validationPatterns = {
+    productName: /^[a-zA-Z0-9\s\-_&()]{2,100}$/,
+    sku: /^[A-Z0-9\-]{3,20}$/,
+    itemBarcode: /^[A-Z0-9]{6,20}$/,
+    price: /^\d+(\.\d{1,2})?$/,
+    quantity: /^\d{1,10}$/,
+    description: /^[\w\s.,!?-]{0,300}$/,
+    seoTitle: /^[a-zA-Z0-9\s\-]{2,60}$/,
+    seoDescription: /^[a-zA-Z0-9\s\-,.]{2,160}$/,
+    leadTime: /^\d{1,4}$/,
+    reorderLevel: /^\d{1,6}$/,
+    initialStock: /^\d{1,6}$/,
+    serialNumber: /^[A-Z0-9\-]{1,50}$/,
+    batchNumber: /^[A-Z0-9\-]{1,50}$/,
+    variantInput: /^[a-zA-Z0-9\s,]{1,100}$/,
+    discountValue: /^\d+(\.\d{1,2})?$/,
+    quantityAlert: /^\d{1,6}$/,
+  };
+
+  // Sanitization function
+  const sanitizeInput = (value) => {
+    if (typeof value !== 'string') return value;
+    return DOMPurify.sanitize(value.trim(), {
+      ALLOWED_TAGS: [],
+      ALLOWED_ATTR: [],
+    });
+  };
+
 
   const steps = [
     t("descriptionAndMedia"),
@@ -2651,14 +2680,23 @@ const ProductForm = () => {
   );
   const [activeTab, setActiveTab] = useState("Color");
   const [images, setImages] = useState([]);
+   const [formErrors, setFormErrors] = useState({});
 
   const inputChange = (key, value) => {
+    const sanitizedValue = sanitizeInput(value);
   if (step === 3) {
     let parsedValues;
     if (key === "Expiry") {
       // Handle date input for Expiry tab
-      if (value) {
-        const date = new Date(value);
+      if (sanitizedValue) {
+        const date = new Date(sanitizedValue);
+        if (isNaN(date.getTime())) {
+            setFormErrors((prev) => ({
+              ...prev,
+              [key]: t("invalidDateFormat"),
+            }));
+            return;
+          }
         const formattedDate = `${date.getDate().toString().padStart(2, '0')}-${(date.getMonth() + 1).toString().padStart(2, '0')}-${date.getFullYear()}`;
         parsedValues = [formattedDate]; // Store as an array with the formatted date
       } else {
@@ -2666,39 +2704,154 @@ const ProductForm = () => {
       }
     } else {
       // Handle other variant types (e.g., Color, Size)
-      parsedValues = value.split(",").map((v) => v.trim()).filter((v) => v);
+       if (!validationPatterns.variantInput.test(sanitizedValue)) {
+          setFormErrors((prev) => ({
+            ...prev,
+            [key]: t("invalidVariantFormat"),
+          }));
+          return;
+        }
+      parsedValues =  sanitizedValue.split(",").map((v) => v.trim()).filter((v) => v);
     }
     setFormData((prev) => ({
       ...prev,
       variants: { ...prev.variants, [key]: parsedValues },
     }));
   } else {
-    setFormData((prev) => ({ ...prev, [key]: value }));
+   const error = validateField(key, sanitizedValue);
+      setFormErrors((prev) => ({ ...prev, [key]: error }));
+      setFormData((prev) => ({ ...prev, [key]: sanitizedValue }));
   }
 };
 
-  const validateStep = () => {
-    if (step === 0) {
-      return formData.productName;
-    }
-    if (step === 1) {
-      return formData.purchasePrice;
-    }
-    if (step === 2) {
-      return formData.description;
-    }
-    if (step === 3) {
-      return formData.variants[activeTab]?.length > 0;
-    }
-    return true;
-  };
-
-  //  const validateStep = () => {
-  //   if (step === 3) {
-  //     return !!formData[activeTab];
+  // const validateStep = () => {
+  //   if (step === 0) {
+  //     return formData.productName;
   //   }
-  //   return true; // Assume all other steps valid for now
+  //   if (step === 1) {
+  //     return formData.purchasePrice;
+  //   }
+  //   if (step === 2) {
+  //     return formData.description;
+  //   }
+  //   if (step === 3) {
+  //     return formData.variants[activeTab]?.length > 0;
+  //   }
+  //   return true;
   // };
+
+    const validateStep = () => {
+    const errors = {};
+    let isValid = true;
+
+    if (step === 0) {
+      ["productName", "sku", "itemBarcode"].forEach((field) => {
+        const error = validateField(field, formData[field]);
+        if (error) {
+          errors[field] = error;
+          isValid = false;
+        }
+      });
+      if (!selectedCategory) {
+        errors.category = t("categoryRequired");
+        isValid = false;
+      }
+      if (!selectedsubCategory) {
+        errors.subCategory = t("subCategoryRequired");
+        isValid = false;
+      }
+      if (!selectedSupplier) {
+        errors.supplier = t("supplierRequired");
+        isValid = false;
+      }
+      if (!selectedWarehouse) {
+        errors.warehouse = t("warehouseRequired");
+        isValid = false;
+      }
+      if (formData.isAdvanced) {
+        ["leadTime", "reorderLevel", "initialStock"].forEach((field) => {
+          if (formData[field]) {
+            const error = validateField(field, formData[field]);
+            if (error) {
+              errors[field] = error;
+              isValid = false;
+            }
+          }
+        });
+        if (formData.trackType === "serial" && formData.serialNumber) {
+          const error = validateField("serialNumber", formData.serialNumber);
+          if (error) {
+            errors.serialNumber = error;
+            isValid = false;
+          }
+        }
+        if (formData.trackType === "batch" && formData.batchNumber) {
+          const error = validateField("batchNumber", formData.batchNumber);
+          if (error) {
+            errors.batchNumber = error;
+            isValid = false;
+          }
+        }
+      }
+    } else if (step === 1) {
+      ["purchasePrice", "quantity", "discountValue", "quantityAlert"].forEach((field) => {
+        const error = validateField(field, formData[field]);
+        if (error) {
+          errors[field] = error;
+          isValid = false;
+        }
+      });
+      if (!selectedUnits) {
+        errors.unit = t("unitRequired");
+        isValid = false;
+      }
+      if (!formData.taxType) {
+        errors.taxType = t("taxTypeRequired");
+        isValid = false;
+      }
+      if (!formData.tax) {
+        errors.tax = t("taxRequired");
+        isValid = false;
+      }
+      if (!formData.discountType) {
+        errors.discountType = t("discountTypeRequired");
+        isValid = false;
+      }
+    } else if (step === 2) {
+      if (!formData.description) {
+        errors.description = t("descriptionRequired");
+        isValid = false;
+      } else {
+        const error = validateField("description", formData.description);
+        if (error) {
+          errors.description = error;
+          isValid = false;
+        }
+      }
+      if (formData.seoTitle) {
+        const error = validateField("seoTitle", formData.seoTitle);
+        if (error) {
+          errors.seoTitle = error;
+          isValid = false;
+        }
+      }
+      if (formData.seoDescription) {
+        const error = validateField("seoDescription", formData.seoDescription);
+        if (error) {
+          errors.seoDescription = error;
+          isValid = false;
+        }
+      }
+    } else if (step === 3) {
+      if (formData.variants[activeTab]?.length === 0) {
+        errors.variants = t("variantRequired");
+        isValid = false;
+      }
+    }
+
+    setFormErrors(errors);
+    return isValid;
+  };
 
   const handleNext = () => {
     const isValid = validateStep();
@@ -2708,6 +2861,8 @@ const ProductForm = () => {
 
     if (isValid && step < steps.length - 1) {
       setStep((prev) => prev + 1);
+    } else if (!isValid) {
+      toast.error(t("pleaseCorrectErrors"));
     }
   };
 
@@ -2798,9 +2953,89 @@ const ProductForm = () => {
     expirationDate: "",
   });
 
-  const handleChange = (e) => {
+  const validateField = (name, value) => {
+    if (!value) return t("fieldRequired");
+
+    switch (name) {
+      case "productName":
+        return validationPatterns.productName.test(value)
+          ? ""
+          : t("invalidProductName");
+      case "sku":
+        return validationPatterns.sku.test(value)
+          ? ""
+          : t("invalidSKUFormat");
+      case "itemBarcode":
+        return validationPatterns.itemBarcode.test(value)
+          ? ""
+          : t("invalidBarcodeFormat");
+      case "purchasePrice":
+      case "sellingPrice":
+      case "wholesalePrice":
+      case "retailPrice":
+        return validationPatterns.price.test(value)
+          ? ""
+          : t("invalidPriceFormat");
+      case "quantity":
+        return validationPatterns.quantity.test(value)
+          ? ""
+          : t("invalidQuantityFormat");
+      case "description":
+        return validationPatterns.description.test(value)
+          ? ""
+          : t("invalidDescriptionFormat");
+      case "seoTitle":
+        return validationPatterns.seoTitle.test(value)
+          ? ""
+          : t("invalidSeoTitleFormat");
+      case "seoDescription":
+        return validationPatterns.seoDescription.test(value)
+          ? ""
+          : t("invalidSeoDescriptionFormat");
+      case "leadTime":
+        return validationPatterns.leadTime.test(value)
+          ? ""
+          : t("invalidLeadTimeFormat");
+      case "reorderLevel":
+        return validationPatterns.reorderLevel.test(value)
+          ? ""
+          : t("invalidReorderLevelFormat");
+      case "initialStock":
+        return validationPatterns.initialStock.test(value)
+          ? ""
+          : t("invalidInitialStockFormat");
+      case "serialNumber":
+        return validationPatterns.serialNumber.test(value)
+          ? ""
+          : t("invalidSerialNumberFormat");
+      case "batchNumber":
+        return validationPatterns.batchNumber.test(value)
+          ? ""
+          : t("invalidBatchNumberFormat");
+      case "discountValue":
+        return validationPatterns.discountValue.test(value)
+          ? ""
+          : t("invalidDiscountValueFormat");
+      case "quantityAlert":
+        return validationPatterns.quantityAlert.test(value)
+          ? ""
+          : t("invalidQuantityAlertFormat");
+      default:
+        return "";
+    }
+  };
+
+  // const handleChange = (e) => {
+  //   const { name, value } = e.target;
+  //   setFormData((prev) => ({ ...prev, [name]: value }));
+  // };
+
+   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+    const sanitizedValue = sanitizeInput(value);
+    const error = validateField(name, sanitizedValue);
+    setFormErrors((prev) => ({ ...prev, [name]: error }));
+    setFormData((prev) => ({ ...prev, [name]: sanitizedValue }));
   };
 
   const fetchCategories = async () => {
@@ -2811,13 +3046,15 @@ const ProductForm = () => {
       // Map data for react-select
       const options = data.map((category) => ({
         value: category._id, // or category.categoryName
-        label: category.categoryName,
+        // label: category.categoryName,
+        label: sanitizeInput(category.categoryName),
       }));
 
       setCategories(options);
       console.log('ferere categories', data)
     } catch (error) {
       console.error("Error fetching categories:", error);
+       toast.error(t("errorFetchingCategories"));
     }
   };
 
@@ -2826,11 +3063,13 @@ const ProductForm = () => {
       const res = await axios.get(`${BASE_URL}/api/unit/units/status/active`);
       const options = res.data.units.map((unit) => ({
         value: unit.shortName,
-        label: `${unit.unitsName} (${unit.shortName})`,
+        // label: `${unit.unitsName} (${unit.shortName})`,
+         label: sanitizeInput(`${unit.unitsName} (${unit.shortName})`),
       }));
       setUnitsOptions(options);
     } catch (error) {
       console.error("Failed to fetch active units:", error);
+       toast.error(t("errorFetchingUnits"));
     }
   };
 
@@ -2858,22 +3097,28 @@ const ProductForm = () => {
 
       const options = data.map((subcat) => ({
         value: subcat._id,
-        label: subcat.subCategoryName,
+        // label: subcat.subCategoryName,
+         label: sanitizeInput(subcat.subCategoryName),
       }));
       setSubcategories(options);
       console.log('ferere subcategories', data)
     } catch (error) {
       console.error("Error fetching subcategories:", error);
+      toast.error(t("errorFetchingSubcategories"))
     }
   };
   const fetchBrands = async () => {
     try {
       const token = localStorage.getItem("token");
+      console.log("TOKEN ",token);
+      
       const res = await fetch(`${BASE_URL}/api/brands/active-brands`, {
         headers: {
           Authorization: `Bearer ${token}`
         }
       });
+      console.log("res", res);
+      
       const data = await res.json();
       console.log('fetchbrand', data)
 
@@ -2886,6 +3131,7 @@ const ProductForm = () => {
       console.log('ferere brand', data)
     } catch (error) {
       console.error("Failed to load active brands:", error);
+       toast.error(t("errorFetchingBrands"));
     }
   };
 
@@ -2895,40 +3141,139 @@ const ProductForm = () => {
     fetchUnits();
   }, []);
 
-  const subCategoryChange = (selectedOption) => {
+  // const subCategoryChange = (selectedOption) => {
+  //   setSelectedsubCategory(selectedOption);
+  //   console.log("Selected subcategory:", selectedOption);
+  // };
+  // const handleBrandChange = (selectedOption) => {
+  //   setSelectedBrands(selectedOption);
+  //   console.log("Selected brands:", selectedOption);
+  // };
+  // const handleUnitChange = (selectedOption) => {
+  //   setSelectedUnits(selectedOption);
+  //   console.log("Selected Units:", selectedOption);
+  // };
+
+    const subCategoryChange = (selectedOption) => {
     setSelectedsubCategory(selectedOption);
-    console.log("Selected subcategory:", selectedOption);
+    setFormErrors((prev) => ({ ...prev, subCategory: "" }));
   };
+
   const handleBrandChange = (selectedOption) => {
     setSelectedBrands(selectedOption);
-    console.log("Selected brands:", selectedOption);
   };
+
   const handleUnitChange = (selectedOption) => {
     setSelectedUnits(selectedOption);
-    console.log("Selected Units:", selectedOption);
+    setFormErrors((prev) => ({ ...prev, unit: "" }));
   };
 
-  const handleSubmit = async (e) => {
+  // const handleSubmit = async (e) => {
+  //   e.preventDefault();
+
+  //   const formPayload = new FormData();
+
+  //   // Append form fields
+  //   formPayload.append("productName", formData.productName);
+  //   formPayload.append("sku", formData.sku);
+  //   formPayload.append("brand", selectedBrands?.value);
+  //   formPayload.append("category", selectedCategory?.value);
+  //   formPayload.append("subCategory", selectedsubCategory?.value);
+  //   // Only send supplier if valid ObjectId is present
+  //   if (selectedSupplier?.value && typeof selectedSupplier.value === 'string' && selectedSupplier.value.trim() !== '') {
+  //     formPayload.append("supplier", selectedSupplier.value);
+  //   }
+  //   // Always send itemBarcode, prefer selectedSupplier if available
+  //   formPayload.append("itemBarcode", formData.itemBarcode);
+  //   formPayload.append("store", formData.store);
+  //   // Always send warehouse, prefer selectedWarehouse if available
+  //   formPayload.append("warehouse", selectedWarehouse?.value);
+  //   // Ensure hsn is sent if selectedHSN exists
+  //   if (selectedHSN?.value) {
+  //     formPayload.append("hsn", selectedHSN.value);
+  //   }
+  //   formPayload.append("purchasePrice", Number(formData.purchasePrice));
+  //   formPayload.append("sellingPrice", Number(formData.sellingPrice));
+  //   formPayload.append("wholesalePrice", Number(formData.wholesalePrice));
+  //   formPayload.append("retailPrice", Number(formData.retailPrice));
+  //   formPayload.append("quantity", Number(formData.quantity));
+  //   formPayload.append("unit", selectedUnits?.value);
+  //   formPayload.append("taxType", formData.taxType);
+  //   formPayload.append("tax", formData.tax);
+  //   formPayload.append("discountType", formData.discountType);
+  //   formPayload.append("discountValue", Number(formData.discountValue));
+  //   formPayload.append("quantityAlert", Number(formData.quantityAlert));
+  //   formPayload.append("description", formData.description);
+  //   formPayload.append("seoTitle", formData.seoTitle);
+  //   formPayload.append("seoDescription", formData.seoDescription);
+
+  //   formPayload.append("itemType", formData.itemType);
+  //   formPayload.append("isAdvanced", formData.isAdvanced);
+  //   formPayload.append("trackType", formData.trackType);
+  //   formPayload.append("isReturnable", formData.isReturnable);
+  //   formPayload.append("leadTime", formData.leadTime);
+  //   formPayload.append("reorderLevel", formData.reorderLevel);
+  //   formPayload.append("initialStock", formData.initialStock);
+  //   formPayload.append("serialNumber", formData.serialNumber);
+  //   formPayload.append("batchNumber", formData.batchNumber);
+  //   formPayload.append("returnable", formData.returnable);
+  //   formPayload.append("expirationDate", formData.expirationDate);
+
+  //   // If variants is an object, stringify it
+  //   formPayload.append("variants", JSON.stringify(formData.variants));
+
+  //   // Append multiple images (must be File objects)
+  //   images.forEach((imgFile) => {
+  //     formPayload.append("images", imgFile); // name must match multer field in backend
+  //   });
+
+  //   try {
+  //     const res = await axios.post(
+  //       `${BASE_URL}/api/products/create`,
+  //       formPayload,
+  //       {
+  //         headers: {
+  //           "Content-Type": "multipart/form-data",
+  //         },
+  //       }
+  //     );
+
+  //     toast.success("Product created successfully!");
+  //     navigate("/product");
+  //   } catch (error) {
+  //     toast.error("Failed to create product");
+  //     console.error(
+  //       "Product creation error:",
+  //       error.response?.data || error.message
+  //     );
+  //   }
+  // };
+
+  // const generateBarcode = () => {
+  //   const prefix = "BR"; // Optional
+  //   const randomNumber = Math.floor(100000000 + Math.random() * 900000000);
+  //   return `${prefix}${randomNumber}`;
+  // };
+
+   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!validateStep()) {
+      toast.error(t("pleaseCorrectErrors"));
+      return;
+    }
 
     const formPayload = new FormData();
-
-    // Append form fields
-    formPayload.append("productName", formData.productName);
-    formPayload.append("sku", formData.sku);
-    formPayload.append("brand", selectedBrands?.value);
-    formPayload.append("category", selectedCategory?.value);
-    formPayload.append("subCategory", selectedsubCategory?.value);
-    // Only send supplier if valid ObjectId is present
+    formPayload.append("productName", sanitizeInput(formData.productName));
+    formPayload.append("sku", sanitizeInput(formData.sku));
+    formPayload.append("brand", selectedBrands?.value || "");
+    formPayload.append("category", selectedCategory?.value || "");
+    formPayload.append("subCategory", selectedsubCategory?.value || "");
     if (selectedSupplier?.value && typeof selectedSupplier.value === 'string' && selectedSupplier.value.trim() !== '') {
       formPayload.append("supplier", selectedSupplier.value);
     }
-    // Always send itemBarcode, prefer selectedSupplier if available
-    formPayload.append("itemBarcode", formData.itemBarcode);
-    formPayload.append("store", formData.store);
-    // Always send warehouse, prefer selectedWarehouse if available
-    formPayload.append("warehouse", selectedWarehouse?.value);
-    // Ensure hsn is sent if selectedHSN exists
+    formPayload.append("itemBarcode", sanitizeInput(formData.itemBarcode));
+    formPayload.append("store", sanitizeInput(formData.store));
+    formPayload.append("warehouse", selectedWarehouse?.value || "");
     if (selectedHSN?.value) {
       formPayload.append("hsn", selectedHSN.value);
     }
@@ -2937,34 +3282,30 @@ const ProductForm = () => {
     formPayload.append("wholesalePrice", Number(formData.wholesalePrice));
     formPayload.append("retailPrice", Number(formData.retailPrice));
     formPayload.append("quantity", Number(formData.quantity));
-    formPayload.append("unit", selectedUnits?.value);
-    formPayload.append("taxType", formData.taxType);
-    formPayload.append("tax", formData.tax);
-    formPayload.append("discountType", formData.discountType);
+    formPayload.append("unit", selectedUnits?.value || "");
+    formPayload.append("taxType", sanitizeInput(formData.taxType));
+    formPayload.append("tax", sanitizeInput(formData.tax));
+    formPayload.append("discountType", sanitizeInput(formData.discountType));
     formPayload.append("discountValue", Number(formData.discountValue));
     formPayload.append("quantityAlert", Number(formData.quantityAlert));
-    formPayload.append("description", formData.description);
-    formPayload.append("seoTitle", formData.seoTitle);
-    formPayload.append("seoDescription", formData.seoDescription);
-
-    formPayload.append("itemType", formData.itemType);
+    formPayload.append("description", sanitizeInput(formData.description));
+    formPayload.append("seoTitle", sanitizeInput(formData.seoTitle));
+    formPayload.append("seoDescription", sanitizeInput(formData.seoDescription));
+    formPayload.append("itemType", sanitizeInput(formData.itemType));
     formPayload.append("isAdvanced", formData.isAdvanced);
-    formPayload.append("trackType", formData.trackType);
+    formPayload.append("trackType", sanitizeInput(formData.trackType));
     formPayload.append("isReturnable", formData.isReturnable);
-    formPayload.append("leadTime", formData.leadTime);
-    formPayload.append("reorderLevel", formData.reorderLevel);
-    formPayload.append("initialStock", formData.initialStock);
-    formPayload.append("serialNumber", formData.serialNumber);
-    formPayload.append("batchNumber", formData.batchNumber);
+    formPayload.append("leadTime", sanitizeInput(formData.leadTime));
+    formPayload.append("reorderLevel", sanitizeInput(formData.reorderLevel));
+    formPayload.append("initialStock", sanitizeInput(formData.initialStock));
+    formPayload.append("serialNumber", sanitizeInput(formData.serialNumber));
+    formPayload.append("batchNumber", sanitizeInput(formData.batchNumber));
     formPayload.append("returnable", formData.returnable);
-    formPayload.append("expirationDate", formData.expirationDate);
-
-    // If variants is an object, stringify it
+    formPayload.append("expirationDate", sanitizeInput(formData.expirationDate));
     formPayload.append("variants", JSON.stringify(formData.variants));
 
-    // Append multiple images (must be File objects)
     images.forEach((imgFile) => {
-      formPayload.append("images", imgFile); // name must match multer field in backend
+      formPayload.append("images", imgFile);
     });
 
     try {
@@ -2977,11 +3318,10 @@ const ProductForm = () => {
           },
         }
       );
-
-      toast.success("Product created successfully!");
+      toast.success(t("productCreatedSuccessfully"));
       navigate("/product");
     } catch (error) {
-      toast.error("Failed to create product");
+      toast.error(t("failedToCreateProduct"));
       console.error(
         "Product creation error:",
         error.response?.data || error.message
@@ -2989,56 +3329,99 @@ const ProductForm = () => {
     }
   };
 
+ 
   const generateBarcode = () => {
-    const prefix = "BR"; // Optional
+    const prefix = "BR";
     const randomNumber = Math.floor(100000000 + Math.random() * 900000000);
-    return `${prefix}${randomNumber}`;
+    const barcode = `${prefix}${randomNumber}`;
+    setFormErrors((prev) => ({ ...prev, itemBarcode: "" }));
+    setFormData((prev) => ({ ...prev, itemBarcode: barcode }));
   };
 
 
   const [categoryName, setCategoryName] = useState("");
   const [categorySlug, setCategorySlug] = useState("");
 
-  const categorySubmit = async (e) => {
-    e.preventDefault();
+  // const categorySubmit = async (e) => {
+  //   e.preventDefault();
 
-    if (!categoryName || !categorySlug) {
-      toast.error("All fields are required");
+  //   if (!categoryName || !categorySlug) {
+  //     toast.error("All fields are required");
+  //     return;
+  //   }
+
+  //   try {
+  //     await axios.post(`${BASE_URL}/api/category/categories`, {
+  //       categoryName: categoryName,
+  //       categorySlug: categorySlug,
+  //     });
+
+  //     toast.success("Category created successfully!");
+
+  //     // Reset form
+  //     setCategoryName("");
+  //     setCategorySlug("");
+  //     // Refresh list
+  //     fetchCategories();
+  //     // Close modal
+  //     window.$("#categoryModal").modal("hide");
+  //   } catch (err) {
+  //     console.error("Error creating category:", err);
+  //     toast.error(err.response?.data?.message || "Error creating category");
+  //   }
+  // };
+
+  // to generate sku i.e, stock keeping unit based on category
+  // const generateSKU = () => {
+  //   const category = formData.category || "GEN";
+  //   const name = formData.name || "PRD";
+  //   const randomNum = Math.floor(Math.random() * 9000) + 1000;
+  //   const sku = `${category.toUpperCase().slice(0, 3)}-${name.toUpperCase().slice(0, 3)}-${randomNum}`
+  //   setFormData((prevProduct) => ({
+  //     ...prevProduct,
+  //     sku,
+  //   }))
+  // }
+    const categorySubmit = async (e) => {
+    e.preventDefault();
+    const sanitizedCategoryName = sanitizeInput(categoryName);
+    const sanitizedCategorySlug = sanitizeInput(categorySlug);
+
+    if (!sanitizedCategoryName || !sanitizedCategorySlug) {
+      toast.error(t("allFieldsRequired"));
+      return;
+    }
+
+    if (!validationPatterns.productName.test(sanitizedCategoryName)) {
+      toast.error(t("invalidCategoryName"));
       return;
     }
 
     try {
       await axios.post(`${BASE_URL}/api/category/categories`, {
-        categoryName: categoryName,
-        categorySlug: categorySlug,
+        categoryName: sanitizedCategoryName,
+        categorySlug: sanitizedCategorySlug,
       });
-
-      toast.success("Category created successfully!");
-
-      // Reset form
+      toast.success(t("categoryCreatedSuccessfully"));
       setCategoryName("");
       setCategorySlug("");
-      // Refresh list
       fetchCategories();
-      // Close modal
       window.$("#categoryModal").modal("hide");
     } catch (err) {
       console.error("Error creating category:", err);
-      toast.error(err.response?.data?.message || "Error creating category");
+      toast.error(err.response?.data?.message || t("errorCreatingCategory"));
     }
   };
 
-  // to generate sku i.e, stock keeping unit based on category
-  const generateSKU = () => {
+    const generateSKU = () => {
     const category = formData.category || "GEN";
-    const name = formData.name || "PRD";
+    const name = formData.productName || "PRD";
     const randomNum = Math.floor(Math.random() * 9000) + 1000;
-    const sku = `${category.toUpperCase().slice(0, 3)}-${name.toUpperCase().slice(0, 3)}-${randomNum}`
-    setFormData((prevProduct) => ({
-      ...prevProduct,
-      sku,
-    }))
-  }
+    const sku = `${category.toUpperCase().slice(0, 3)}-${name.toUpperCase().slice(0, 3)}-${randomNum}`;
+    setFormErrors((prev) => ({ ...prev, sku: "" }));
+    setFormData((prev) => ({ ...prev, sku }));
+  };
+
 
   // to auto change sku based on changes in product name or category
   useEffect(() => {
@@ -3049,48 +3432,98 @@ const ProductForm = () => {
 
 
 
-  useEffect(() => {
+  // useEffect(() => {
+  //   const fetchActiveSuppliers = async () => {
+  //     try {
+  //       const res = await axios.get(`${BASE_URL}/api/suppliers/active`);
+  //       const suppliers = res.data.suppliers;
+
+  //       const formattedOptions = suppliers.map((supplier) => ({
+  //         value: supplier._id,
+  //         label: `${supplier.firstName}${supplier.lastName} (${supplier.supplierCode})`,
+  //       }));
+
+  //       setOptions(formattedOptions);
+  //     } catch (err) {
+  //       console.error("Error fetching active suppliers:", err);
+  //     }
+  //   };
+
+  //   fetchActiveSuppliers();
+  // }, []);
+
+  // const handleSupplierChange = (selectedOption) => {
+  //   setSelectedSupplier(selectedOption);
+  // };
+  
+    useEffect(() => {
     const fetchActiveSuppliers = async () => {
       try {
         const res = await axios.get(`${BASE_URL}/api/suppliers/active`);
         const suppliers = res.data.suppliers;
-
         const formattedOptions = suppliers.map((supplier) => ({
           value: supplier._id,
-          label: `${supplier.firstName}${supplier.lastName} (${supplier.supplierCode})`,
+          label: sanitizeInput(`${supplier.firstName}${supplier.lastName} (${supplier.supplierCode})`),
         }));
-
         setOptions(formattedOptions);
       } catch (err) {
         console.error("Error fetching active suppliers:", err);
+        toast.error(t("errorFetchingSuppliers"));
       }
     };
 
     fetchActiveSuppliers();
   }, []);
-
+  
+  
   const handleSupplierChange = (selectedOption) => {
     setSelectedSupplier(selectedOption);
+    setFormErrors((prev) => ({ ...prev, supplier: "" }));
   };
-
 
 
 
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
+  // useEffect(() => {
+  //   const fetchWarehouses = async () => {
+  //     try {
+  //       const res = await axios.get(`${BASE_URL}/api/warehouse/active`);
+  //       if (res.data.success) {
+  //         const formatted = res.data.data.map((wh) => ({
+  //           value: wh._id,
+  //           label: wh.warehouseName, // ✅ direct warehouseName
+  //         }));
+  //         setOptionsWare(formatted);
+  //       }
+  //     } catch (err) {
+  //       console.error("Error fetching warehouses:", err);
+  //     } finally {
+  //       setLoading(false);
+  //     }
+  //   };
+
+  //   fetchWarehouses();
+  // }, []);
+
+  // const handleWarehouseChange = (selectedOption) => {
+  //   setSelectedWarehouse(selectedOption);
+  // };
+
+   useEffect(() => {
     const fetchWarehouses = async () => {
       try {
         const res = await axios.get(`${BASE_URL}/api/warehouse/active`);
         if (res.data.success) {
           const formatted = res.data.data.map((wh) => ({
             value: wh._id,
-            label: wh.warehouseName, // ✅ direct warehouseName
+            label: sanitizeInput(wh.warehouseName),
           }));
           setOptionsWare(formatted);
         }
       } catch (err) {
         console.error("Error fetching warehouses:", err);
+        toast.error(t("errorFetchingWarehouses"));
       } finally {
         setLoading(false);
       }
@@ -3098,14 +3531,35 @@ const ProductForm = () => {
 
     fetchWarehouses();
   }, []);
-
-  const handleWarehouseChange = (selectedOption) => {
+    const handleWarehouseChange = (selectedOption) => {
     setSelectedWarehouse(selectedOption);
+    setFormErrors((prev) => ({ ...prev, warehouse: "" }));
   };
 
   const [optionsHsn, setOptionsHsn] = useState([]);
   const [selectedHSN, setSelectedHSN] = useState(null);
   const [showHSNModal, setShowHSNModal] = useState(false);
+
+  // useEffect(() => {
+  //   const fetchHSN = async () => {
+  //     try {
+  //       const res = await axios.get(`${BASE_URL}/api/hsn/all`);
+  //       if (res.data.success) {
+  //         const formatted = res.data.data.map((item) => ({
+  //           value: item._id,
+  //           label: `${item.hsnCode} - ${item.description || ""}`,
+  //         }));
+  //         setOptionsHsn(formatted);
+  //       }
+  //     } catch (err) {
+  //       console.error("Error fetching HSN:", err);
+  //     } finally {
+  //       setLoading(false);
+  //     }
+  //   };
+
+  //   fetchHSN();
+  // }, []);
 
   useEffect(() => {
     const fetchHSN = async () => {
@@ -3114,12 +3568,13 @@ const ProductForm = () => {
         if (res.data.success) {
           const formatted = res.data.data.map((item) => ({
             value: item._id,
-            label: `${item.hsnCode} - ${item.description || ""}`,
+            label: sanitizeInput(`${item.hsnCode} - ${item.description || ""}`),
           }));
           setOptionsHsn(formatted);
         }
       } catch (err) {
         console.error("Error fetching HSN:", err);
+        toast.error(t("errorFetchingHSN"));
       } finally {
         setLoading(false);
       }
@@ -3235,13 +3690,17 @@ const ProductForm = () => {
                         // checked={itemType === "Good"}
                         // onChange={() => setItemType("Good")}
                         checked={formData.itemType === "Good"}
-                        onChange={(e) =>
-                          setFormData((prev) => ({
-                            ...prev,
-                            itemType: e.target.value,
-                          }))
-                        }
+                        // onChange={(e) =>
+                        //   setFormData((prev) => ({
+                        //     ...prev,
+                        //     itemType: e.target.value,
+                        //   }))
+                        // }
+                        onChange={handleChange}
                       />
+                      {formErrors.productName && (
+                        <div className="text-danger">{formErrors.productName}</div>
+                      )}
                       <label className="form-check-label">Good</label>
                     </div>
                     <div className="form-check">
@@ -3251,12 +3710,13 @@ const ProductForm = () => {
                         name="itemType"
                         value="Service"
                         checked={formData.itemType === "Service"}
-                        onChange={(e) =>
-                          setFormData((prev) => ({
-                            ...prev,
-                            itemType: e.target.value,
-                          }))
-                        }
+                        // onChange={(e) =>
+                        //   setFormData((prev) => ({
+                        //     ...prev,
+                        //     itemType: e.target.value,
+                        //   }))
+                        // }
+                          onChange={handleChange}
                       />
                       <label className="form-check-label">Service</label>
                     </div>
@@ -3277,6 +3737,9 @@ const ProductForm = () => {
                         onChange={handleChange}
                         placeholder={t("enterProductName")}
                       />
+                      {formErrors.productName && (
+                        <div className="text-danger">{formErrors.productName}</div>
+                      )}
                     </div>
 
                     {/* HSNCODE */}
@@ -3310,6 +3773,9 @@ const ProductForm = () => {
                               }),
                             }}
                           />
+                          {formErrors.hsn && (
+                          <div className="text-danger">{formErrors.hsn}</div>
+                        )}
                         </div>
                       </div>
                       <button
@@ -3381,6 +3847,9 @@ const ProductForm = () => {
                         <button type="submit" onClick={generateSKU} className="btn btn-primaryadd">
                           {t("generate")}
                         </button>
+                        {formErrors.sku && (
+                          <div className="text-danger">{formErrors.sku}</div>
+                        )}
                       </div>
                     </div>
 
@@ -3427,6 +3896,9 @@ const ProductForm = () => {
                         }}
                         placeholder={t("searchOrSelectCategory")}
                       />
+                      {formErrors.category && (
+                        <div className="text-danger">{formErrors.category}</div>
+                      )}
                     </div>
 
                     {/* Subcategory */}
@@ -3440,6 +3912,9 @@ const ProductForm = () => {
                         onChange={subCategoryChange}
                         placeholder={t("searchOrSelectSubcategory")}
                       />
+                      {formErrors.subCategory && (
+                        <div className="text-danger">{formErrors.subCategory}</div>
+                      )}
                     </div>
 
                     {/* Supplier */}
@@ -3464,6 +3939,9 @@ const ProductForm = () => {
                         placeholder="Choose a supplier..."
                         isClearable
                       />
+                       {formErrors.supplier && (
+                        <div className="text-danger">{formErrors.supplier}</div>
+                      )}
                     </div>
 
                     <div className="col-lg-6 col-sm-6 col-12">
@@ -3492,6 +3970,9 @@ const ProductForm = () => {
                         >
                           {t("generate")}
                         </button>
+                         {formErrors.itemBarcode && (
+                          <div className="text-danger">{formErrors.itemBarcode}</div>
+                        )}
                       </div>
                     </div>
 
@@ -3510,6 +3991,9 @@ const ProductForm = () => {
                         <option value="India Mart">{t("indiaMart")}</option>
                         <option value="India Gadgets">{t("indiaGadgets")}</option>
                       </select>
+                      {formErrors.store && (
+                        <div className="text-danger">{formErrors.store}</div>
+                      )}
                     </div>
 
                     {/* Warehouse */}
@@ -3535,6 +4019,9 @@ const ProductForm = () => {
                         <option value="">{t("select")}</option>
                         <option value="Warehouse1">{t("warehouse1")}</option>
                       </select> */}
+                      {formErrors.warehouse && (
+                        <div className="text-danger">{formErrors.warehouse}</div>
+                      )}
                     </div>
 
                     {/* Advance Toggle */}
@@ -3591,6 +4078,9 @@ const ProductForm = () => {
                             value={formData.reorderLevel}
                             onChange={handleChange}
                           />
+                          {formErrors.leadTime && (
+                            <div className="text-danger">{formErrors.leadTime}</div>
+                          )}
                         </div>
 
                         <div className="col-sm-6 col-12 mb-3">
@@ -3603,6 +4093,9 @@ const ProductForm = () => {
                             value={formData.initialStock}
                             onChange={handleChange}
                           />
+                          {formErrors.reorderLevel && (
+                            <div className="text-danger">{formErrors.reorderLevel}</div>
+                          )}
                         </div>
 
                         {/* Track Name */}
@@ -3621,13 +4114,17 @@ const ProductForm = () => {
                               // onChange={() => setTrackType("serial")}
                               id="serial"
                               checked={formData.trackType === "serial"}
-                              onChange={(e) =>
-                                setFormData((prev) => ({
-                                  ...prev,
-                                  trackType: e.target.value,
-                                }))
-                              }
+                              // onChange={(e) =>
+                              //   setFormData((prev) => ({
+                              //     ...prev,
+                              //     trackType: e.target.value,
+                              //   }))
+                              // }
+                                onChange={handleChange}
                             />
+                             {formErrors.initialStock && (
+                            <div className="text-danger">{formErrors.initialStock}</div>
+                          )}
                             <label className="form-check-label" htmlFor="serial">
                               Serial No
                             </label>
@@ -3643,12 +4140,13 @@ const ProductForm = () => {
                               // onChange={() => setTrackType("batch")}
                               id="batch"
                               checked={formData.trackType === "batch"}
-                              onChange={(e) =>
-                                setFormData((prev) => ({
-                                  ...prev,
-                                  trackType: e.target.value,
-                                }))
-                              }
+                              // onChange={(e) =>
+                              //   setFormData((prev) => ({
+                              //     ...prev,
+                              //     trackType: e.target.value,
+                              //   }))
+                              // }
+                                onChange={handleChange}
                             />
                             <label className="form-check-label" htmlFor="batch">
                               Batch No
@@ -3665,12 +4163,13 @@ const ProductForm = () => {
                               // onChange={() => setTrackType("status")}
                               id="status"
                               checked={formData.trackType === "status"}
-                              onChange={(e) =>
-                                setFormData((prev) => ({
-                                  ...prev,
-                                  trackType: e.target.value,
-                                }))
-                              }
+                              // onChange={(e) =>
+                              //   setFormData((prev) => ({
+                              //     ...prev,
+                              //     trackType: e.target.value,
+                              //   }))
+                              // }
+                                onChange={handleChange}
                             />
                             <label className="form-check-label" htmlFor="status">
                               Status
@@ -3690,6 +4189,9 @@ const ProductForm = () => {
                               value={formData.serialNumber}
                               onChange={handleChange}
                             />
+                             {formErrors.serialNumber && (
+                              <div className="text-danger">{formErrors.serialNumber}</div>
+                            )}
                           </div>
                         )}
 
@@ -3705,6 +4207,9 @@ const ProductForm = () => {
                               value={formData.batchNumber}
                               onChange={handleChange}
                             />
+                              {formErrors.batchNumber && (
+                              <div className="text-danger">{formErrors.batchNumber}</div>
+                            )}
                           </div>
                         )}
 
@@ -3749,6 +4254,9 @@ const ProductForm = () => {
                         className="w-full p-2 border rounded"
                         placeholder={t("enterBrand")}
                       />
+                      {formErrors.expirationDate && (
+                        <div className="text-danger">{formErrors.expirationDate}</div>
+                      )}
                     </div>
                   </>
                 )}
@@ -3777,6 +4285,9 @@ const ProductForm = () => {
                       onChange={handleChange}
                       placeholder={t(`enter${field.name.charAt(0).toUpperCase() + field.name.slice(1)}`)}
                     />
+                     {formErrors[field.name] && (
+                      <div className="text-danger">{formErrors[field.name]}</div>
+                    )}
                   </div>
                 ))}
 
@@ -3792,6 +4303,9 @@ const ProductForm = () => {
                     onChange={handleChange}
                     placeholder={t("enterQuantity")}
                   />
+                    {formErrors.quantity && (
+                    <div className="text-danger">{formErrors.quantity}</div>
+                  )}
                 </div>
                 <div className="col-sm-6 col-12 mb-3">
                   <label className="form-label">
@@ -3804,6 +4318,9 @@ const ProductForm = () => {
                     isSearchable
                     placeholder={t("searchOrSelectUnits")}
                   />
+                  {formErrors.unit && (
+                    <div className="text-danger">{formErrors.unit}</div>
+                  )}
                 </div>
 
                 <div className=" col-sm-6 col-12 mb-3">
@@ -3820,6 +4337,9 @@ const ProductForm = () => {
                     <option>{t("exclusive")}</option>
                     <option>{t("inclusive")}</option>
                   </select>
+                     {formErrors.taxType && (
+                    <div className="text-danger">{formErrors.taxType}</div>
+                  )}
                 </div>
 
                 <div className=" col-sm-6 col-12 mb-3">
@@ -3845,6 +4365,9 @@ const ProductForm = () => {
                     <option value="16">{t("cgst16")}</option>
                     <option value="18">{t("gst18")}</option>
                   </select>
+                    {formErrors.tax && (
+                    <div className="text-danger">{formErrors.tax}</div>
+                  )}
                 </div>
 
                 <div className=" col-sm-6 col-12 mb-3">
@@ -3861,6 +4384,9 @@ const ProductForm = () => {
                     <option>{t("percentage")}</option>
                     <option>{t("fixed")}</option>
                   </select>
+                   {formErrors.discountType && (
+                    <div className="text-danger">{formErrors.discountType}</div>
+                  )}
                 </div>
 
                 <div className=" col-sm-6 col-12 mb-3">
@@ -3875,6 +4401,9 @@ const ProductForm = () => {
                     onChange={handleChange}
                     placeholder={t("enterDiscountValue")}
                   />
+                  {formErrors.discountValue && (
+                    <div className="text-danger">{formErrors.discountValue}</div>
+                  )}
                 </div>
 
                 <div className=" col-sm-6 col-12 mb-3">
@@ -3889,6 +4418,9 @@ const ProductForm = () => {
                     onChange={handleChange}
                     placeholder={t("enterQuantityAlert")}
                   />
+                   {formErrors.quantityAlert && (
+                    <div className="text-danger">{formErrors.quantityAlert}</div>
+                  )}
                 </div>
               </div>
             )}
@@ -3930,6 +4462,9 @@ const ProductForm = () => {
                     onChange={handleChange}
                     placeholder={t("enterDescription")}
                   />
+                  {formErrors.description && (
+                    <div className="text-danger">{formErrors.description}</div>
+                  )}
                 </div>
 
                 <div className="row">
@@ -3943,6 +4478,9 @@ const ProductForm = () => {
                       onChange={handleChange}
                       placeholder={t("enterSeoMetaTitle")}
                     />
+                     {formErrors.seoTitle && (
+                      <div className="text-danger">{formErrors.seoTitle}</div>
+                    )}
                   </div>
                   <div className="col-sm-6 col-12 mb-3">
                     <label className="form-label">{t("seoMetaDescription")}</label>
@@ -3954,6 +4492,9 @@ const ProductForm = () => {
                       onChange={handleChange}
                       placeholder={t("enterSeoMetaDescription")}
                     />
+                     {formErrors.seoDescription && (
+                      <div className="text-danger">{formErrors.seoDescription}</div>
+                    )}
                   </div>
                 </div>
               </>
@@ -4001,6 +4542,9 @@ const ProductForm = () => {
           placeholder={t("enterVariantsPlaceholder", { tab: activeTab })}
         />
       )}
+       {formErrors[activeTab] && (
+                    <div className="text-danger">{formErrors[activeTab]}</div>
+                  )}
     </div>
   </>
 )}
@@ -4060,7 +4604,7 @@ const ProductForm = () => {
           </div>
         </form>
 
-        <CategoryModal
+        {/* <CategoryModal
           modalId="add-category"
           title="Add Category"
           categoryName={categoryName}
@@ -4069,6 +4613,17 @@ const ProductForm = () => {
           onSlugChange={(e) => setCategorySlug(e.target.value)}
           onSubmit={categorySubmit}
           submitLabel="Add Category"
+        /> */}
+         <CategoryModal
+          modalId="add-category"
+          title={t("addCategory")}
+          categoryName={categoryName}
+          categorySlug={categorySlug}
+          // MODIFIED: Sanitize category inputs
+          onCategoryChange={(e) => setCategoryName(sanitizeInput(e.target.value))}
+          onSlugChange={(e) => setCategorySlug(sanitizeInput(e.target.value))}
+          onSubmit={categorySubmit}
+          submitLabel={t("addCategory")}
         />
       </div>
     </div>

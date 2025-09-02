@@ -52,6 +52,8 @@ const Brand = () => {
       });
 
       setBrands(res.data.brands);
+      console.log("Brnad :",res.data.brands);
+      
     } catch (error) {
       console.error(
         "Fetch Brands Error:",
