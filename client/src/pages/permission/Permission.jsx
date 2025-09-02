@@ -3,6 +3,8 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
 import BASE_URL from "../config/config";
+import { toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 // Define modules and permissions (matches backend modules)
 const modules = [
@@ -125,7 +127,9 @@ const Permission = () => {
   // Submit updated permissions to backend
   const handleSubmit = async () => {
     if (!selectedRole) {
-      alert("Please select a role.");
+      toast.info("Please select a role.", {
+        position:'top-center'
+      });
       return;
     }
 
@@ -139,10 +143,14 @@ const Permission = () => {
       await axios.put(`${BASE_URL}/api/role/update/${selectedRole}`, {
         permissions: payload,
       });
-      alert("Permissions updated successfully.");
+      toast.success("Permissions updated successfully.", {
+        position:'top-center'
+      });
     } catch (err) {
       console.error("Error updating permissions", err);
-      alert("Failed to update permissions.");
+      toast.error("Failed to update permissions.", {
+        position:'top-center'
+      });
     }
   };
 

@@ -6,7 +6,8 @@ const { addSubcategory,getAllSubcategories,deleteSubcategory ,updateSubcategory,
 
 router.post("/categories/:categoryId/subcategories", upload.array("images", 5), addSubcategory);
 router.get("/subcategories",getAllSubcategories);
-router.put("/subcategory/:id", upload.array("images"), updateSubcategory);
+// router.put("/subcategory/:id", upload.array("images"), updateSubcategory);
+router.put("/subcategory/:id",updateSubcategory);
 router.delete("/subcategories/:id",deleteSubcategory);
 // GET /api/subcategory/by-category/:categoryId
 router.get('/by-category/:categoryId',getSubcategoriesByCategory);

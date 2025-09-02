@@ -3630,7 +3630,7 @@ const ProductForm = () => {
           <div className="page-btn mt-0">
             <div className="d-flex gap-2">
               {/* <Link to="/product"></Link>{t("backToProduct")} */}
-              <Link to="/product"><a className="btn btn-primary" >Back to Product</a></Link>
+              <Link to="/choose-adproduct"><a className="btn btn-primary" >Back to Product</a></Link>
             </div>
           </div>
         </div>
@@ -3843,8 +3843,9 @@ const ProductForm = () => {
                           value={formData.sku}
                           onChange={(e) => setFormData({ ...formData, sku: e.target.value })}
                           placeholder={t("enterSKU")}
+                          style={{marginBottom:'10px'}}
                         />
-                        <button type="submit" onClick={generateSKU} className="btn btn-primaryadd">
+                        <button type="submit" onClick={generateSKU} className="btn-primaryadd" style={{padding:'5px 10px', border:'1px solid gray', borderRadius:'5px', color:'#808690'}}>
                           {t("generate")}
                         </button>
                         {formErrors.sku && (
@@ -3957,16 +3958,18 @@ const ProductForm = () => {
                           value={formData.itemBarcode}
                           readOnly
                           placeholder={t("itemBarcodePlaceholder")}
+                          style={{marginBottom:'10px'}}
                         />
                         <button
                           type="button"
-                          className="btn btn-primaryadd"
+                          className="btn-primaryadd"
                           onClick={() =>
                             setFormData((prev) => ({
                               ...prev,
                               itemBarcode: generateBarcode(),
                             }))
                           }
+                          style={{padding:'5px 10px', border:'1px solid gray', borderRadius:'5px', color:'#808690'}}
                         >
                           {t("generate")}
                         </button>

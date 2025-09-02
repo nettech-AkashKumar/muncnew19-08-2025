@@ -1,6 +1,8 @@
 const Warehouse = require("../models/warehouseModels");
 const { Parser } = require("json2csv");
 const PDFDocument = require("pdfkit");
+const mongoose = require("mongoose"); // Ensure mongoose is imported
+const Product = require("../models/productModels"); // Ensure Product model is imported
 
 // exports.createWarehouse = async (req, res) => {
 //     try {
@@ -40,7 +42,51 @@ exports.createWarehouse = async (req, res) => {
             ...req.body, 
             contactPerson: req.body.warehouseManager  // map it
         };
+
         delete data.warehouseManager; // optional
+
+    const zonesInput = req.body.layout.zones;
+    const rows = req.body.layout.rows;
+    const columns = req.body.layout.columns;
+    const width = req.body.layout.width;
+
+    // Validate input
+    if (!rows || !columns || zonesInput === undefined) {
+      return res.status(400).json({ success: false, message: "Missing layout parameters" });
+    }
+    if (typeof zonesInput !== "number" || zonesInput <= 0) {
+      return res.status(400).json({ success: false, message: "Zones must be a positive number" });
+    }
+
+    data.layout = {
+      rows: rows,
+      columns: columns,
+      width: width,
+      zones: zonesInput, // Store as number
+    };
+
+    // Initialize blocks array with zone objects
+    data.blocks = [];
+    for (let zoneIdx = 1; zoneIdx <= zonesInput; zoneIdx++) {
+      const zoneName = `Zone${zoneIdx}`;
+      const cells = [];
+      let cellNumber = 1;
+      for (let row = 1; row <= rows; row++) {
+        for (let col = 1; col <= columns; col++) {
+          cells.push({
+            name: String(cellNumber), // e.g., "1", "2", ..., "15"
+            items: [],
+          });
+          cellNumber++;
+        }
+      }
+      data.blocks.push({
+        zone: zoneName,
+        cells: cells,
+      });
+    }
+        // Create and save the warehouse
+
         const warehouse = new Warehouse(data);
         await warehouse.save();
         res.status(201).json({ success: true, warehouse });
@@ -48,6 +94,7 @@ exports.createWarehouse = async (req, res) => {
         res.status(500).json({ success: false, message: err.message });
     }
 };
+
 exports.getAllWarehouses = async (req, res) => {
     try {
         const wh = await Warehouse.find()
@@ -99,7 +146,8 @@ exports.getWarehouseById = async (req, res) => {
             .populate("contactPerson", "firstName lastName email")
             .populate("country", "name")
             .populate("state", "stateName")
-            .populate("city", "cityName");
+            .populate("city", "cityName")
+            .populate("blocks.cells.items.productId"); // Populate productId in items
         if (!warehouse) return res.status(404).json({ success: false, message: "Not found" });
         res.json({ success: true, warehouse });
     } catch (err) {
@@ -219,5 +267,121 @@ exports.getFavoriteWarehouses = async (req, res) => {
     res.json({ success: true, data: favoriteWarehouses });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
+  }
+};
+
+
+
+exports.zoneproducts = async (req, res) => {
+  const { id, zone, cellIndex } = req.params;
+  const { productId } = req.body;
+
+  try {
+    // Validate inputs
+    console.log("Request params:", { id, zone, cellIndex, productId });
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ message: "Invalid warehouse ID" });
+    }
+    if (!mongoose.Types.ObjectId.isValid(productId)) {
+      return res.status(400).json({ message: "Invalid product ID" });
+    }
+    if (isNaN(cellIndex) || cellIndex < 0) {
+      return res.status(400).json({ message: "Invalid cell index" });
+    }
+
+    // Find the warehouse
+    const warehouse = await Warehouse.findById(id);
+    if (!warehouse) {
+      return res.status(404).json({ message: "Warehouse not found" });
+    }
+    console.log("Warehouse found:", warehouse);
+
+    // Find the zone
+    const zoneObj = warehouse.blocks.find((z) => z.zone === zone);
+    if (!zoneObj) {
+      return res.status(404).json({ message: "Zone not found" });
+    }
+    console.log("Zone found:", zoneObj);
+
+    // Validate cell index
+    console.log("Cells in zone:", zoneObj.cells);
+    if (cellIndex >= zoneObj.cells.length) {
+      return res.status(400).json({ message: "Cell index out of bounds" });
+    }
+
+    // Check if product exists
+    const product = await Product.findById(productId);
+    if (!product) {
+      return res.status(404).json({ message: "Product not found" });
+    }
+    console.log("Product found:", product);
+
+    // Update the cell with the product ID
+    console.log("Cell before update:", zoneObj.cells[cellIndex]);
+zoneObj.cells[cellIndex].items.push({
+  productId: productId,
+  quantity: 1,
+  barcode: product.barcode || `BARCODE-${productId}`,
+});
+console.log("Cell after update:", zoneObj.cells[cellIndex]);
+
+    // Optionally update the product field (if you want to keep it for backward compatibility)
+    zoneObj.cells[cellIndex].product = productId;
+
+    // Save the updated warehouse
+    await warehouse.validate(); // Validate before saving
+  await warehouse.save();
+  console.log("Warehouse saved successfully");
+
+  res.status(200).json({ success: true, data: warehouse });
+} catch (error) {
+  console.error("Error assigning product to cell:", error);
+  if (error.name === "ValidationError") {
+    return res.status(400).json({ message: "Validation error", errors: error.errors });
+  }
+  res.status(500).json({ message: "Server error", error: error.message });
+}};
+
+
+// Remove item from cell
+exports.removeitem = async (req, res) => {
+  try {
+    const { id, zone, cellIndex } = req.params;
+    const { productId, barcode } = req.body;
+
+    const warehouse = await Warehouse.findById(id);
+    if (!warehouse) {
+      return res.status(404).json({ message: "Warehouse not found" });
+    }
+
+    const zoneData = warehouse.blocks.find((b) => b.zone === zone);
+    if (!zoneData) {
+      return res.status(404).json({ message: "Zone not found" });
+    }
+
+    const cell = zoneData.cells[cellIndex];
+    if (!cell) {
+      return res.status(404).json({ message: "Cell not found" });
+    }
+
+    // Remove item matching productId and barcode
+    cell.items = cell.items.filter(
+      (item) =>
+        !(
+          item.productId.toString() === productId &&
+          item.barcode === barcode
+        )
+    );
+
+    // Clear product if no items remain
+    if (cell.items.length === 0) {
+      cell.product = null;
+    }
+
+    await warehouse.save();
+    res.status(200).json({ message: "Item removed successfully" });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Server error" });
   }
 };

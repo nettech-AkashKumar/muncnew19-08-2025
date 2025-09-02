@@ -13,6 +13,10 @@ const Category = () => {
   const [categoryName, setCategoryName] = useState("");
   const [categorySlug, setCategorySlug] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
+  const [errors, setErrors] = useState({});
+  const nameRegex = /^[A-Za-z]{2,}$/;
+  const slugRegex = /^[a-z0-9-]{2,}$/;
+
   // edit
   const [editingCategories, setEditingCategories] = useState(null);
   const [editCategoryName, setEditCategoryName] = useState("");
@@ -59,6 +63,15 @@ const Category = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    let newErrors = {};
+    if(!nameRegex.test(categoryName)) {
+      newErrors.categoryName = "Enter a valid category name (letters only, min 2 chars)";
+    }
+    if(!slugRegex.test(categorySlug)) {
+      newErrors.categorySlug = "Enter a valid slug (lowercase letters, numbers, hyphens, min 2 chars)";
+    }
+    setErrors(newErrors);
+   if(Object.keys(newErrors).length > 0) return;
 
     if (!categoryName || !categorySlug) {
       toast.error("All fields are required");
@@ -88,6 +101,18 @@ const Category = () => {
 
   const handleUpdate = async (e) => {
     e.preventDefault();
+    
+    let newErrors = {};
+  if (!nameRegex.test(editCategoryName)) {
+    newErrors.categoryName = "Enter a valid category name (letters only, min 2 chars)";
+  }
+  if (!slugRegex.test(editCategorySlug)) {
+    newErrors.categorySlug = "Enter a valid slug (lowercase letters, numbers, hyphens, min 2 chars)";
+  }
+  setErrors(newErrors);
+
+  // Stop update if validation fails
+  if (Object.keys(newErrors).length > 0) return;
     try {
       await axios.put(
         `${BASE_URL}/api/category/categories/${editingCategories._id}`,
@@ -173,7 +198,7 @@ const Category = () => {
           <a data-bs-toggle="tooltip" data-bs-placement="top" title="Collapse" id="collapse-header"><i className="ti ti-chevron-up" /></a>
         </li>
       </ul> */}
-          <div className="table-top-head me-2">
+          {/* <div className="table-top-head me-2">
             <li>
               <button type="button" className="icon-btn" title="Pdf">
                 <FaFilePdf />
@@ -190,7 +215,7 @@ const Category = () => {
                 <FaFileExcel />
               </button>
             </li>
-          </div>
+          </div> */}
           <div className="page-btn">
             {/* <a
               href="#"
@@ -237,7 +262,7 @@ const Category = () => {
               <div className="search-input">
                 <input
                   type="text"
-                  placeholder="Search country..."
+                  placeholder="Search category..."
                   className="form-control"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
@@ -495,31 +520,9 @@ const Category = () => {
         }
         onSubmit={isEditMode ? handleUpdate : handleSubmit}
         submitLabel={isEditMode ? "Update" : "Submit"}
+        errors={errors} 
       />
 
-      {/* <CategoryModal
-          modalId="add-category"
-          title="Add Category"
-          categoryName={categoryName}
-          categorySlug={categorySlug}
-          onCategoryChange={(e) => setCategoryName(e.target.value)}
-          onSlugChange={(e) => setCategorySlug(e.target.value)}
-          onSubmit={handleSubmit}
-          submitLabel="Add Category"
-        />
-    
-        <CategoryModal
-          modalId="edit-category"
-          title="Edit category"
-          editCategoryName={editCategoryName}
-          editCategorySlug={editCategorySlug}
-          onCategoryChange={(e) => setEditCategoryName(e.target.value)}
-          onSlugChange={(e) => setEditCategorySlug(e.target.value)}
-          onSubmit={handleUpdate}
-          submitLabel="Update Category"
-        />
-       */}
-      {/* /Add Category */}
     </div>
   );
 };
