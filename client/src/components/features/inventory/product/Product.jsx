@@ -540,10 +540,19 @@ function ProductList() {
             marginTop: "0px",
           }}
         >
-          <h5 style={{ marginBottom: "10px", fontWeight: "700", color: "#333" }}>
+          <div style={{display:'flex',justifyContent:'space-between'}}>
+          <div>
+            <h5 style={{ marginBottom: "10px", fontWeight: "700", color: "#333" }}>
             Products
-          </h5>
-          <h6 style={{ fontWeight: '400' }}>Manage Your Products</h6>
+            </h5>
+            <h6 style={{ fontWeight: '400' }}>Manage Your Products</h6>
+          </div>
+          
+          <div className="d-flex gap-2">
+            <Link to="/add-product"><a className="btn btn-primary" style={{marginTop:'5px'}}><CiCirclePlus className="me-1" />Add Products</a></Link>
+          </div>
+          </div>
+
           <div style={{ marginTop: '15px' }}>
             <table
               style={{

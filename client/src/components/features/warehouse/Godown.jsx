@@ -510,7 +510,7 @@
 //             padding: "24px",
 //           }}
 //         >
-         
+
 //           <div
 //             style={{
 //               transform: "rotate(-90deg)",
@@ -591,7 +591,7 @@
 //             </main>
 //           </div>
 
-         
+
 //           <div
 //             style={{
 //               backgroundColor: "#fff",
@@ -735,7 +735,7 @@
 //                 </tbody>
 //               </table>
 //             </div>
-           
+
 //             <div
 //               className="pagination"
 //               style={{
@@ -772,7 +772,7 @@
 //             </div>
 //           </div>
 
-         
+
 //           <div
 //             style={{
 //               transform: "rotate(90deg)",
@@ -859,7 +859,7 @@
 //             marginRight: "70px",
 //           }}
 //         >
-          
+
 //           <div
 //             style={{
 //               width: "303px",
@@ -924,7 +924,7 @@
 //             </main>
 //           </div>
 
-         
+
 //           <div
 //             style={{
 //               width: "303px",
@@ -1468,29 +1468,33 @@ function Godown() {
     setSaveError(null);
 
     try {
-      // Find the zone index and cell index
+      // Find the zone index
       const zoneIndex = zones.findIndex((z) => z.zone === selectedItem.zone);
-      const rows = warehousesDetails?.layout?.rows || 4;
-      const columns = warehousesDetails?.layout?.columns || 5;
-      const cellIds = [];
-      for (let row = 0; row < rows; row++) {
-        for (let col = 0; col < columns; col++) {
-          const rowLetter = String.fromCharCode(65 + row);
-          const colNumber = col + 1;
-          cellIds.push(`${rowLetter}${colNumber}`);
-        }
-      }
-      const cellIndex = cellIds.indexOf(selectedItem.grid);
+
+      // Use the grid ID directly as the cell name (e.g., "1", "2")
+      const cellName = selectedItem.grid;
+      // Find the cell index by matching the name field
+      const cellIndex = zones[zoneIndex].cells.findIndex(
+        (cell) => cell.name === cellName
+      );
 
       if (zoneIndex === -1 || cellIndex === -1) {
         throw new Error("Invalid zone or cell.");
       }
 
       // Send PATCH request to update cell with product
+      console.log("Sending PATCH request:", {
+        warehouseId: id,
+        zone: selectedItem.zone,
+        cellIndex,
+        productId: selectedProduct._id,
+      });
       const response = await axios.patch(
         `${BASE_URL}/api/warehouse/${id}/zone/${selectedItem.zone}/cell/${cellIndex}`,
         {
-          productId: selectedProduct._id, // Send product ID
+          productId: selectedProduct._id,
+          quantity: 1, // Add quantity
+          barcode: selectedProduct.barcode || `BARCODE-${selectedProduct._id}`, // Add barcode if available
         }
       );
 
@@ -1499,7 +1503,15 @@ function Godown() {
         const updatedZones = [...prevZones];
         updatedZones[zoneIndex].cells[cellIndex] = {
           ...updatedZones[zoneIndex].cells[cellIndex],
-          product: selectedProduct, // Update cell with product
+          product: selectedProduct, // Update product field
+          items: [
+            ...(updatedZones[zoneIndex].cells[cellIndex].items || []),
+            {
+              productId: selectedProduct._id,
+              quantity: 1,
+              barcode: selectedProduct.barcode || `BARCODE-${selectedProduct._id}`,
+            },
+          ], // Update items array
         };
         return updatedZones;
       });
@@ -1627,7 +1639,7 @@ function Godown() {
             <MdArrowForwardIos style={{ color: "#b0afafff" }} />
             <Link
               style={{ color: "#676767", textDecoration: "none" }}
-              to={"/WarehouseDetails"}
+              to={`/WarehouseDetails/${warehousesDetails?._id}`}
             >
               {warehousesDetails?.warehouseName}
             </Link>
@@ -1729,12 +1741,8 @@ function Godown() {
             const rows = warehousesDetails?.layout?.rows || 4;
             const columns = warehousesDetails?.layout?.columns || 5;
             const cellIds = [];
-            for (let row = 0; row < rows; row++) {
-              for (let col = 0; col < columns; col++) {
-                const rowLetter = String.fromCharCode(65 + row);
-                const colNumber = col + 1;
-                cellIds.push(`${rowLetter}${colNumber}`);
-              }
+            for (let i = 1; i <= rows * columns; i++) {
+              cellIds.push(`${i}`);
             }
 
             return (
@@ -1796,7 +1804,7 @@ function Godown() {
                           justifyContent: "center",
                           display: "flex",
                           cursor: "pointer",
-                          backgroundColor: cell.product ? "#e3f3ff" : "#ffffff",
+                          backgroundColor: cell.items && cell.items.length > 0 ? "#e3f3ff" : "#ffffff",
                         }}
                       >
                         {cellIds[cellIdx]}
@@ -2013,20 +2021,27 @@ function Godown() {
                           alignItems: "center",
                           justifyContent: "space-between",
                           gap: "10px",
+                          border: '1px solid #ccc',
+                          borderRadius: '6px',
+                          padding: '5px',
+                          backgroundColor: '#f9f9f9',
                         }}
                       >
-                        <div>
-                          <img
-                            src={selectedProduct?.images?.[0]?.url}
-                            style={{
-                              width: "40px",
-                              height: "40px",
-                              marginRight: "10px",
-                              border: "none",
-                            }}
-                            alt={selectedProduct.productName}
-                          />
-                          {selectedProduct.productName}
+                        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                          <div style={{ width: '40px', height: '40px', }}>
+                            <img
+                              src={selectedProduct?.images?.[0]?.url}
+                              style={{
+                                width: "100%",
+                                height: "100%",
+                                marginRight: "10px",
+                                border: "none",
+                                objectFit: 'contain'
+                              }}
+                              alt={selectedProduct.productName}
+                            />
+                          </div>
+                          <span>{selectedProduct.productName}</span>
                         </div>
                         <button
                           onClick={handleClearCustomer}
@@ -2036,7 +2051,7 @@ function Godown() {
                             color: "#dc3545",
                             cursor: "pointer",
                             fontSize: "12px",
-                            padding: "2px 6px",
+                            padding: "2px 8px",
                             borderRadius: "4px",
                           }}
                           title="Clear product"
@@ -2072,7 +2087,7 @@ function Godown() {
                       style={{
                         color: "#dc3545",
                         fontSize: "14px",
-                        marginTop: "10px",
+                        marginTop: "20px",
                         textAlign: "left",
                       }}
                     >
@@ -2080,31 +2095,32 @@ function Godown() {
                     </div>
                   )}
 
-                  {/* Done Button */}
-                  <div
+                </div>
+
+                {/* Done Button */}
+                <div
+                  style={{
+                    bottom: "10px",
+                    right: "20px",
+                    justifyContent: "right",
+                    display: "flex",
+                    marginTop: '20px'
+                  }}
+                >
+                  <button
                     style={{
-                      position: "absolute",
-                      bottom: "10px",
-                      right: "20px",
-                      justifyContent: "right",
-                      display: "flex",
+                      padding: "8px 16px",
+                      backgroundColor: saveLoading ? "#6c757d" : "#007bff",
+                      color: "#fff",
+                      border: "none",
+                      borderRadius: "4px",
+                      cursor: saveLoading ? "not-allowed" : "pointer",
                     }}
+                    onClick={saveProductToCell}
+                    disabled={saveLoading}
                   >
-                    <button
-                      style={{
-                        padding: "8px 16px",
-                        backgroundColor: saveLoading ? "#6c757d" : "#007bff",
-                        color: "#fff",
-                        border: "none",
-                        borderRadius: "4px",
-                        cursor: saveLoading ? "not-allowed" : "pointer",
-                      }}
-                      onClick={saveProductToCell}
-                      disabled={saveLoading}
-                    >
-                      {saveLoading ? "Saving..." : "Done"}
-                    </button>
-                  </div>
+                    {saveLoading ? "Saving..." : "Done"}
+                  </button>
                 </div>
               </div>
             </div>

@@ -18,12 +18,11 @@ const rackSchema = new mongoose.Schema(
   { _id: false }
 );
 
-
 const blockItemSchema = new mongoose.Schema(
   {
-    itemId: { type: mongoose.Schema.Types.ObjectId, ref: "Item" },
-    quantity: { type: Number, default: 0, min: 0 },
-    barcode: { type: String, required: true },
+    productId: { type: mongoose.Schema.Types.ObjectId, ref: "Product" }, // Changed from itemId to productId
+    quantity: { type: Number, default: 1, min: 0 }, // Default quantity to 1
+    barcode: { type: String, required: false }, // Make barcode optional or generate it
   },
   { _id: false }
 );
