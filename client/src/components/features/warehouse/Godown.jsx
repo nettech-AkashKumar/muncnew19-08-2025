@@ -1969,9 +1969,9 @@ function Godown() {
               ref={formRef}
               style={{
                 width: "900px",
-                height: "800px",
+                height: "700px",
                 margin: "auto",
-                marginTop: "10px",
+                marginTop: "20px",
                 padding: "10px 16px",
                 overflowY: "auto",
                 borderRadius: "8px",
@@ -1984,6 +1984,7 @@ function Godown() {
                   borderRadius: "8px",
                   textAlign: "center",
                   width: "100%",
+                  height:'500px',
                   overflowY: "auto",
                   boxShadow: "0 2px 10px rgba(0, 0, 0, 0.1)",
                   position: "relative",
@@ -2153,7 +2154,7 @@ function Godown() {
                               border: "1px solid #E1E1E1",
                               borderRadius: "8px",
                               boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
-                              maxHeight: "300px",
+                              maxHeight: "200px",
                               overflowY: "auto",
                               zIndex: 1000,
                             }}
