@@ -1381,12 +1381,12 @@ import { MdArrowForwardIos } from "react-icons/md";
 import {
   FaSearch,
   FaArrowRight,
-  FaAngleLeft,
   FaChevronRight,
 } from "react-icons/fa";
 import { IoMdClose } from "react-icons/io";
 import { IoSearch } from "react-icons/io5";
 import { RiArrowUpDownLine } from "react-icons/ri";
+import { FaAngleLeft, FaAngleRight, FaTrash } from "react-icons/fa6";
 import { Link, useParams } from "react-router-dom";
 import BASE_URL from "../../../pages/config/config";
 import axios from "axios";
@@ -1400,9 +1400,13 @@ function Godown() {
   const [selectedZone, setSelectedZone] = useState(""); // State for zone filter
   const [selectedItem, setSelectedItem] = useState({ zone: "", grid: "" });
   const [selectedProduct, setSelectedProduct] = useState(null); // Renamed for clarity
+  const [selectedCell, setSelectedCell] = useState(""); // New state for selected cell
   const [isPopupOpen, setIsPopupOpen] = useState(false);
   const [saveLoading, setSaveLoading] = useState(false); // Loading state for save
   const [saveError, setSaveError] = useState(null); // Error state for save
+  const [selectedCellItems, setSelectedCellItems] = useState([]); // New state for cell items
+  const [currentPage, setCurrentPage] = useState(1); // New state for current page
+  const [itemsPerPage] = useState(5); // New state for items per page
   const formRef = useRef(null);
 
   // Fetch warehouse details
@@ -1436,6 +1440,16 @@ function Godown() {
   // Handle popup open/close
   const handlePopup = (zone, cellId) => {
     setSelectedItem({ zone, grid: cellId });
+    const zoneIndex = zones.findIndex((z) => z.zone === zone);
+    const cellIndex = zones[zoneIndex]?.cells.findIndex(
+      (cell) => cell.name === cellId
+    );
+    if (zoneIndex !== -1 && cellIndex !== -1) {
+      const cell = zones[zoneIndex].cells[cellIndex];
+      setSelectedCellItems(cell.items || []);
+    } else {
+      setSelectedCellItems([]);
+    }
     setIsPopupOpen(true);
   };
 
@@ -1443,6 +1457,7 @@ function Godown() {
     setIsPopupOpen(false);
     setSelectedProduct(null); // Clear selected product on close
     setSaveError(null); // Clear save error
+    setSelectedCellItems([]);
   };
 
   useEffect(() => {
@@ -1515,6 +1530,16 @@ function Godown() {
         };
         return updatedZones;
       });
+
+      setSelectedCellItems((prevItems) => [
+        ...prevItems,
+        {
+          productId: selectedProduct.productId,
+          quantity: selectedProduct.quantity,
+          barcode: selectedProduct.barcode,
+          product: selectedProduct.productId,
+        },
+      ]);
 
       // Close popup on success
       closePopup();
@@ -1608,10 +1633,100 @@ function Godown() {
     setShowDropdown(false);
   };
 
+
+  // Pagination logic
+  const getPaginatedItems = () => {
+    if (!selectedZone || !filteredZones.length) return [];
+    let allItems = filteredZones[0].cells.flatMap((cell) =>
+      cell.items?.map((item) => ({ ...item, cellName: cell.name })) || []
+    );
+    if (selectedCell) {
+      allItems = allItems.filter((item) => item.cellName === selectedCell);
+    }
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    return allItems.slice(startIndex, endIndex);
+  };
+
+  const totalItems = selectedZone
+    ? filteredZones[0]?.cells
+      .flatMap((cell) =>
+        selectedCell
+          ? cell.name === selectedCell
+            ? cell.items || []
+            : []
+          : cell.items || []
+      )
+      .length
+    : 0;
+  const totalPages = Math.ceil(totalItems / itemsPerPage);
+
+  const handlePageChange = (page) => {
+    if (page >= 1 && page <= totalPages) {
+      setCurrentPage(page);
+    }
+  };
+
+
+  // Remove item from cell
+  const removeItemFromCell = async (itemIndex) => {
+    if (!selectedItem.zone || !selectedItem.grid) {
+      setSaveError("No cell selected.");
+      return;
+    }
+
+    setSaveLoading(true);
+    setSaveError(null);
+
+    try {
+      const zoneIndex = zones.findIndex((z) => z.zone === selectedItem.zone);
+      const cellName = selectedItem.grid;
+      const cellIndex = zones[zoneIndex].cells.findIndex(
+        (cell) => cell.name === cellName
+      );
+
+      if (zoneIndex === -1 || cellIndex === -1) {
+        throw new Error("Invalid zone or cell.");
+      }
+
+      const itemToRemove = selectedCellItems[itemIndex];
+
+      await axios.patch(
+        `${BASE_URL}/api/warehouse/${id}/zone/${selectedItem.zone}/cell/${cellIndex}/remove-item`,
+        {
+          productId: itemToRemove.productId._id,
+          barcode: itemToRemove.barcode,
+        }
+      );
+
+      setZones((prevZones) => {
+        const updatedZones = [...prevZones];
+        updatedZones[zoneIndex].cells[cellIndex].items = updatedZones[
+          zoneIndex
+        ].cells[cellIndex].items.filter((_, idx) => idx !== itemIndex);
+        if (updatedZones[zoneIndex].cells[cellIndex].items.length === 0) {
+          updatedZones[zoneIndex].cells[cellIndex].product = null;
+        }
+        return updatedZones;
+      });
+
+      setSelectedCellItems((prevItems) =>
+        prevItems.filter((_, idx) => idx !== itemIndex)
+      );
+
+      detailsWarehouses();
+    } catch (err) {
+      setSaveError(err.response?.data?.message || "Failed to remove item.");
+      console.error(err);
+    } finally {
+      setSaveLoading(false);
+    }
+  };
+
   return (
     <div>
       {/* Breadcrumb Navigation */}
-      <div style={{ padding: "20px", overflowY: "auto", height: "88vh" }}>
+      <div style={{ padding: "20px", overflowY: "auto", height: "85vh" }}>
         <div
           style={{
             display: "flex",
@@ -1721,7 +1836,11 @@ function Godown() {
             <select
               name="zone"
               value={selectedZone}
-              onChange={(e) => setSelectedZone(e.target.value)}
+              onChange={(e) => {
+                setSelectedZone(e.target.value);
+                setSelectedCell(""); // Reset cell filter when zone changes
+                setCurrentPage(1); // Reset to page 1 when zone changes
+              }}
               style={{ border: "none", outline: "none" }}
             >
               <option value="">All Zones</option>
@@ -1738,83 +1857,90 @@ function Godown() {
         {filteredZones?.length > 0 ? (
           filteredZones.map((zone, zoneIdx) => {
             // Generate cell IDs based on rows and columns (e.g., A1, A2, ..., E4)
-            const rows = warehousesDetails?.layout?.rows || 4;
-            const columns = warehousesDetails?.layout?.columns || 5;
+            const rows = warehousesDetails?.layout?.rows;
+            const columns = warehousesDetails?.layout?.columns;
             const cellIds = [];
             for (let i = 1; i <= rows * columns; i++) {
               cellIds.push(`${i}`);
             }
 
             return (
-              <div key={zoneIdx}>
-                <div
-                  style={{
-                    margin: "0 auto",
-                    display: "flex",
-                    justifyContent: "center",
-                  }}
-                >
-                  <div
-                    style={{
-                      backgroundColor: "#3f99e1",
-                      padding: "24px",
-                      color: "#FFF",
-                      justifyContent: "space-between",
-                      display: "flex",
-                      border: "1px solid #e6e6e6",
-                      borderRadius: "8px",
-                      marginTop: "40px",
-                      marginBottom: "20px",
-                      width: "40%",
-                    }}
-                  >
-                    <span className="invisible">hg</span>
-                    <span className="zone-text">{zone.zone}</span>
-                    <span>
-                      <FaArrowRight />
-                    </span>
+              <>
+                <div key={zoneIdx} style={{ margin: 'auto 0', width: '100%', justifyContent: 'center', display: 'flex' }}>
+                  <div style={{ width: '500px', maxWidth: '1000px' }}>
+
+                    <div
+                      style={{
+                        margin: "0 auto",
+                        display: "flex",
+                        justifyContent: "center",
+                      }}
+                    >
+                      <div
+                        style={{
+                          backgroundColor: "#3f99e1",
+                          padding: "24px",
+                          color: "#FFF",
+                          justifyContent: "space-between",
+                          display: "flex",
+                          border: "1px solid #e6e6e6",
+                          borderRadius: "8px",
+                          marginTop: "40px",
+                          marginBottom: "20px",
+                          width: "100%",
+                        }}
+                      >
+                        <span className="invisible">hg</span>
+                        <span className="zone-text">{zone.zone}</span>
+                        <span>
+                          <FaArrowRight />
+                        </span>
+                      </div>
+                    </div>
+
+                    <main
+                      style={{
+                        width: "100%",
+                        margin: "0 auto",
+                        display: "grid",
+                        gridTemplateRows: `repeat(${rows}, 1fr)`,
+                        gridTemplateColumns: `repeat(${columns}, 1fr)`,
+                        gridRowGap: "10px",
+                        gridColumnGap: "10px",
+                        justifyContent: "space-between",
+                      }}
+                    >
+                      {Array.isArray(zone.cells) && zone.cells.length > 0 ? (
+                        zone.cells.map((cell, cellIdx) => (
+                          <div
+                            key={cellIdx}
+                            onClick={() => handlePopup(zone.zone, cellIds[cellIdx])}
+                            style={{
+                              border: "1px solid #e6e6e6",
+                              color: "#000000",
+                              borderRadius: "8px",
+                              fontFamily: "Roboto",
+                              fontWeight: "400",
+                              fontSize: "16px",
+                              alignItems: "center",
+                              justifyContent: "center",
+                              display: "flex",
+                              cursor: "pointer",
+                              backgroundColor: cell.items && cell.items.length > 0 ? "#e3f3ff" : "#ffffff",
+                            }}
+                          >
+                            {cellIds[cellIdx]}
+                          </div>
+                        ))
+                      ) : (
+                        <div>No cells available</div>
+                      )}
+                    </main>
+
                   </div>
                 </div>
 
-                <main
-                  style={{
-                    width: "40%",
-                    margin: "0 auto",
-                    display: "grid",
-                    gridTemplateRows: `repeat(${rows}, 1fr)`,
-                    gridTemplateColumns: `repeat(${columns}, 1fr)`,
-                    gridRowGap: "10px",
-                    gridColumnGap: "10px",
-                    justifyContent: "space-between",
-                  }}
-                >
-                  {Array.isArray(zone.cells) && zone.cells.length > 0 ? (
-                    zone.cells.map((cell, cellIdx) => (
-                      <div
-                        key={cellIdx}
-                        onClick={() => handlePopup(zone.zone, cellIds[cellIdx])}
-                        style={{
-                          border: "1px solid #e6e6e6",
-                          color: "#000000",
-                          borderRadius: "8px",
-                          fontFamily: "Roboto",
-                          fontWeight: "400",
-                          fontSize: "16px",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          display: "flex",
-                          cursor: "pointer",
-                          backgroundColor: cell.items && cell.items.length > 0 ? "#e3f3ff" : "#ffffff",
-                        }}
-                      >
-                        {cellIds[cellIdx]}
-                      </div>
-                    ))
-                  ) : (
-                    <div>No cells available</div>
-                  )}
-                </main>
-              </div>
+              </>
             );
           })
         ) : (
@@ -1896,7 +2022,7 @@ function Godown() {
                         fontSize: "16px",
                       }}
                     >
-                      Zone - {selectedItem.zone}
+                      {selectedItem.zone} ,
                     </span>
                     <span
                       style={{
@@ -1910,217 +2036,480 @@ function Godown() {
                     </span>
                   </div>
 
-                  {/* Search Box */}
-                  <div style={{ position: "relative", marginBottom: "20px" }}>
-                    <div
-                      style={{
-                        display: "flex",
-                        alignItems: "center",
-                        border: "1px solid #E1E1E1",
-                        borderRadius: "8px",
-                        backgroundColor: "#fff",
-                        padding: "6px 12px",
-                      }}
-                    >
-                      <IoSearch
-                        style={{
-                          fontSize: "20px",
-                          marginRight: "10px",
-                          color: "#C2C2C2",
-                        }}
-                      />
-                      <input
-                        type="text"
-                        placeholder="Search by name, email, or phone number..."
-                        value={searchQuery}
-                        onChange={(e) => handleProductSearch(e.target.value)}
-                        style={{
-                          width: "100%",
-                          padding: "8px",
-                          fontSize: "16px",
-                          border: "none",
-                          outline: "none",
-                          color: "#333",
-                        }}
-                      />
-                    </div>
 
-                    {/* Search Results Dropdown */}
-                    {showDropdown && searchResults.length > 0 && (
-                      <div
-                        style={{
-                          position: "absolute",
-                          top: "100%",
-                          left: 0,
-                          right: 0,
-                          backgroundColor: "white",
-                          border: "1px solid #E1E1E1",
-                          borderRadius: "8px",
-                          boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
-                          maxHeight: "300px",
-                          overflowY: "auto",
-                          zIndex: 1000,
-                        }}
-                      >
-                        {searchResults.map((product) => (
+                  {selectedCellItems.length > 0 ? (
+                    <div style={{ textAlign: "left", marginBottom: "20px" }}>
+                      <h3 style={{ margin: "0 0 10px 0", color: "#262626" }}>
+                        Items in Cell
+                      </h3>
+                      {selectedCellItems.map((item, index) => (
+                        <div
+                          key={index}
+                          style={{
+                            color: "#262626",
+                            fontWeight: "500",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "space-between",
+                            gap: "10px",
+                            border: "1px solid #ccc",
+                            borderRadius: "6px",
+                            padding: "5px",
+                            backgroundColor: "#f9f9f9",
+                            marginBottom: "10px",
+                          }}
+                        >
                           <div
-                            key={product._id}
-                            onClick={() => handleSelectedProduct(product)}
                             style={{
-                              padding: "12px 16px",
-                              cursor: "pointer",
+                              display: "flex",
+                              justifyContent: "center",
+                              alignItems: "center",
+                              gap: '10px'
                             }}
                           >
-                            <div
-                              style={{ fontWeight: "600", textAlign: "left" }}
-                            >
-                              {product.productName || "No Name"}
+                            <div style={{ width: "40px", height: "40px" }}>
+                              <img
+                                src={item.productId?.images?.[0]?.url}
+                                style={{
+                                  width: "100%",
+                                  height: "100%",
+                                  marginRight: "10px",
+                                  border: "none",
+                                  objectFit: "contain",
+                                }}
+                                alt={item.product?.productName || "No Image"}
+                              />
+                            </div>
+                            <div>
+                              <div>{item.productId.productName}</div>
+                              <div style={{ fontSize: "14px", color: "#676767" }}>
+                                Quantity: {item.productId.quantity}
+                              </div>
                             </div>
                           </div>
-                        ))}
-                      </div>
-                    )}
-
-                    {/* No Results Message */}
-                    {showDropdown &&
-                      searchResults.length === 0 &&
-                      searchQuery.trim() !== "" && (
-                        <div
-                          style={{
-                            position: "absolute",
-                            top: "100%",
-                            left: 0,
-                            right: 0,
-                            backgroundColor: "white",
-                            border: "1px solid #E1E1E1",
-                            borderRadius: "8px",
-                            padding: "16px",
-                            textAlign: "center",
-                            color: "#666",
-                            zIndex: 1000,
-                          }}
-                        >
-                          No product found matching "{searchQuery}"
+                          <button
+                            onClick={() => removeItemFromCell(index)}
+                            style={{
+                              background: "none",
+                              border: "none",
+                              color: "#dc3545",
+                              cursor: saveLoading ? "not-allowed" : "pointer",
+                              fontSize: "16px",
+                              padding: "2px 8px",
+                            }}
+                            title="Remove item"
+                            disabled={saveLoading}
+                          >
+                            <FaTrash />
+                          </button>
                         </div>
-                      )}
-                  </div>
-
-                  {/* Selected Product */}
-                  {selectedProduct ? (
-                    <div
-                      style={{
-                        textAlign: "left",
-                        marginTop: "20px",
-                      }}
-                    >
-                      <div
-                        style={{
-                          color: "#262626",
-                          fontWeight: "500",
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "space-between",
-                          gap: "10px",
-                          border: '1px solid #ccc',
-                          borderRadius: '6px',
-                          padding: '5px',
-                          backgroundColor: '#f9f9f9',
-                        }}
-                      >
-                        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-                          <div style={{ width: '40px', height: '40px', }}>
-                            <img
-                              src={selectedProduct?.images?.[0]?.url}
-                              style={{
-                                width: "100%",
-                                height: "100%",
-                                marginRight: "10px",
-                                border: "none",
-                                objectFit: 'contain'
-                              }}
-                              alt={selectedProduct.productName}
-                            />
-                          </div>
-                          <span>{selectedProduct.productName}</span>
-                        </div>
-                        <button
-                          onClick={handleClearCustomer}
-                          style={{
-                            background: "none",
-                            border: "none",
-                            color: "#dc3545",
-                            cursor: "pointer",
-                            fontSize: "12px",
-                            padding: "2px 8px",
-                            borderRadius: "4px",
-                          }}
-                          title="Clear product"
-                        >
-                          ✕
-                        </button>
-                      </div>
+                      ))}
                     </div>
                   ) : (
-                    <div
-                      style={{
-                        border: "1px solid #c2c2c2",
-                        borderRadius: "8px",
-                        gap: "10px",
-                        marginTop: "5px",
-                      }}
-                    >
-                      <div style={{ padding: "10px 16px" }}>
-                        <p style={{ color: "#676767", margin: "20px 0" }}>
-                          You haven't added any products yet.
-                          <br /> Use
-                          <span style={{ color: "#177ecc" }}> browse</span> or
-                          <span style={{ color: "#177ecc" }}> search</span> to
-                          get started.
-                        </p>
-                      </div>
-                    </div>
-                  )}
+                    <>
+                      <div style={{ position: "relative", marginBottom: "20px" }}>
+                        <div
+                          style={{
+                            display: "flex",
+                            alignItems: "center",
+                            border: "1px solid #E1E1E1",
+                            borderRadius: "8px",
+                            backgroundColor: "#fff",
+                            padding: "6px 12px",
+                          }}
+                        >
+                          <IoSearch
+                            style={{
+                              fontSize: "20px",
+                              marginRight: "10px",
+                              color: "#C2C2C2",
+                            }}
+                          />
+                          <input
+                            type="text"
+                            placeholder="Search by name, email, or phone number..."
+                            value={searchQuery}
+                            onChange={(e) => handleProductSearch(e.target.value)}
+                            style={{
+                              width: "100%",
+                              padding: "8px",
+                              fontSize: "16px",
+                              border: "none",
+                              outline: "none",
+                              color: "#333",
+                            }}
+                          />
+                        </div>
 
-                  {/* Save Error Message */}
-                  {saveError && (
-                    <div
-                      style={{
-                        color: "#dc3545",
-                        fontSize: "14px",
-                        marginTop: "20px",
-                        textAlign: "left",
-                      }}
-                    >
-                      {saveError}
-                    </div>
+                        {/* Search Results Dropdown */}
+                        {showDropdown && searchResults.length > 0 && (
+                          <div
+                            style={{
+                              position: "absolute",
+                              top: "100%",
+                              left: 0,
+                              right: 0,
+                              backgroundColor: "white",
+                              border: "1px solid #E1E1E1",
+                              borderRadius: "8px",
+                              boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
+                              maxHeight: "300px",
+                              overflowY: "auto",
+                              zIndex: 1000,
+                            }}
+                          >
+                            {searchResults.map((product) => (
+                              <div
+                                key={product._id}
+                                onClick={() => handleSelectedProduct(product)}
+                                style={{
+                                  padding: "12px 16px",
+                                  cursor: "pointer",
+                                }}
+                              >
+                                <div
+                                  style={{ fontWeight: "600", textAlign: "left" }}
+                                >
+                                  {product.productName || "No Name"}
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+
+                        {/* No Results Message */}
+                        {showDropdown &&
+                          searchResults.length === 0 &&
+                          searchQuery.trim() !== "" && (
+                            <div
+                              style={{
+                                position: "absolute",
+                                top: "100%",
+                                left: 0,
+                                right: 0,
+                                backgroundColor: "white",
+                                border: "1px solid #E1E1E1",
+                                borderRadius: "8px",
+                                padding: "16px",
+                                textAlign: "center",
+                                color: "#666",
+                                zIndex: 1000,
+                              }}
+                            >
+                              No product found matching "{searchQuery}"
+                            </div>
+                          )}
+                      </div>
+
+                      {selectedProduct ? (
+                        <div
+                          style={{
+                            textAlign: "left",
+                            marginTop: "20px",
+                          }}
+                        >
+                          <div
+                            style={{
+                              color: "#262626",
+                              fontWeight: "500",
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "space-between",
+                              gap: "10px",
+                              border: '1px solid #ccc',
+                              borderRadius: '6px',
+                              padding: '5px',
+                              backgroundColor: '#f9f9f9',
+                            }}
+                          >
+                            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                              <div style={{ width: '40px', height: '40px', }}>
+                                <img
+                                  src={selectedProduct?.images?.[0]?.url}
+                                  style={{
+                                    width: "100%",
+                                    height: "100%",
+                                    marginRight: "10px",
+                                    border: "none",
+                                    objectFit: 'contain'
+                                  }}
+                                  alt={selectedProduct.productName}
+                                />
+                              </div>
+                              <span>{selectedProduct.productName}</span>
+                            </div>
+                            <button
+                              onClick={handleClearCustomer}
+                              style={{
+                                background: "none",
+                                border: "none",
+                                color: "#dc3545",
+                                cursor: "pointer",
+                                fontSize: "12px",
+                                padding: "2px 8px",
+                                borderRadius: "4px",
+                              }}
+                              title="Clear product"
+                            >
+                              ✕
+                            </button>
+                          </div>
+                        </div>
+                      ) : (
+                        <div
+                          style={{
+                            border: "1px solid #c2c2c2",
+                            borderRadius: "8px",
+                            gap: "10px",
+                            marginTop: "5px",
+                          }}
+                        >
+                          <div style={{ padding: "10px 16px" }}>
+                            <p style={{ color: "#676767", margin: "20px 0" }}>
+                              You haven't added any products yet.
+                              <br /> Use
+                              <span style={{ color: "#177ecc" }}> browse</span> or
+                              <span style={{ color: "#177ecc" }}> search</span> to
+                              get started.
+                            </p>
+                          </div>
+                        </div>
+                      )}
+
+
+                      {saveError && (
+                        <div
+                          style={{
+                            color: "#dc3545",
+                            fontSize: "14px",
+                            marginTop: "20px",
+                            textAlign: "left",
+                          }}
+                        >
+                          {saveError}
+                        </div>
+                      )}
+                      <div
+                        style={{
+                          bottom: "10px",
+                          right: "20px",
+                          justifyContent: "right",
+                          display: "flex",
+                          marginTop: '20px'
+                        }}
+                      >
+                        <button
+                          style={{
+                            padding: "8px 16px",
+                            backgroundColor: saveLoading ? "#6c757d" : "#007bff",
+                            color: "#fff",
+                            border: "none",
+                            borderRadius: "4px",
+                            cursor: saveLoading ? "not-allowed" : "pointer",
+                          }}
+                          onClick={saveProductToCell}
+                          disabled={saveLoading}
+                        >
+                          {saveLoading ? "Saving..." : "Done"}
+                        </button>
+                      </div>
+
+                    </>
                   )}
 
                 </div>
 
                 {/* Done Button */}
+
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Table for Selected Zone */}
+        {selectedZone && filteredZones.length > 0 && (
+          <div style={{ margin: "auto 0", width: "100%", justifyContent: "center", display: "flex" }}>
+            <div style={{ width: "500px", maxWidth: "1000px" }}>
+              <div
+                style={{
+                  backgroundColor: "#fff",
+                  padding: "24px",
+                  border: "1px solid #e6e6e6",
+                  borderRadius: "8px",
+                  marginTop: "20px",
+                }}
+              >
                 <div
                   style={{
-                    bottom: "10px",
-                    right: "20px",
-                    justifyContent: "right",
                     display: "flex",
-                    marginTop: '20px'
+                    justifyContent: "space-between",
+                    alignItems: "center",
                   }}
                 >
-                  <button
-                    style={{
-                      padding: "8px 16px",
-                      backgroundColor: saveLoading ? "#6c757d" : "#007bff",
-                      color: "#fff",
-                      border: "none",
-                      borderRadius: "4px",
-                      cursor: saveLoading ? "not-allowed" : "pointer",
-                    }}
-                    onClick={saveProductToCell}
-                    disabled={saveLoading}
+                  <div
+                    style={{ display: "flex", alignItems: "center", gap: "50px" }}
                   >
-                    {saveLoading ? "Saving..." : "Done"}
-                  </button>
+                    <span
+                      style={{
+                        fontFamily: "Roboto",
+                        fontWeight: "500",
+                        fontSize: "16px",
+                        color: "#262626",
+                      }}
+                    >
+                      {selectedZone}
+                    </span>
+                  </div>
+                  <div
+                    style={{ display: "flex", alignItems: "center", gap: "16px" }}
+                  >
+                    <span
+                      style={{
+                        border: "1px solid #e6e6e6",
+                        borderRadius: "4px",
+                        padding: "8px",
+                        fontFamily: "Roboto",
+                        fontWeight: "400",
+                        fontSize: "16px",
+                        color: "#676767",
+                        cursor: "pointer",
+                      }}
+                    >
+                      Assign Product
+                    </span>
+                    <select
+                      name="grid"
+                      style={{
+                        border: "1px solid #e6e6e6",
+                        borderRadius: "4px",
+                        padding: "8px",
+                        fontFamily: "Roboto",
+                        fontWeight: "400",
+                        fontSize: "16px",
+                        color: "#676767",
+                        width: '70px'
+                      }}
+                      onChange={(e) => {
+                        setSelectedCell(e.target.value);
+                        setCurrentPage(1);
+                      }}
+                    >
+                      <option value="">All</option>
+                      {filteredZones[0].cells.map((cell, idx) => (
+                        <option key={idx} value={cell.name}>
+                          {cell.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                <div
+                  style={{
+                    borderRadius: "8px",
+                    border: "1px solid #e6e6e6",
+                    marginTop: "10px",
+                  }}
+                >
+                  <table style={{ width: "100%", borderCollapse: "collapse" }}>
+                    <thead>
+                      <tr
+                        style={{
+                          backgroundColor: "#f7f7f7",
+                          color: "#676767",
+                          fontSize: "16px",
+                          fontWeight: "400",
+                          fontFamily: "Roboto",
+                          borderRadius: "8px",
+                        }}
+                      >
+                        <th style={{ padding: "8px", borderTopLeftRadius: "8px" }}>
+                          Product
+                        </th>
+                        <th>SKU</th>
+                        <th style={{ padding: "8px", borderTopRightRadius: "8px" }}>
+                          Quantity
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {getPaginatedItems().length > 0 ? (
+                        getPaginatedItems().map((item, itemIdx) => (
+                          <tr key={`${item.cellName}-${itemIdx}`} style={{ borderTop: "1px solid #e6e6e6" }}>
+                            <td
+                              style={{
+                                borderBottomLeftRadius: "8px",
+                                padding: "8px",
+                                display: "flex",
+                                alignItems: "center",
+                              }}
+                            >
+                              <img
+                                src={item.productId?.images?.[0]?.url || "https://via.placeholder.com/40"}
+                                style={{
+                                  width: "40px",
+                                  height: "40px",
+                                  marginRight: "10px",
+                                  border: "none",
+                                  objectFit: "contain",
+                                }}
+                                alt={item.productId?.productName || "No Image"}
+                              />
+                              {item.productId?.productName || "Unknown Product"}
+                            </td>
+                            <td>{item.productId?.sku || "N/A"}</td>
+                            <td
+                              style={{
+                                borderBottomRightRadius: "8px",
+                                padding: "8px",
+                              }}
+                            >
+                              {item.productId.quantity}
+                            </td>
+                          </tr>
+                        ))
+                      ) : (
+                        <tr>
+                          <td colSpan="3" style={{ padding: "8px", textAlign: "center" }}>
+                            No items in {selectedCell ? `cell ${selectedCell}` : "this zone"}
+                          </td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+
+                <div
+                  className=""
+                  style={{
+                    display: "flex",
+                    justifyContent: "right",
+                    gap: "20px",
+                    marginTop: "15px",
+                  }}
+                >
+                  <div className="pagination-boxx">{itemsPerPage} per page</div>
+                  <div className="pagination-boxx pagination-info">
+                    <span style={{ color: "grey" }}>
+                      {totalItems > 0 ? `${currentPage} of ${totalPages}` : "0 of 0"}
+                    </span>
+                    <button
+                      className=""
+                      disabled={currentPage === 1}
+                      onClick={() => handlePageChange(currentPage - 1)}
+                      style={{ border: 'none', backgroundColor: 'white' }}
+                    >
+                      <FaAngleLeft />
+                    </button>
+                    <button
+                      className=""
+                      disabled={currentPage === totalPages || totalItems === 0}
+                      onClick={() => handlePageChange(currentPage + 1)}
+                      style={{ border: 'none', backgroundColor: 'white' }}
+                    >
+                      <FaAngleRight />
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>

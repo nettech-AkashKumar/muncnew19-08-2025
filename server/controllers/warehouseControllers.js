@@ -146,7 +146,8 @@ exports.getWarehouseById = async (req, res) => {
             .populate("contactPerson", "firstName lastName email")
             .populate("country", "name")
             .populate("state", "stateName")
-            .populate("city", "cityName");
+            .populate("city", "cityName")
+            .populate("blocks.cells.items.productId"); // Populate productId in items
         if (!warehouse) return res.status(404).json({ success: false, message: "Not found" });
         res.json({ success: true, warehouse });
     } catch (err) {
@@ -340,3 +341,47 @@ console.log("Cell after update:", zoneObj.cells[cellIndex]);
   }
   res.status(500).json({ message: "Server error", error: error.message });
 }};
+
+
+// Remove item from cell
+exports.removeitem = async (req, res) => {
+  try {
+    const { id, zone, cellIndex } = req.params;
+    const { productId, barcode } = req.body;
+
+    const warehouse = await Warehouse.findById(id);
+    if (!warehouse) {
+      return res.status(404).json({ message: "Warehouse not found" });
+    }
+
+    const zoneData = warehouse.blocks.find((b) => b.zone === zone);
+    if (!zoneData) {
+      return res.status(404).json({ message: "Zone not found" });
+    }
+
+    const cell = zoneData.cells[cellIndex];
+    if (!cell) {
+      return res.status(404).json({ message: "Cell not found" });
+    }
+
+    // Remove item matching productId and barcode
+    cell.items = cell.items.filter(
+      (item) =>
+        !(
+          item.productId.toString() === productId &&
+          item.barcode === barcode
+        )
+    );
+
+    // Clear product if no items remain
+    if (cell.items.length === 0) {
+      cell.product = null;
+    }
+
+    await warehouse.save();
+    res.status(200).json({ message: "Item removed successfully" });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Server error" });
+  }
+};
