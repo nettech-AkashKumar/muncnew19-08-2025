@@ -127,7 +127,16 @@ exports.createProduct = async (req, res) => {
 
 exports.getAllProducts = async (req, res) => {
   try {
-    const products = await Product.find()
+    // Check if warehouse filter is provided in query params
+    const { warehouse } = req.query;
+    
+    // Create filter object based on query parameters
+    const filter = {};
+    if (warehouse) {
+      filter.warehouse = warehouse; // Filter by warehouse ID
+    }
+    
+    const products = await Product.find(filter)
       .populate("brand")
       .populate("category")
       .populate("subcategory")

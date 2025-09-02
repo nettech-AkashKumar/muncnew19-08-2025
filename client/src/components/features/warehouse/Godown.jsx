@@ -1567,7 +1567,8 @@ function Godown() {
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const res = await axios.get(`${BASE_URL}/api/products`);
+        // Filter products by warehouse ID
+        const res = await axios.get(`${BASE_URL}/api/products?warehouse=${id}`);
         setProducts(res.data);
         setAllProducts(res.data);
       } catch (err) {
@@ -1575,7 +1576,7 @@ function Godown() {
       }
     };
     fetchProducts();
-  }, []);
+  }, [id]);
 
   const handleProductSearch = (query) => {
     setSearchQuery(query);
