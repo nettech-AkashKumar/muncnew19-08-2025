@@ -1273,6 +1273,33 @@ import { useTranslation } from "react-i18next";
 import { TbChevronUp, TbEye, TbRefresh } from "react-icons/tb";
 import Select from "react-select";
 import { MdImageSearch } from "react-icons/md";
+import sanitizeHtml from "sanitize-html";
+
+// // Commented out: Regex patterns for validation
+const regexPatterns = {
+  productName: /^[a-zA-Z0-9\s\-_&()]{2,100}$/, // Alphanumeric, spaces, some special chars, 2-100 chars
+  sku: /^[A-Z0-9\-]{5,20}$/, // Alphanumeric with hyphens, 5-20 chars
+  price: /^\d+(\.\d{1,2})?$/, // Positive number with up to 2 decimal places
+  quantity: /^\d+$/, // Positive integer
+  discountValue: /^\d+(\.\d{1,2})?$/, // Positive number with up to 2 decimal places
+  quantityAlert: /^\d+$/, // Positive integer
+  leadTime: /^\d+$/, // Positive integer
+  reorderLevel: /^\d+$/, // Positive integer
+  initialStock: /^\d+$/, // Positive integer
+  serialNumber: /^[a-zA-Z0-9\-]{1,50}$/, // Alphanumeric with hyphens, 1-50 chars
+  batchNumber: /^[a-zA-Z0-9\-]{1,50}$/, // Alphanumeric with hyphens, 1-50 chars
+  seoTitle: /^[a-zA-Z0-9\s\-_,.]{0,60}$/, // Alphanumeric, some special chars, up to 60 chars
+  seoDescription: /^[a-zA-Z0-9\s\-_,.]{0,160}$/, // Alphanumeric, some special chars, up to 160 chars
+  description: /^[\w\s.,!?-]{0,300}$/, // Alphanumeric, some punctuation, up to 300 chars
+};
+
+// // Commented out: Sanitization options for sanitize-html
+const sanitizeOptions = {
+  allowedTags: ["b", "i", "em", "strong", "a", "p", "br"],
+  allowedAttributes: {
+    a: ["href"],
+  },
+};
 
 const EditProduct = () => {
   const { id } = useParams();
@@ -1343,6 +1370,7 @@ const EditProduct = () => {
     expirationDate: "",
     hsn: "",
   });
+   const [errors, setErrors] = useState({}); 
   const [loading, setLoading] = useState(true);
   // Dropdown states
   const [selectedCategory, setSelectedCategory] = useState(null);
@@ -1386,6 +1414,19 @@ const EditProduct = () => {
       try {
         const res = await axios.get(`${BASE_URL}/api/products/${id}`);
         const data = res.data;
+          const sanitizedData = {
+          ...data,
+          productName: sanitizeHtml(data.productName || "", sanitizeOptions),
+          sku: sanitizeHtml(data.sku || "", sanitizeOptions),
+          description: sanitizeHtml(data.description || "", sanitizeOptions),
+          seoTitle: sanitizeHtml(data.seoTitle || "", sanitizeOptions),
+          seoDescription: sanitizeHtml(data.seoDescription || "", sanitizeOptions),
+          serialNumber: sanitizeHtml(data.serialNumber || "", sanitizeOptions),
+          batchNumber: sanitizeHtml(data.batchNumber || "", sanitizeOptions),
+          itemBarcode: sanitizeHtml(data.itemBarcode || "", sanitizeOptions),
+          store: sanitizeHtml(data.store || "", sanitizeOptions),
+        };
+        setFormData(sanitizedData);
         setFormData({ ...formData, ...data });
         // if (data.brand)  setSelectedBrands({ value: data.brand._id || data.brand, label: data.brand.brandName || data.brand });
         if (data.brand) {
@@ -1433,7 +1474,7 @@ const EditProduct = () => {
       }
     };
     fetchProduct();
-  }, [id]);
+  }, [id, optionsHsn]);
 
   // Fetch dropdown options (categories, brands, units, suppliers, warehouses, HSN)
   useEffect(() => {
@@ -1442,7 +1483,8 @@ const EditProduct = () => {
         const res = await axios.get(`${BASE_URL}/api/category/categories`);
         const options = res.data.map((category) => ({
           value: category._id,
-          label: category.categoryName,
+          label: sanitizeHtml(category.categoryName,sanitizeOptions),
+          // label: category.categoryName,
         }));
         setCategories(options);
       } catch (error) { }
@@ -1455,7 +1497,9 @@ const EditProduct = () => {
         });
         const options = res.data.brands.map((brand) => ({
           value: brand._id,
-          label: brand.brandName,
+          label: sanitizeHtml(brand.brandName, sanitizeOptions), // Commented out: Sanitization
+          // label: brand.brandName,
+          // label: brand.brandName,
         }));
         setBrandOptions(options);
       } catch (error) { }
@@ -1465,7 +1509,8 @@ const EditProduct = () => {
         const res = await axios.get(`${BASE_URL}/api/unit/units/status/active`);
         const options = res.data.units.map((unit) => ({
           value: unit.shortName,
-          label: `${unit.unitsName} (${unit.shortName})`,
+          label: sanitizeHtml(`${unit.unitsName} (${unit.shortName})`, sanitizeOptions), // Commented out: Sanitization
+          // label: `${unit.unitsName} (${unit.shortName})`,
         }));
         setUnitsOptions(options);
       } catch (error) { }
@@ -1475,7 +1520,11 @@ const EditProduct = () => {
         const res = await axios.get(`${BASE_URL}/api/suppliers/active`);
         const options = res.data.suppliers.map((supplier) => ({
           value: supplier._id,
-          label: `${supplier.firstName}${supplier.lastName} (${supplier.supplierCode})`,
+           label: sanitizeHtml(
+            `${supplier.firstName}${supplier.lastName} (${supplier.supplierCode})`,
+            sanitizeOptions
+          ), // Commented out: Sanitization
+          // label: `${supplier.firstName}${supplier.lastName} (${supplier.supplierCode})`,
         }));
         setOptions(options);
       } catch (error) { }
@@ -1486,7 +1535,8 @@ const EditProduct = () => {
         if (res.data.success) {
           const options = res.data.data.map((wh) => ({
             value: wh._id,
-            label: wh.warehouseName,
+             label: sanitizeHtml(wh.warehouseName, sanitizeOptions),
+            // label: wh.warehouseName,
           }));
           setOptionsWare(options);
         }
@@ -1499,7 +1549,11 @@ const EditProduct = () => {
         if (res.data.success) {
           const options = res.data.data.map((item) => ({
             value: item._id,
-            label: `${item.hsnCode} - ${item.description || ""}`,
+             label: sanitizeHtml(
+              `${item.hsnCode} - ${item.description || ""}`,
+              sanitizeOptions
+            ),
+            // label: `${item.hsnCode} - ${item.description || ""}`,
           }));
           setOptionsHsn(options);
         }
@@ -1546,6 +1600,7 @@ const EditProduct = () => {
       console.log("sbcategryfd", res.data);
       const options = res.data.map((subcat) => ({
         value: subcat._id,
+        label: sanitizeHtml(subcat.subCategoryName, sanitizeOptions),
         label: subcat.subCategoryName,
       }));
       setSubcategories(options);
@@ -1603,42 +1658,130 @@ const EditProduct = () => {
   const subCategoryChange = (selectedOption) =>
     setSelectedsubCategory(selectedOption);
 
+    const validateInput = (name, value) => {
+    if (regexPatterns[name]) {
+      return regexPatterns[name].test(value) ? "" : `Invalid ${name}`;
+    }
+    return "";
+  };
   // Generic input change
+  // const handleChange = (e) => {
+  //   const { name, value, type, checked } = e.target;
+  //    const sanitizedValue = type !== "checkbox" ? sanitizeHtml(value, sanitizeOptions) : value; // Commented out: Sanitization
+  //   const error = type !== "checkbox" ? validateInput(name, sanitizedValue) : ""; // Commented out: Validation
+  //   setErrors((prev) => ({ ...prev, [name]: error })); // Commented out: Error state update
+    
+  //   setFormData((prev) => ({
+  //     ...prev,
+  //     [name]: type === "checkbox" ? checked : sanitizedValue,
+  //   }));
+  // };
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
+    const sanitizedValue = type !== "checkbox" ? sanitizeHtml(value, sanitizeOptions) : value;
+    const error = type !== "checkbox" ? validateInput(name, sanitizedValue) : "";
+    setErrors((prev) => ({ ...prev, [name]: error }));
     setFormData((prev) => ({
       ...prev,
-      [name]: type === "checkbox" ? checked : value,
+      [name]: type === "checkbox" ? checked : sanitizedValue,
     }));
   };
 
   // Variant input change (for step 3)
-  const inputChange = (key, value) => {
+  // const inputChange = (key, value) => {
+  //   const sanitizedValue = sanitizeHtml(value, sanitizeOptions);
+  //   if (step === 3) {
+  //     // const parsedValues = value.split(",").map((v) => v.trim());
+  //     // setFormData((prev) => ({
+  //     //   ...prev,
+  //     //   variants: { ...prev.variants, [key]: parsedValues },
+  //     // }));
+  //      const parsedValues = value // Reverted to original value
+  //       .split(",")
+  //       .map((v) => v.trim())
+  //       .filter((v) => v); // Remove empty values
+  //     setFormData((prev) => ({
+  //       ...prev,
+  //       variants: { ...prev.variants, [key]: parsedValues },
+  //     }));
+  //   } else {
+  //     setFormData((prev) => ({ ...prev, [key]: value }));
+  //   }
+  // };
+
+    const inputChange = (key, value) => {
+    const sanitizedValue = sanitizeHtml(value, sanitizeOptions);
     if (step === 3) {
-      const parsedValues = value.split(",").map((v) => v.trim());
+      const parsedValues = sanitizedValue
+        .split(",")
+        .map((v) => v.trim())
+        .filter((v) => v);
       setFormData((prev) => ({
         ...prev,
         variants: { ...prev.variants, [key]: parsedValues },
       }));
     } else {
-      setFormData((prev) => ({ ...prev, [key]: value }));
+      const error = validateInput(key, sanitizedValue);
+      setErrors((prev) => ({ ...prev, [key]: error }));
+      setFormData((prev) => ({ ...prev, [key]: sanitizedValue }));
     }
   };
-
   // Step validation logic
-  const validateStep = () => {
-    // if (step === 0) {
-    //     return formData.productName;
-    // }
-    // if (step === 1) {
-    //     return formData.purchasePrice;
-    // }
-    // if (step === 2) {
-    //     return formData.description;
-    // }
-    // if (step === 3) {
-    //     return formData.variants[activeTab]?.length > 0;
-    // }
+    const validateStep = () => {
+    if (step === 0) {
+      return (
+        formData.productName &&
+        !errors.productName &&
+        formData.sku &&
+        !errors.sku &&
+        selectedCategory &&
+        selectedsubCategory &&
+        selectedSupplier &&
+        selectedWarehouse &&
+        selectedHSN &&
+        formData.itemBarcode &&
+        formData.store &&
+        (!formData.isAdvanced ||
+          (formData.leadTime &&
+            !errors.leadTime &&
+            formData.reorderLevel &&
+            !errors.reorderLevel &&
+            formData.initialStock &&
+            !errors.initialStock &&
+            ((formData.trackType === "serial" && formData.serialNumber && !errors.serialNumber) ||
+              (formData.trackType === "batch" && formData.batchNumber && !errors.batchNumber) ||
+              formData.trackType === "status")))
+      );
+    }
+    if (step === 1) {
+      return (
+        formData.purchasePrice &&
+        !errors.purchasePrice &&
+        formData.sellingPrice &&
+        !errors.sellingPrice &&
+        formData.quantity &&
+        !errors.quantity &&
+        selectedUnits &&
+        formData.taxType &&
+        formData.tax &&
+        formData.discountType &&
+        formData.discountValue &&
+        !errors.discountValue &&
+        formData.quantityAlert &&
+        !errors.quantityAlert
+      );
+    }
+    if (step === 2) {
+      return (
+        formData.description &&
+        !errors.description &&
+        (!formData.seoTitle || !errors.seoTitle) &&
+        (!formData.seoDescription || !errors.seoDescription)
+      );
+    }
+    if (step === 3) {
+      return formData.variants[activeTab]?.length > 0;
+    }
     return true;
   };
 
@@ -1651,6 +1794,9 @@ const EditProduct = () => {
     if (isValid && step < steps.length - 1) {
       setStep((prev) => prev + 1);
     }
+    else if (!isValid) { // Commented out: Error toast for validation
+      toast.error("Please correct the errors in the form");
+    }
   };
 
   const handlePrev = () => {
@@ -1662,17 +1808,30 @@ const EditProduct = () => {
   };
 
   // SKU generator
-  const generateSKU = () => {
+  // const generateSKU = () => {
+  //   const category = formData.category || "GEN";
+  //   const name = formData.productName || "PRD";
+  //   const randomNum = Math.floor(Math.random() * 9000) + 1000;
+  //   const sku = `${category.toUpperCase().slice(0, 3)}-${name
+  //     .toUpperCase()
+  //     .slice(0, 3)}-${randomNum}`;
+  //     const sanitizedSKU = sanitizeHtml(sku, sanitizeOptions); // Commented out: Sanitization
+  //   const error = validateInput("sku", sanitizedSKU); // Commented out: Validation
+  //   setErrors((prev) => ({ ...prev, sku: error })); // 
+  //   setFormData((prevProduct) => ({
+  //     ...prevProduct,
+  //     sku,
+  //   }));
+  // };
+   const generateSKU = () => {
     const category = formData.category || "GEN";
     const name = formData.productName || "PRD";
     const randomNum = Math.floor(Math.random() * 9000) + 1000;
-    const sku = `${category.toUpperCase().slice(0, 3)}-${name
-      .toUpperCase()
-      .slice(0, 3)}-${randomNum}`;
-    setFormData((prevProduct) => ({
-      ...prevProduct,
-      sku,
-    }));
+    const sku = `${category.toUpperCase().slice(0, 3)}-${name.toUpperCase().slice(0, 3)}-${randomNum}`;
+    const sanitizedSKU = sanitizeHtml(sku, sanitizeOptions);
+    const error = validateInput("sku", sanitizedSKU);
+    setErrors((prev) => ({ ...prev, sku: error }));
+    setFormData((prev) => ({ ...prev, sku: sanitizedSKU }));
   };
 
   // Barcode generator
@@ -1696,6 +1855,10 @@ const EditProduct = () => {
       selectedsubCategory?.value || ""
     );
     e.preventDefault();
+        if (!validateStep()) { // Commented out: Validation check
+      toast.error("Please correct the errors before submitting");
+      return;
+    }
     const formPayload = new FormData();
     // Only append fields that have changed (non-empty or non-null)
     if (formData.productName)
@@ -1939,11 +2102,16 @@ const EditProduct = () => {
                       <input
                         type="text"
                         name="productName"
-                        className="form-control"
+                        className={`form-control ${errors.productName ? "is-invalid" : ""}`} // Commented out: Validation class
+                       
+                        // className="form-control"
                         value={formData.productName}
                         onChange={handleChange}
                         placeholder={t("enterProductName")}
                       />
+                      {errors.productName && ( // Commented out: Error feedback
+                        <div className="invalid-feedback">{errors.productName}</div>
+                      )}
                     </div>
 
                     {/* HSNCODE */}
@@ -2060,7 +2228,8 @@ const EditProduct = () => {
                         <input
                           type="text"
                           name="sku"
-                          className="form-control"
+                            className={`form-control ${errors.sku ? "is-invalid" : ""}`} // Commented out: Validation class
+                          // className="form-control"
                           value={formData.sku}
                           onChange={(e) =>
                             setFormData({ ...formData, sku: e.target.value })
@@ -2068,6 +2237,9 @@ const EditProduct = () => {
                           placeholder={t("enterSKU")}
                           style={{marginBottom:'10px'}}
                         />
+                         {errors.sku && ( // Commented out: Error feedback
+                          <div className="invalid-feedback">{errors.sku}</div>
+                        )}
                         <button
                           type="submit"
                           onClick={generateSKU}
@@ -2105,8 +2277,8 @@ const EditProduct = () => {
                           data-bs-toggle="modal"
                           data-bs-target="#add-category"
                           onClick={() => {
-                            setCategoryName("");
-                            setCategorySlug("");
+                            setCategories("");
+                            setCategoryId("");
                           }}
                         >
                           <i
@@ -2121,7 +2293,7 @@ const EditProduct = () => {
                         value={selectedCategory}
                         onChange={(selected) => {
                           setSelectedCategory(selected);
-                          setSelectedSubcategory(null);
+                          setSelectedsubCategory(null);
                         }}
                         placeholder={t("searchOrSelectCategory")}
                       />
@@ -2257,13 +2429,17 @@ const EditProduct = () => {
                         <div className="col-sm-6 col-12 mb-3">
                           <label className="form-label">{t("leadTime")}</label>
                           <input
-                            type="text"
-                            className="form-control"
+                            type="number"
+                            className={`form-control ${errors.leadTime ? "is-invalid" : ""}`} // Commented out: Validation class
+                            // className="form-control"
                             placeholder={t("enterLeadTime")}
                             name="leadTime"
                             value={formData.leadTime}
                             onChange={handleChange}
                           />
+                           {errors.leadTime && ( // Commented out: Error feedback
+                            <div className="invalid-feedback">{errors.leadTime}</div>
+                          )}
                         </div>
 
                         <div className="col-sm-6 col-12 mb-3">
@@ -2271,13 +2447,17 @@ const EditProduct = () => {
                             {t("reorderLevel")}
                           </label>
                           <input
-                            type="text"
-                            className="form-control"
+                            type="number"
+                            className={`form-control ${errors.reorderLevel ? "is-invalid" : ""}`}
+                            // className="form-control"
                             placeholder={t("enterReorderLevel")}
                             name="reorderLevel"
                             value={formData.reorderLevel}
                             onChange={handleChange}
                           />
+                           {errors.reorderLevel && ( // Commented out: Error feedback
+                            <div className="invalid-feedback">{errors.reorderLevel}</div>
+                          )}
                         </div>
 
                         <div className="col-sm-6 col-12 mb-3">
@@ -2285,13 +2465,17 @@ const EditProduct = () => {
                             {t("initialStock")}
                           </label>
                           <input
-                            type="text"
-                            className="form-control"
+                            type="number"
+                            className={`form-control ${errors.initialStock ? "is-invalid" : ""}`}
+                            // className="form-control"
                             placeholder={t("enterInitialStock")}
                             name="initialStock"
                             value={formData.initialStock}
                             onChange={handleChange}
                           />
+                           {errors.initialStock && ( // Commented out: Error feedback
+                            <div className="invalid-feedback">{errors.initialStock}</div>
+                          )}
                         </div>
 
                         {/* Track Name */}
@@ -2381,12 +2565,16 @@ const EditProduct = () => {
                             </label>
                             <input
                               type="text"
-                              className="form-control"
+                               className={`form-control ${errors.serialNumber ? "is-invalid" : ""}`} 
+                              // className="form-control"
                               placeholder={t("enterSerialNumber")}
                               name="serialNumber"
                               value={formData.serialNumber}
                               onChange={handleChange}
                             />
+                            {errors.serialNumber && ( // Commented out: Error feedback
+                              <div className="invalid-feedback">{errors.serialNumber}</div>
+                            )}
                           </div>
                         )}
 
@@ -2396,12 +2584,16 @@ const EditProduct = () => {
                             <label className="form-label">{t("batchNo")}</label>
                             <input
                               type="text"
-                              className="form-control"
+                              className={`form-control ${errors.batchNumber ? "is-invalid" : ""}`}
+                              // className="form-control"
                               placeholder={t("enterBatchNumber")}
                               name="batchNumber"
                               value={formData.batchNumber}
                               onChange={handleChange}
                             />
+                            {errors.batchNumber && ( // Commented out: Error feedback
+                              <div className="invalid-feedback">{errors.batchNumber}</div>
+                            )}
                           </div>
                         )}
 
@@ -2473,8 +2665,9 @@ const EditProduct = () => {
                       <span className="text-danger">*</span>
                     </label>
                     <input
-                      type="text"
-                      className="form-control"
+                      type="number"
+                      className={`form-control ${errors[field.name] ? "is-invalid" : ""}`} // Commented out: Validation class
+                      // className="form-control"
                       name={field.name}
                       value={formData[field.name] || ""}
                       onChange={handleChange}
@@ -2484,6 +2677,9 @@ const EditProduct = () => {
                         }`
                       )}
                     />
+                     {errors[field.name] && ( // Commented out: Error feedback
+                      <div className="invalid-feedback">{errors[field.name]}</div>
+                    )}
                   </div>
                 ))}
 
@@ -2493,13 +2689,17 @@ const EditProduct = () => {
                     <span className="text-danger">*</span>
                   </label>
                   <input
-                    type="text"
-                    className="form-control"
+                    type="number"
+                    className={`form-control ${errors.quantity ? "is-invalid" : ""}`}
+                    // className="form-control"
                     name="quantity"
                     value={formData.quantity}
                     onChange={handleChange}
                     placeholder={t("enterQuantity")}
                   />
+                   {errors.quantity && ( // Commented out: Error feedback
+                    <div className="invalid-feedback">{errors.quantity}</div>
+                  )}
                 </div>
                 <div className="col-sm-6 col-12 mb-3">
                   <label className="form-label">
@@ -2575,13 +2775,17 @@ const EditProduct = () => {
                     <span className="text-danger">*</span>
                   </label>
                   <input
-                    type="text"
-                    className="form-control"
+                    type="number"
+                    className={`form-control ${errors.discountValue ? "is-invalid" : ""}`}
+                    // className="form-control"
                     name="discountValue"
                     value={formData.discountValue}
                     onChange={handleChange}
                     placeholder={t("enterDiscountValue")}
                   />
+                    {errors.discountValue && ( // Commented out: Error feedback
+                    <div className="invalid-feedback">{errors.discountValue}</div>
+                  )}
                 </div>
 
                 <div className=" col-sm-6 col-12 mb-3">
@@ -2590,13 +2794,17 @@ const EditProduct = () => {
                     <span className="text-danger">*</span>
                   </label>
                   <input
-                    type="text"
-                    className="form-control"
+                    type="number"
+                    className={`form-control ${errors.quantityAlert ? "is-invalid" : ""}`} // Commented out: Validation class
+                    // className="form-control"
                     name="quantityAlert"
                     value={formData.quantityAlert}
                     onChange={handleChange}
                     placeholder={t("enterQuantityAlert")}
                   />
+                     {errors.quantityAlert && ( // Commented out: Error feedback
+                    <div className="invalid-feedback">{errors.quantityAlert}</div>
+                  )}
                 </div>
               </div>
             )}
@@ -2647,12 +2855,16 @@ const EditProduct = () => {
                   <label>{t("description")}</label>
                   <textarea
                     name="description"
-                    className="form-control"
+                    className={`form-control ${errors.description ? "is-invalid" : ""}`} 
+                    // className="form-control"
                     maxLength={300}
                     value={formData.description}
                     onChange={handleChange}
                     placeholder={t("enterDescription")}
                   />
+                   {errors.description && ( // Commented out: Error feedback
+                    <div className="invalid-feedback">{errors.description}</div>
+                  )}
                 </div>
 
                 <div className="row">
@@ -2661,11 +2873,15 @@ const EditProduct = () => {
                     <input
                       type="text"
                       name="seoTitle"
-                      className="form-control"
+                      className={`form-control ${errors.seoTitle ? "is-invalid" : ""}`} // Commented out: Validation class
+                      // className="form-control"
                       value={formData.seoTitle || ""}
                       onChange={handleChange}
                       placeholder={t("enterSeoMetaTitle")}
                     />
+                         {errors.seoTitle && ( // Commented out: Error feedback
+                      <div className="invalid-feedback">{errors.seoTitle}</div>
+                    )}
                   </div>
                   <div className="col-sm-6 col-12 mb-3">
                     <label className="form-label">
@@ -2674,11 +2890,15 @@ const EditProduct = () => {
                     <input
                       type="text"
                       name="seoDescription"
-                      className="form-control"
+                      className={`form-control ${errors.seoDescription ? "is-invalid" : ""}`}
+                      // className="form-control"
                       value={formData.seoDescription || ""}
                       onChange={handleChange}
                       placeholder={t("enterSeoMetaDescription")}
                     />
+                    {errors.seoDescription && ( // Commented out: Error feedback
+                      <div className="invalid-feedback">{errors.seoDescription}</div>
+                    )}
                   </div>
                 </div>
               </>

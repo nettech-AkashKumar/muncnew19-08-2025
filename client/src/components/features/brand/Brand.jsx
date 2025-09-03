@@ -9,6 +9,7 @@ import DeleteAlert from "../../../utils/sweetAlert/DeleteAlert";
 import Swal from "sweetalert2";
 import { toast } from "react-toastify";
 import { hasPermission } from "../../../utils/permission/hasPermission";
+import { sanitizeInput } from "../../../utils/sanitize";
 
 const Brand = () => {
   const [brandName, setBrandName] = useState("");
@@ -20,6 +21,9 @@ const Brand = () => {
   const [editStatus, setEditStatus] = useState(true);
   const [editImagePreview, setEditImagePreview] = useState("");
   const [brands, setBrands] = useState([]);
+  const [errors, setErrors] = useState({});
+  const brandNameRegex = /^[A-Za-z0-9\s]{2,50}$/;
+  
 
   console.log(brands);
 
@@ -27,7 +31,8 @@ const Brand = () => {
   const [statusFilter, setStatusFilter] = useState("All");
   const [sortOrder, setSortOrder] = useState("Latest");
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 10;
+  const [itemsPerPage, setItemsPerPage] = useState(10);
+  
 
   useEffect(() => {
     fetchBrands();
@@ -66,13 +71,25 @@ const Brand = () => {
 
  const handleAddBrand = async (e) => {
   e.preventDefault();
+  let newErrors = {};
+  // validation
+  if(!brandNameRegex.test(brandName)) {
+    newErrors.brandName =  "Brand name must be 2–50 characters (letters, numbers, spaces only).";
+  }
+
+  if (Object.keys(newErrors).length > 0) {
+    setErrors(newErrors);
+    return;
+  }
 
   const formData = new FormData();
-  formData.append("brandName", brandName);
+  formData.append("brandName", sanitizeInput(brandName));
   formData.append("status", status ? "Active" : "Inactive");
 
   selectedImages.forEach((file) => {
+    if(file instanceof File) {
     formData.append("image", file);
+    }
   });
 
   try {
@@ -113,9 +130,19 @@ const Brand = () => {
 // ==================================================================================================
 const handleEditBrand = async (e) => {
   e.preventDefault();
+  let newErrors = {};
+  if(!brandNameRegex.test(editBrandName)) {
+    newErrors.editBrandName =
+      "Brand name must be 2–50 characters (letters, numbers, spaces only).";
+  }
+  
+  if (Object.keys(newErrors).length > 0) {
+    setErrors(newErrors);
+    return;
+  }
 
   const formData = new FormData();
-  formData.append("brandName", editBrandName);
+  formData.append("brandName", sanitizeInput(editBrandName));
   formData.append("status", editStatus ? "Active" : "Inactive");
 
   selectedImages.forEach((file) => {
@@ -217,7 +244,14 @@ const handleDeleteBrand = async (brandId, brandName) => {
   const totalPages = Math.ceil(filteredBrands.length / itemsPerPage);
 
 
-
+const handleFileChange = (e) => {
+  const files = Array.from(e.target.files);
+  const validFiles = files.filter((file) => ["image/jpeg", "image/png"].includes(file.type) && file.size  <= 2 * 1024 * 1024);
+  if(validFiles.length !== files.length) {
+    toast.error("Only JPG/PNG up to 2MB allowed")
+  }
+  setSelectedImages(validFiles);
+}
 
 
 
@@ -231,7 +265,7 @@ const handleDeleteBrand = async (brandId, brandName) => {
               <h6>Manage your brands</h6>
             </div>
           </div>
-          <div className="table-top-head me-2">
+          {/* <div className="table-top-head me-2">
             <li>
               <button type="button" className="icon-btn" title="Pdf">
                 <FaFilePdf />
@@ -248,7 +282,7 @@ const handleDeleteBrand = async (brandId, brandName) => {
                 <FaFileExcel />
               </button>
             </li>
-          </div>
+          </div> */}
           <div className="page-btn">
             <a
               href="#"
@@ -435,7 +469,7 @@ const handleDeleteBrand = async (brandId, brandName) => {
                 <label className="me-2">Items per page:</label>
                 <select
                   value={itemsPerPage}
-
+                  onChange={(e) => setItemsPerPage(Number(e.target.value))}
                   className="form-select w-auto"
                 >
                   <option value={10}>10</option>
@@ -483,10 +517,10 @@ const handleDeleteBrand = async (brandId, brandName) => {
         {/* /product list */}
         <div>
           {/* Add Brand */}
-          <div className="modal fade" id="add-brand">
+          <div className="modal" id="add-brand">
             <div className="modal-dialog modal-dialog-centered">
               <div className="modal-content">
-                <div className="modal-header">
+                <div className="modal-header" style={{display:'flex', alignItems:'center', justifyContent:'space-between'}}>
                   <div className="page-title">
                     <h4>Add Brand</h4>
                   </div>
@@ -520,13 +554,14 @@ const handleDeleteBrand = async (brandId, brandName) => {
                       </div>
                       <div>
                         <div className="image-upload mb-0">
+                           <label className="image-uploads">
+                           <h4>Upload Image</h4>
                           <input
                             type="file"
                             accept="image/png, image/jpeg"
-                            onChange={(e) =>
-                              setSelectedImages(Array.from(e.target.files))
-                            }
+                            onChange={handleFileChange}
                           />
+                          </label>
                           <div className="image-uploads">
                             <h4>Upload Image</h4>
                           </div>
@@ -545,6 +580,7 @@ const handleDeleteBrand = async (brandId, brandName) => {
                         onChange={(e) => setBrandName(e.target.value)}
                         required
                       />
+                      {errors.brandName && <p className="text-danger">{errors.brandName}</p>}
                     </div>
                     <div className="mb-0">
                       <div className="status-toggle modal-status d-flex justify-content-between align-items-center">
@@ -556,6 +592,7 @@ const handleDeleteBrand = async (brandId, brandName) => {
                           checked={status}
                           onChange={(e) => setStatus(e.target.checked)}
                         />
+                        {errors.editBrandName && <p className="text-danger">{errors.editBrandName}</p>}
                         <label htmlFor="user2" className="checktoggle" />
                       </div>
                     </div>
@@ -579,7 +616,7 @@ const handleDeleteBrand = async (brandId, brandName) => {
           {/* /Add Brand */}
         </div>
 
-        <div className="modal fade" id="edit-brand">
+        <div className="modal" id="edit-brand">
           <div className="modal-dialog modal-dialog-centered">
             <div className="modal-content">
               <div className="modal-header">
@@ -615,6 +652,8 @@ const handleDeleteBrand = async (brandId, brandName) => {
                     <div>
                       
                       <div className="image-upload mb-0">
+                        <label className="image-uploads">
+                         <h4>Change Image</h4>
                         <input
                           type="file"
                           multiple
@@ -629,6 +668,7 @@ const handleDeleteBrand = async (brandId, brandName) => {
                             }
                           }}
                         />
+                        </label>
                         <div className="image-uploads">
                           <h4>Change Image</h4>
                         </div>
@@ -648,6 +688,7 @@ const handleDeleteBrand = async (brandId, brandName) => {
                       onChange={(e) => setEditBrandName(e.target.value)}
                       required
                     />
+                    {errors.editBrandName && <p className="text-danger">{errors.editBrandName}</p>}
                   </div>
                   <div className="mb-0">
                     <div className="status-toggle modal-status d-flex justify-content-between align-items-center">
