@@ -1414,7 +1414,7 @@ function Godown() {
     setLoading(true);
     try {
       const res = await axios.get(`${BASE_URL}/api/warehouse/${id}`);
-      console.log("Warehouse Data:", res.data.warehouse); // Debug the response
+      
       setWarehousesDetails(res.data.warehouse);
     } catch (err) {
       setError(err);
@@ -1726,7 +1726,6 @@ function Godown() {
 
   return (
     <div>
-      {/* Breadcrumb Navigation */}
       <div style={{ padding: "20px", overflowY: "auto", height: "85vh" }}>
         <div
           style={{
@@ -1773,7 +1772,6 @@ function Godown() {
           </div>
         </div>
 
-        {/* Search Bar and Zone Filter */}
         <div
           style={{
             width: "100%",
@@ -1854,7 +1852,6 @@ function Godown() {
           </div>
         </div>
 
-        {/* Dynamic Zones and Cells Grid */}
         {filteredZones?.length > 0 ? (
           filteredZones.map((zone, zoneIdx) => {
             // Generate cell IDs based on rows and columns (e.g., A1, A2, ..., E4)
@@ -1948,7 +1945,6 @@ function Godown() {
           <div>No zones available</div>
         )}
 
-        {/* Popup */}
         {isPopupOpen && (
           <div
             style={{
@@ -2143,7 +2139,6 @@ function Godown() {
                           />
                         </div>
 
-                        {/* Search Results Dropdown */}
                         {showDropdown && searchResults.length > 0 && (
                           <div
                             style={{
@@ -2179,7 +2174,6 @@ function Godown() {
                           </div>
                         )}
 
-                        {/* No Results Message */}
                         {showDropdown &&
                           searchResults.length === 0 &&
                           searchQuery.trim() !== "" && (
@@ -2321,14 +2315,11 @@ function Godown() {
 
                 </div>
 
-                {/* Done Button */}
-
               </div>
             </div>
           </div>
         )}
 
-        {/* Table for Selected Zone */}
         {selectedZone && filteredZones.length > 0 && (
           <div style={{ margin: "auto 0", width: "100%", justifyContent: "center", display: "flex" }}>
             <div style={{ width: "500px", maxWidth: "1000px" }}>
@@ -2519,7 +2510,6 @@ function Godown() {
         )}
       </div>
 
-      {/* Footer */}
       <div
         style={{
           overflow: "auto",
