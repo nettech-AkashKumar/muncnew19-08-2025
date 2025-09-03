@@ -24,6 +24,9 @@ const SubCategory = () => {
   const [imagePreviews, setImagePreviews] = useState([]);
   const [editingSubCategory, setEditingSubCategory] = useState(null);
 
+    const [errors, setErrors] = useState({});
+    const nameRegex = /^[A-Za-z]{2,}$/;
+
   const fetchCategories = async () => {
     try {
       const res = await fetch(`${BASE_URL}/api/category/categories`);
@@ -63,6 +66,16 @@ const SubCategory = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    let newErrors = {};
+    if(!nameRegex.test(subCategoryName)) {
+      newErrors.subCategoryName = "Enter a valid subcategory name (letters only, min 2 chars)";
+    }
+    setErrors(newErrors);
+    if(Object.keys(newErrors).length > 0) return;
+    if(!subCategoryName || !description) {
+      toast.error("All fields are required")
+      return;
+    }
 
     try {
       if (!selectedCategory || !subCategoryName || !description) {
@@ -141,6 +154,13 @@ const SubCategory = () => {
 
   const handleUpdate = async (e) => {
     e.preventDefault();
+    let newErrors = {}
+    if(!nameRegex.test(editingSubCategory)) {
+      newErrors.subCategoryName = "Enter a valid subcategory name (letters only min 2 chars)";
+    }
+    setErrors(newErrors);
+    if(Object.keys(newErrors).length > 0) return;
+    
     try {
       const payload = {
         subCategoryName: editingSubCategory.subCategoryName,
@@ -160,6 +180,19 @@ const SubCategory = () => {
       toast.error(error.message || "Failed to update subcategory");
     }
   };
+
+  const handleDelete = async(id) => {
+    if(!window.confirm("Are you sure you want to delete this subcategory?")) {
+      return;
+    }
+    try {
+      const res = await axios.delete(`${BASE_URL}/api/subcategory/subcategories/${id}`);
+      toast.success(res.data.message || "Subcategory deleted successfully");
+      fetchSubcategories();
+    }catch(error) {
+      toast.error(error.response?.data?.message || "Failed to delete subcategory")
+    }
+  }
 
   return (
     <div className="page-wrapper">
@@ -261,7 +294,7 @@ const SubCategory = () => {
                             >
                               <TbEdit />
                             </a>
-                            <a className="p-2">
+                            <a className="p-2" onClick={() => handleDelete(subcat._id)}>
                               <TbTrash />
                             </a>
                           </div>
@@ -384,6 +417,7 @@ const SubCategory = () => {
                       value={subCategoryName}
                       onChange={(e) => setSubCategoryName(e.target.value)}
                     />
+                    {errors.subCategoryName && (<p className="text-danger">{errors.subCategoryName}</p>)}
                   </div>
                   <div className="mb-3">
                     <label className="form-label">
@@ -486,6 +520,7 @@ const SubCategory = () => {
                         })
                       }
                     />
+                     {errors.subCategoryName && (<p className="text-danger">{errors.subCategoryName}</p>)}
                   </div>
                   <div className="mb-3">
                     <label className="form-label">
