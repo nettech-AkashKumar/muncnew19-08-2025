@@ -9,6 +9,7 @@ import DeleteAlert from "../../../utils/sweetAlert/DeleteAlert";
 import Swal from "sweetalert2";
 import { toast } from "react-toastify";
 import { hasPermission } from "../../../utils/permission/hasPermission";
+import { sanitizeInput } from "../../../utils/sanitize";
 
 const Brand = () => {
   const [brandName, setBrandName] = useState("");
@@ -20,6 +21,8 @@ const Brand = () => {
   const [editStatus, setEditStatus] = useState(true);
   const [editImagePreview, setEditImagePreview] = useState("");
   const [brands, setBrands] = useState([]);
+  const [errors, setErrors] = useState({});
+  const brandNameRegex = /^[A-Za-z0-9\s]{2,50}$/;
   
 
   console.log(brands);
@@ -68,9 +71,19 @@ const Brand = () => {
 
  const handleAddBrand = async (e) => {
   e.preventDefault();
+  let newErrors = {};
+  // validation
+  if(!brandNameRegex.test(brandName)) {
+    newErrors.brandName =  "Brand name must be 2–50 characters (letters, numbers, spaces only).";
+  }
+
+  if (Object.keys(newErrors).length > 0) {
+    setErrors(newErrors);
+    return;
+  }
 
   const formData = new FormData();
-  formData.append("brandName", brandName);
+  formData.append("brandName", sanitizeInput(brandName));
   formData.append("status", status ? "Active" : "Inactive");
 
   selectedImages.forEach((file) => {
@@ -117,9 +130,19 @@ const Brand = () => {
 // ==================================================================================================
 const handleEditBrand = async (e) => {
   e.preventDefault();
+  let newErrors = {};
+  if(!brandNameRegex.test(editBrandName)) {
+    newErrors.editBrandName =
+      "Brand name must be 2–50 characters (letters, numbers, spaces only).";
+  }
+  
+  if (Object.keys(newErrors).length > 0) {
+    setErrors(newErrors);
+    return;
+  }
 
   const formData = new FormData();
-  formData.append("brandName", editBrandName);
+  formData.append("brandName", sanitizeInput(editBrandName));
   formData.append("status", editStatus ? "Active" : "Inactive");
 
   selectedImages.forEach((file) => {
@@ -497,7 +520,7 @@ const handleFileChange = (e) => {
           <div className="modal" id="add-brand">
             <div className="modal-dialog modal-dialog-centered">
               <div className="modal-content">
-                <div className="modal-header">
+                <div className="modal-header" style={{display:'flex', alignItems:'center', justifyContent:'space-between'}}>
                   <div className="page-title">
                     <h4>Add Brand</h4>
                   </div>
@@ -557,6 +580,7 @@ const handleFileChange = (e) => {
                         onChange={(e) => setBrandName(e.target.value)}
                         required
                       />
+                      {errors.brandName && <p className="text-danger">{errors.brandName}</p>}
                     </div>
                     <div className="mb-0">
                       <div className="status-toggle modal-status d-flex justify-content-between align-items-center">
@@ -568,6 +592,7 @@ const handleFileChange = (e) => {
                           checked={status}
                           onChange={(e) => setStatus(e.target.checked)}
                         />
+                        {errors.editBrandName && <p className="text-danger">{errors.editBrandName}</p>}
                         <label htmlFor="user2" className="checktoggle" />
                       </div>
                     </div>
@@ -663,6 +688,7 @@ const handleFileChange = (e) => {
                       onChange={(e) => setEditBrandName(e.target.value)}
                       required
                     />
+                    {errors.editBrandName && <p className="text-danger">{errors.editBrandName}</p>}
                   </div>
                   <div className="mb-0">
                     <div className="status-toggle modal-status d-flex justify-content-between align-items-center">
