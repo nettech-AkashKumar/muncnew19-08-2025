@@ -8,6 +8,7 @@ import { CiCirclePlus } from "react-icons/ci";
 import { FiXSquare } from "react-icons/fi";
 import { toast } from "react-toastify";
 import axios from "axios";
+import {sanitizeInput} from "../../../../utils/sanitize"
 
 const SubCategory = () => {
   const [categories, setCategories] = useState([]);
@@ -83,9 +84,13 @@ const SubCategory = () => {
         return;
       }
 
+        // Sanitize before sending
+      const cleanName = sanitizeInput(subCategoryName);
+      const cleanDescription = sanitizeInput(description)
+
       const formData = new FormData();
-      formData.append("subCategoryName", subCategoryName);
-      formData.append("description", description);
+      formData.append("subCategoryName", cleanName);
+      formData.append("description", cleanDescription);
       formData.append("status", status);
 
       images.forEach((file) => formData.append("images", file));
@@ -106,7 +111,7 @@ const SubCategory = () => {
 
       toast.success(result.message);
 
-      // ✅ Reset form fields
+      //  Reset form fields
       setSubCategoryName("");
       setDescription("");
       setStatus(true); // or whatever default
@@ -162,9 +167,11 @@ const SubCategory = () => {
     if(Object.keys(newErrors).length > 0) return;
     
     try {
+      const cleanName = sanitizeInput(editingSubCategory.subCategoryName);
+      const cleanDescription = sanitizeInput(editingSubCategory.description);
       const payload = {
-        subCategoryName: editingSubCategory.subCategoryName,
-        description: editingSubCategory.description,
+        subCategoryName: cleanName,
+        description: cleanDescription,
         status: editingSubCategory.status,
         categoryId:
           editingSubCategory.category?._id || editingSubCategory.categoryId,

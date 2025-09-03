@@ -107,9 +107,8 @@ function WarehouseDetails() {
   const detailsWarehouses = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await axios.get(`${BASE_URL}/api/warehouse/${id}`); // <- endpoint
-      console.log("diwakar", res.data);
-
+      const res = await axios.get(`${BASE_URL}/api/warehouse/${id}`);
+      // console.log("warehouse details", res.data.warehouse);
       setWarehousesDetails(res.data.warehouse); // backend: { success, data }
     } catch (err) {
       setError(err);
@@ -128,7 +127,7 @@ function WarehouseDetails() {
     try {
       const res = await axios.get(`${BASE_URL}/api/sales`);
       const data = res.data.sales;
-      console.log("sales8788qs", data);
+      // console.log("sales8788qs", data);
 
       setSales(res.data.sales);
     } catch (err) {
@@ -228,7 +227,7 @@ function WarehouseDetails() {
   const lowStockItems = product.filter(
     (item) =>
       item.warehouseName === warehousesDetails?.warehouseName &&
-      item.quantity < 2500 &&
+      item.quantity < 50 &&
       item.quantity > 0
   );
 
@@ -268,6 +267,10 @@ function WarehouseDetails() {
     return sum + (parseFloat(item.initialStock) || 0);
   }, 0);
 
+  const totalStockValue = filteredProducts.reduce((sum, item) => {
+    return sum + (parseFloat(item.initialStock) || 0) * item.sellingPrice;
+  }, 0);
+
   let chartData = topProducts.map((item) => ({
     label: item.productName,
     value: parseFloat(item.quantity) || 0, // raw quantity
@@ -291,24 +294,9 @@ function WarehouseDetails() {
     return sum + (item.quantity || 0);
   }, 0);
 
-  //storage
-  const [zones, setZones] = useState([]);
-  useEffect(() => {
-    if (warehousesDetails?.layout?.zones) {
-      const zoneCount = Number(warehousesDetails?.layout?.zones || 0);
-      const zoneArray = Array.from(
-        { length: zoneCount },
-        (_, i) => `Zone ${i + 1}`
-      );
-      setZones(zoneArray);
-    } else {
-      setZones([]);
-    }
-  }, [warehousesDetails]);
-
   return (
     <div>
-      {/* Header */}
+
       <div
         style={{
           padding: "20px",
@@ -317,6 +305,7 @@ function WarehouseDetails() {
           alignItems: "center",
         }}
       >
+
         <div
           style={{
             display: "flex",
@@ -355,8 +344,9 @@ function WarehouseDetails() {
             {warehousesDetails?.warehouseName}
           </span>
         </div>
+
         <div>
-          <Link to="/Godown">
+          <Link to={`/Godown/${id}`}>
             <button
               style={{
                 backgroundColor: "#1368EC",
@@ -371,12 +361,10 @@ function WarehouseDetails() {
             </button>
           </Link>
         </div>
+
       </div>
 
-      {/* value, low Stock, Out of Stock */}
-
       <div className="three-box">
-        {/*total spent */}
         <div className="radio-active">
           <div
             style={{
@@ -404,7 +392,6 @@ function WarehouseDetails() {
           </div>
         </div>
 
-        {/* Initial Purchase Date */}
         <div className="radio-active">
           <div
             style={{
@@ -472,7 +459,6 @@ function WarehouseDetails() {
           </div>
         </div>
 
-        {/* Out Of Stocks */}
         <div
           className=""
           style={{
@@ -548,7 +534,7 @@ function WarehouseDetails() {
           </div>
         </div>
       </div>
-      {console.log("new data of detailware ", warehousesDetails)}
+
       <div
         style={{
           marginTop: "15px",
@@ -558,11 +544,10 @@ function WarehouseDetails() {
         }}
       >
         <div style={{ gap: "10px", marginBottom: "20px" }}>
-          <span>Warehouse Name</span>
+          <span style={{ color: "#262626", fontWeight: "400", fontSize: "16px" }}>Warehouse Name</span>
           <br />
-          <span>
-            {/* Wh-001 */}
-            {warehousesDetails?.warehouseName}
+          <span style={{ color: "#676767", fontWeight: "400", fontSize: "16px" }}>
+            <b>{warehousesDetails?.warehouseName}</b>
           </span>
         </div>
         <div style={{ display: "flex", justifyContent: "space-between" }}>
@@ -576,8 +561,7 @@ function WarehouseDetails() {
             <span
               style={{ color: "#676767", fontWeight: "400", fontSize: "16px" }}
             >
-              {/* Ajay Kumar */}
-              {warehousesDetails?.warehouseOwner}
+              <b>{warehousesDetails?.warehouseOwner}</b>
             </span>
           </div>
 
@@ -591,8 +575,7 @@ function WarehouseDetails() {
             <span
               style={{ color: "#676767", fontWeight: "400", fontSize: "16px" }}
             >
-              {/* Pune */}
-              {warehousesDetails?.city}
+              <b>{warehousesDetails?.city}</b>
             </span>
           </div>
 
@@ -606,8 +589,7 @@ function WarehouseDetails() {
             <span
               style={{ color: "#676767", fontWeight: "400", fontSize: "16px" }}
             >
-              {/* Ajay Kumar */}
-              {warehousesDetails?.phone}
+              <b>{warehousesDetails?.phone}</b>
             </span>
           </div>
 
@@ -627,7 +609,6 @@ function WarehouseDetails() {
         </div>
       </div>
 
-      {/* Dougnut chart & chart js */}
       <div style={{ display: "flex", gap: "24px" }}>
         <div
           style={{
@@ -661,7 +642,6 @@ function WarehouseDetails() {
             </span>
           </div>
 
-          {/* Donut Chart */}
           <DonutChart
             data={chartData}
             colors={["#B8D2F9", "#4286F0", "#A1C3F7", "#B8D2F9", "#D0E1FB"]}
@@ -679,6 +659,7 @@ function WarehouseDetails() {
               display: "block",
             }}
           />
+
           <div
             style={{
               justifyContent: "center",
@@ -714,7 +695,6 @@ function WarehouseDetails() {
           </div>
         </div>
 
-        {/* Line Chart */}
         <div style={{ width: "100%" }}>
           <Box
             sx={{
@@ -728,7 +708,6 @@ function WarehouseDetails() {
               boxShadow: "0 2px 8px rgba(0,0,0,0.05)",
             }}
           >
-            {/* Header */}
             <Typography sx={{ fontSize: "16px", fontWeight: 500 }}>
               Sales Activity
             </Typography>
@@ -743,7 +722,6 @@ function WarehouseDetails() {
               ₹{totalRevenue.toLocaleString("en-IN")}
             </Typography>
 
-            {/* Chart */}
             <LineChart
               xAxis={[
                 {
@@ -797,7 +775,6 @@ function WarehouseDetails() {
         </div>
       </div>
 
-      {/* Top Selling Products */}
       <div
         style={{
           backgroundColor: "#fff",
@@ -819,7 +796,6 @@ function WarehouseDetails() {
           <span>Top Selling Products</span>
         </div>
 
-        {/* Table */}
         <div>
           <table
             style={{
@@ -854,100 +830,101 @@ function WarehouseDetails() {
 
             <tbody>
               {product
-                  .filter(
-                    (item) =>
-                      item.warehouseName === warehousesDetails?.warehouseName
-                  )
-                  .sort(
-                    (a, b) => (salesMap[b._id] || 0) - (salesMap[a._id] || 0)
-                  )
-                  .slice(0, 5)
-                  .map((item, idx) => {
-                    const soldUnits = salesMap[item._id] || 0;
-                    return (
-                      <tr key={idx} style={{ cursor: "pointer" }}>
-                        <td
+                .filter(
+                  (item) =>
+                    item.warehouseName === warehousesDetails?.warehouseName
+                )
+                .sort(
+                  (a, b) => (salesMap[b._id] || 0) - (salesMap[a._id] || 0)
+                )
+                .slice(0, 5)
+                .map((item, idx) => {
+                  const soldUnits = salesMap[item._id] || 0;
+                  return (
+                    <tr key={idx} style={{ cursor: "pointer" }}>
+                      <td
+                        style={{
+                          padding: "12px 24px",
+                          borderBottom: "1px solid #e6e6e6",
+                          display: "flex",
+                          gap: "20px",
+                        }}
+                      >
+                        <input type="checkbox" />
+                        <div
                           style={{
-                            padding: "12px 24px",
-                            borderBottom: "1px solid #e6e6e6",
                             display: "flex",
-                            gap: "20px",
+                            alignItems: "center",
+                            gap: "10px",
+                            width: "50px",
+                            justifyContent: "center",
+                            height: "50px",
+                            border: "1px solid #e6e6e6",
+                            borderRadius: "8px",
+                            padding: "2px",
                           }}
                         >
-                          <input type="checkbox" />
-                          <div
+                          <img
+                            src={item.images[0]?.url}
+                            alt=""
                             style={{
-                              display: "flex",
-                              alignItems: "center",
-                              gap: "10px",
-                              width: "50px",
-                              justifyContent: "center",
-                              height: "50px",
-                              border: "1px solid #e6e6e6",
-                              borderRadius: "8px",
-                              padding: "5px",
+                              width: "100%",
+                              height: '100%',
+                              objectFit: 'contain',
                             }}
-                          >
-                            <img
-                              src={item.images[0]?.url}
-                              alt=""
-                              style={{
-                                width: "35px",
-                              }}
-                            />
-                          </div>
-                          {item.productName}
-                        </td>
-                        <td
-                          style={{
-                            padding: "12px 24px",
-                            borderBottom: "1px solid #e6e6e6",
-                          }}
-                        >
-                          {item.sku}
-                        </td>
-                        <td
-                          style={{
-                            padding: "12px 24px",
-                            borderBottom: "1px solid #e6e6e6",
-                          }}
-                        >
-                          {item.sellingPrice}
-                        </td>
-                        <td
-                          style={{
-                            padding: "12px 24px",
-                            borderBottom: "1px solid #e6e6e6",
-                          }}
-                        >
-                          {item.quantity} {item.unit}
-                        </td>
-                        <td
-                          style={{
-                            padding: "12px 24px",
-                            borderBottom: "1px solid #e6e6e6",
-                          }}
-                        >
-                          {soldUnits}
-                        </td>
-                        <td
-                          style={{
-                            padding: "12px 24px",
-                            borderBottom: "1px solid #e6e6e6",
-                          }}
-                        >
-                          {soldUnits * item.sellingPrice}
-                        </td>
-                      </tr>
-                    );
-                  })
+                          />
+                        </div>
+                        {item.productName}
+                      </td>
+                      <td
+                        style={{
+                          padding: "12px 24px",
+                          borderBottom: "1px solid #e6e6e6",
+                        }}
+                      >
+                        {item.sku}
+                      </td>
+                      <td
+                        style={{
+                          padding: "12px 24px",
+                          borderBottom: "1px solid #e6e6e6",
+                        }}
+                      >
+                        {item.sellingPrice}
+                      </td>
+                      <td
+                        style={{
+                          padding: "12px 24px",
+                          borderBottom: "1px solid #e6e6e6",
+                        }}
+                      >
+                        {item.quantity} {item.unit}
+                      </td>
+                      <td
+                        style={{
+                          padding: "12px 24px",
+                          borderBottom: "1px solid #e6e6e6",
+                        }}
+                      >
+                        {soldUnits}
+                      </td>
+                      <td
+                        style={{
+                          padding: "12px 24px",
+                          borderBottom: "1px solid #e6e6e6",
+                        }}
+                      >
+                        {soldUnits * item.sellingPrice}
+                      </td>
+                    </tr>
+                  );
+                })
               }
             </tbody>
           </table>
         </div>
       </div>
 
-      {/* Godown */}
       <div
         style={{
           marginTop: "20px",
@@ -957,7 +934,6 @@ function WarehouseDetails() {
           padding: "16px",
         }}
       >
-        {/* Header */}
         <div
           style={{
             padding: "16px",
@@ -984,80 +960,101 @@ function WarehouseDetails() {
           </span>
         </div>
 
-        {/* Content - zone 1 */}
-        {zones.length > 0 ? (
-          zones.slice(0, 2).map((zone, idx) => (
-            <>
-              <div
-                key={idx}
-                style={{
-                  border: "1px solid #e6e6e6",
-                  backgroundColor: "#FBFBFB",
-                  borderRadius: "8px",
-                  padding: "24px",
-                  display: "flex",
-                  flexDirection: "column",
-                  gap: "10px",
-                  marginBottom: "16px",
-                }}
-              >
-                {/* Zone */}
-
+        {warehousesDetails?.blocks?.length > 0 ? (
+          warehousesDetails.blocks
+            .slice(0, 2)
+            .map((block, idx) => (
+              <>
                 <div
-                  style={{ display: "flex", justifyContent: "space-between" }}
-                >
-                  <span
-                    style={{
-                      color: "#262626",
-                      fontWeight: "400",
-                      fontSize: "14px",
-                      borderRadius: "8px",
-                      border: "1px solid #e6e6e6",
-                      padding: "8px",
-                      alignItems: "center",
-                      gap: "4px",
-                    }}
-                  >
-                    <PiWarehouseBold style={{ color: "#1368EC" }} /> Zone
-                    {idx + 1}
-                  </span>
-                  <span>
-                    <FaArrowRight />
-                  </span>
-                </div>
-
-                {/* Used */}
-                <span style={{ color: "#1368EC", fontWeight: "500" }}>
-                  86% Used
-                </span>
-
-                {/* Tags */}
-                <div
+                  key={idx}
                   style={{
+                    border: "1px solid #e6e6e6",
+                    backgroundColor: "#FBFBFB",
+                    borderRadius: "8px",
+                    padding: "24px",
                     display: "flex",
-                    flexWrap: "wrap",
-                    gap: "8px",
+                    flexDirection: "column",
+                    gap: "10px",
+                    marginBottom: "16px",
                   }}
                 >
-                  <span style={tagStyle}>Construction Material</span>
-                  <span style={tagStyle}>Plywood Material</span>
-                  <span style={tagStyle}>Paint</span>
-                  <span style={tagStyle}>Adhesive</span>
-                  <span style={tagStyle}>Cements</span>
-                  <span style={tagStyle}>Iron Rods</span>
-                  <span style={tagStyle}>Water Heater</span>
-                  <span style={tagStyle}>Plywood</span>
-                  <span style={tagStyle}>Sunmica</span>
+
+                  <div
+                    style={{ display: "flex", justifyContent: "space-between" }}
+                  >
+                    <span
+                      style={{
+                        color: "#262626",
+                        fontWeight: "400",
+                        fontSize: "14px",
+                        borderRadius: "8px",
+                        border: "1px solid #e6e6e6",
+                        padding: "8px",
+                        backgroundColor: '#fff',
+                        alignItems: "center",
+                        display: 'flex',
+                        gap: "6px",
+                      }}
+                    >
+                      <PiWarehouseBold style={{ color: "#1368EC", fontSize: '25px' }} /> {block.zone}
+                    </span>
+                    <span>
+                      <FaArrowRight />
+                    </span>
+                  </div>
+
+                  <span style={{ color: "#1368EC", fontWeight: "500", fontSize: "14px" }}>
+                    {block.cells?.length > 0
+                      ? (`${block.cells.filter(cell => cell.items?.length > 0).length}` * (100 / `${block.cells.length}`)).toFixed(2) + " %"
+                      : ""}
+                  </span>
+
+                  <div
+                    style={{
+                      display: "flex",
+                      flexWrap: "wrap",
+                      gap: "8px",
+                    }}
+                  >
+                    {block.cells?.length > 0 ? (
+                      block.cells.filter(cell => cell.items?.length > 0).map((cell, cellIdx) => (
+                        <div key={cellIdx} style={tagStyle}>
+                          {cell.items.map((item, idx) => {
+                            const productinfo = product.find(
+                              p =>
+                                p._id === item.productId?.toString() ||
+                                p._id === item.productId?._id?.toString()
+                            );
+                            return (
+                              <span key={idx}>
+                                {productinfo?.productName}
+                              </span>
+                            );
+                          })}
+                        </div>
+                      ))
+                    ) : (
+                      <div>
+                        <span>No Blocks Assigned</span>
+                      </div>
+                    )}
+                  </div>
                 </div>
-              </div>
-            </>
-          ))
+              </>
+            ))
         ) : (
-          <div></div>
+          <div
+            style={{
+              padding: "16px",
+              color: "#676767",
+              fontSize: "14px",
+              textAlign: "center",
+            }}
+          >
+            No zones available
+          </div>
         )}
       </div>
-
-      {/* Stock Movement History */}
 
       <div
         style={{
@@ -1130,7 +1127,6 @@ function WarehouseDetails() {
                 padding: "8px",
                 cursor: "pointer",
                 borderRadius: "4px",
-                padding: "8px",
                 backgroundColor: activeTab === "All" ? "#d1d1d1" : "#f1f1f1",
               }}
               onClick={() => setActiveTab("All")}
@@ -1147,7 +1143,6 @@ function WarehouseDetails() {
                 padding: "8px",
                 cursor: "pointer",
                 borderRadius: "4px",
-                padding: "8px",
                 backgroundColor:
                   activeTab === "Stock In" ? "#d1d1d1" : "#f1f1f1",
               }}
@@ -1165,7 +1160,6 @@ function WarehouseDetails() {
                 padding: "8px",
                 cursor: "pointer",
                 borderRadius: "4px",
-                padding: "8px",
                 backgroundColor:
                   activeTab === "Stock Out" ? "#d1d1d1" : "#f1f1f1",
               }}
@@ -1199,7 +1193,6 @@ function WarehouseDetails() {
             </span> */}
           </div>
 
-          {/* three icon */}
           <div style={{ display: "flex", gap: "16px", alignItems: "center" }}>
             <div
               style={{
@@ -1228,7 +1221,6 @@ function WarehouseDetails() {
           </div>
         </div>
 
-        {/* Table */}
         <div>
           <table
             style={{

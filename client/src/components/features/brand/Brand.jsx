@@ -20,6 +20,7 @@ const Brand = () => {
   const [editStatus, setEditStatus] = useState(true);
   const [editImagePreview, setEditImagePreview] = useState("");
   const [brands, setBrands] = useState([]);
+  
 
   console.log(brands);
 
@@ -27,7 +28,8 @@ const Brand = () => {
   const [statusFilter, setStatusFilter] = useState("All");
   const [sortOrder, setSortOrder] = useState("Latest");
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 10;
+  const [itemsPerPage, setItemsPerPage] = useState(10);
+  
 
   useEffect(() => {
     fetchBrands();
@@ -72,7 +74,9 @@ const Brand = () => {
   formData.append("status", status ? "Active" : "Inactive");
 
   selectedImages.forEach((file) => {
+    if(file instanceof File) {
     formData.append("image", file);
+    }
   });
 
   try {
@@ -217,7 +221,14 @@ const handleDeleteBrand = async (brandId, brandName) => {
   const totalPages = Math.ceil(filteredBrands.length / itemsPerPage);
 
 
-
+const handleFileChange = (e) => {
+  const files = Array.from(e.target.files);
+  const validFiles = files.filter((file) => ["image/jpeg", "image/png"].includes(file.type) && file.size  <= 2 * 1024 * 1024);
+  if(validFiles.length !== files.length) {
+    toast.error("Only JPG/PNG up to 2MB allowed")
+  }
+  setSelectedImages(validFiles);
+}
 
 
 
@@ -231,7 +242,7 @@ const handleDeleteBrand = async (brandId, brandName) => {
               <h6>Manage your brands</h6>
             </div>
           </div>
-          <div className="table-top-head me-2">
+          {/* <div className="table-top-head me-2">
             <li>
               <button type="button" className="icon-btn" title="Pdf">
                 <FaFilePdf />
@@ -248,7 +259,7 @@ const handleDeleteBrand = async (brandId, brandName) => {
                 <FaFileExcel />
               </button>
             </li>
-          </div>
+          </div> */}
           <div className="page-btn">
             <a
               href="#"
@@ -435,7 +446,7 @@ const handleDeleteBrand = async (brandId, brandName) => {
                 <label className="me-2">Items per page:</label>
                 <select
                   value={itemsPerPage}
-
+                  onChange={(e) => setItemsPerPage(Number(e.target.value))}
                   className="form-select w-auto"
                 >
                   <option value={10}>10</option>
@@ -483,7 +494,7 @@ const handleDeleteBrand = async (brandId, brandName) => {
         {/* /product list */}
         <div>
           {/* Add Brand */}
-          <div className="modal fade" id="add-brand">
+          <div className="modal" id="add-brand">
             <div className="modal-dialog modal-dialog-centered">
               <div className="modal-content">
                 <div className="modal-header">
@@ -520,13 +531,14 @@ const handleDeleteBrand = async (brandId, brandName) => {
                       </div>
                       <div>
                         <div className="image-upload mb-0">
+                           <label className="image-uploads">
+                           <h4>Upload Image</h4>
                           <input
                             type="file"
                             accept="image/png, image/jpeg"
-                            onChange={(e) =>
-                              setSelectedImages(Array.from(e.target.files))
-                            }
+                            onChange={handleFileChange}
                           />
+                          </label>
                           <div className="image-uploads">
                             <h4>Upload Image</h4>
                           </div>
@@ -579,7 +591,7 @@ const handleDeleteBrand = async (brandId, brandName) => {
           {/* /Add Brand */}
         </div>
 
-        <div className="modal fade" id="edit-brand">
+        <div className="modal" id="edit-brand">
           <div className="modal-dialog modal-dialog-centered">
             <div className="modal-content">
               <div className="modal-header">
@@ -615,6 +627,8 @@ const handleDeleteBrand = async (brandId, brandName) => {
                     <div>
                       
                       <div className="image-upload mb-0">
+                        <label className="image-uploads">
+                         <h4>Change Image</h4>
                         <input
                           type="file"
                           multiple
@@ -629,6 +643,7 @@ const handleDeleteBrand = async (brandId, brandName) => {
                             }
                           }}
                         />
+                        </label>
                         <div className="image-uploads">
                           <h4>Change Image</h4>
                         </div>
