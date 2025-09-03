@@ -4657,7 +4657,7 @@ const ProductForm = () => {
 
   // NEW: Explicitly allow multiple spaces in regex patterns for text fields
   const validationPatterns = {
-    productName: /^[a-zA-Z0-9\s\-_&()]{2,100}$/,
+    productName: /^[A-Za-z]{2,}$/,
     sku: /^[A-Z0-9\-]{3,20}$/,
     itemBarcode: /^[A-Z0-9]{6,20}$/,
     price: /^\d+(\.\d{1,2})?$/,
