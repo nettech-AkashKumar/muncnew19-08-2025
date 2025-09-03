@@ -116,6 +116,7 @@ import StockMovementLog from "../components/features/warehouse/StockMovementLog.
 
 //pos
 import Pos from "../pages/pos/Pos.jsx";
+import PosOrders from "../pages/pos/Pos-Orders.jsx";
 import ViewSupplierModal from "../pages/Modal/suppliers/ViewSupplierModal.jsx";
 import ViewProductStock from "../pages/ViewProductStock.jsx";
 import ViewReturnProduct from "../pages/ViewReturnProduct.jsx";
@@ -200,6 +201,7 @@ const AppRoutes = () => {
         />
         <Route path="/barcode" element={<Barcode />} />
         <Route path="/pos" element={<Pos />} />
+        <Route path="/pos-orders" element={<PosOrders />} />
 
         {/* purchase */}
         <Route path="/purchase-list" element={<Purchase />} />
