@@ -150,7 +150,7 @@ const SubCategory = () => {
           editingSubCategory.category?._id || editingSubCategory.categoryId,
       };
       const res = await axios.put(
-        `${BASE_URL}/api/subcategory/${editingSubCategory._id}`,
+        `${BASE_URL}/api/subcategory/subcategory/${editingSubCategory._id}`,
         payload
       );
       toast.success("Subcategory updated successfully!");
