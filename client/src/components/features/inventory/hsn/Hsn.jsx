@@ -7,6 +7,7 @@ import AddHsnModals from '../../../../pages/Modal/hsn/AddHsnModals';
 import { toast } from 'react-toastify';
 import BASE_URL from '../../../../pages/config/config';
 import * as XLSX from "xlsx";
+import { sanitizeInput } from '../../../../utils/sanitize';
 
 const HSNList = () => {
   const [data, setData] = useState([]);
@@ -17,6 +18,10 @@ const HSNList = () => {
   const [search, setSearch] = useState('');
   const [modalData, setModalData] = useState({ hsnCode: '', description: '', id: null });
   const [showModal, setShowModal] = useState(false);
+   const [errors, setErrors] = useState({});
+   const hsnRegex = /^[0-9]{2,8}$/;
+
+
   useEffect(() => { load(); }, [page, limit, search]);
 
   const load = async () => {
@@ -97,11 +102,33 @@ const HSNList = () => {
 
 
   const handleModalSubmit = async () => {
+    let newErrors = {};
+    const { hsnCode, description, id } = modalData;
+
+    const hsnRegex = /^[0-9]{2,8}$/;
+    if(!hsnRegex.test(hsnCode)) {
+       newErrors.hsnCode = "HSN code must be 2-8 digits";
+      toast.error("HSN code must be 2-8 digits")
+      return;
+    }
+    if(Object.keys(newErrors).length > 0) {
+      setErrors(newErrors)
+      return;
+    }
+ 
     try {
+      const cleanhsnCode = sanitizeInput(hsnCode)
+      const cleanhsnDescription = sanitizeInput(description)
       if (modalData.id) {
-        await axios.put(`${BASE_URL}/api/hsn/${modalData.id}`, modalData);
+        await axios.put(`${BASE_URL}/api/hsn/${modalData.id}`, {
+          hsnCode:cleanhsnCode,
+          description:cleanhsnDescription
+        });
       } else {
-        await axios.post(`${BASE_URL}/api/hsn`, modalData);
+        await axios.post(`${BASE_URL}/api/hsn`, {
+          hsnCode:cleanhsnCode,
+          description:cleanhsnDescription
+        });
       }
       setModalData({ hsnCode: '', description: '', id: null });
       setShowModal(false);
@@ -285,6 +312,7 @@ const HSNList = () => {
           modalData={modalData}
           setModalData={setModalData}
           onSubmit={handleModalSubmit}
+          errors={errors}
         />
       </div>
     </div>

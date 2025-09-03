@@ -7,6 +7,7 @@ import { toast } from "react-toastify";
 import CategoryModal from "../../../pages/Modal/categoryModals/CategoryModal";
 import DeleteAlert from "../../../utils/sweetAlert/DeleteAlert";
 import Swal from "sweetalert2";
+import {sanitizeInput} from "../../../utils/sanitize"
 
 const Category = () => {
   const [categories, setCategories] = useState([]);
@@ -79,9 +80,12 @@ const Category = () => {
     }
 
     try {
+      const cleanName = sanitizeInput(categoryName)
+      const cleanSlug = sanitizeInput(categorySlug)
+
       await axios.post(`${BASE_URL}/api/category/categories`, {
-        categoryName: categoryName,
-        categorySlug: categorySlug,
+        categoryName: cleanName,
+        categorySlug: cleanSlug,
       });
 
       toast.success("Category created successfully!");
@@ -114,11 +118,14 @@ const Category = () => {
   // Stop update if validation fails
   if (Object.keys(newErrors).length > 0) return;
     try {
+      const cleanName = sanitizeInput(editingCategories.categoryName);
+      const cleanSlug = sanitizeInput(editingCategories.categorySlug);
+
       await axios.put(
         `${BASE_URL}/api/category/categories/${editingCategories._id}`,
         {
-          categoryName: editCategoryName,
-          categorySlug: editCategorySlug,
+          categoryName: cleanName,
+          categorySlug: cleanSlug,
         }
       );
       console.log("Editing Countries ID:", editingCategories?._id);
