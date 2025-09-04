@@ -8,6 +8,24 @@ import { Country, State, City } from "country-state-city";
 import { toast } from "react-toastify";
 import BASE_URL from "../../../pages/config/config";
 import axios from "axios";
+import sanitizeHtml from 'sanitize-html';
+
+// Regex patterns for validation
+const VALIDATION_PATTERNS = {
+  warehouseName: /^[a-zA-Z0-9\s\-_]{3,50}$/,
+  phone: /^\+?[1-9]\d{1,14}$/,
+  warehouseCode: /^[A-Z0-9]{3,10}$/,
+  warehouseOwner: /^[a-zA-Z\s]{2,50}$/,
+  address: /^[\w\s.,\-\/]{5,200}$/,
+  pinCode: /^\d{4,10}$/,
+};
+
+// Sanitization configuration
+const SANITIZE_CONFIG = {
+  allowedTags: [],
+  allowedAttributes: {},
+};
+
 
 function AddWarehouse() {
   // State for popup inputs
@@ -30,6 +48,16 @@ function AddWarehouse() {
   const [state, setState] = useState("");
   const [city, setCity] = useState("");
   const [pinCode, setPinCode] = useState("");
+
+  // State for validation errors
+  const [errors, setErrors] = useState({
+    warehouseName: "",
+    phone: "",
+    warehouseCode: "",
+    warehouseOwner: "",
+    address: "",
+    pinCode: "",
+  });
 
   const [selectedCountry, setSelectedCountry] = useState("");
   const [selectedState, setSelectedState] = useState("");
@@ -56,6 +84,47 @@ function AddWarehouse() {
       setCityList(City.getCitiesOfState(selectedCountry, selectedState));
     }
   }, [selectedState]);
+
+  // Validation function
+  const validateInput = (name, value) => {
+    if (!VALIDATION_PATTERNS[name]) return "";
+
+    if (!value) {
+      return `${name.charAt(0).toUpperCase() + name.slice(1)} is required`;
+    }
+
+    if (!VALIDATION_PATTERNS[name].test(value)) {
+      switch (name) {
+        case 'warehouseName':
+          return 'Warehouse name must be 3-50 characters (letters, numbers, spaces, -, _)';
+        case 'phone':
+          return 'Phone number must be a valid international number';
+        case 'warehouseCode':
+          return 'Warehouse code must be 3-10 uppercase letters or numbers';
+        case 'warehouseOwner':
+          return 'Contact person must be 2-50 letters and spaces';
+        case 'address':
+          return 'Address must be 5-200 characters (letters, numbers, spaces, common punctuation)';
+        case 'pinCode':
+          return 'Pin code must be 4-10 digits';
+        default:
+          return 'Invalid input';
+      }
+    }
+    return "";
+  };
+
+  // Sanitize and validate input
+  const handleInputChange = (setter, field) => (e) => {
+    const sanitizedValue = sanitizeHtml(e.target.value, SANITIZE_CONFIG);
+    setter(sanitizedValue);
+    setErrors((prev) => ({
+      ...prev,
+      [field]: validateInput(field, sanitizedValue),
+    }));
+  };
+
+
 
   // State for import status and message
   const [isImported, setIsImported] = useState(false);
@@ -118,23 +187,52 @@ function AddWarehouse() {
 
   // Handler for Save button
   const handleSave = async () => {
+    // Validate all inputs before saving
+    const newErrors = {
+      warehouseName: validateInput('warehouseName', warehouseName),
+      phone: validateInput('phone', phone),
+      warehouseCode: validateInput('warehouseCode', warehouseCode),
+      warehouseOwner: validateInput('warehouseOwner', warehouseOwner),
+      address: validateInput('address', address),
+      pinCode: validateInput('pinCode', pinCode),
+    };
+
+    setErrors(newErrors);
+
+    if (Object.values(newErrors).some(error => error !== "")) {
+      toast.error("Please fix all validation errors before saving");
+      return;
+    }
     const warehouseData = {
-      warehouseName,
-      phone,
-      warehouseCode,
-      warehouseOwner,
-      address,
+      // warehouseName,
+      // phone,
+      // warehouseCode,
+      // warehouseOwner,
+      // address,
+      // country: selectedCountry
+      //   ? Country.getAllCountries().find((c) => c.isoCode === selectedCountry)
+      //     ?.name || ""
+      //   : "",
+      // state: selectedState
+      //   ? State.getStatesOfCountry(selectedCountry).find(
+      //     (s) => s.isoCode === selectedState
+      //   )?.name || ""
+      //   : "",
+      // city: selectedCity,
+      // pinCode,
+      warehouseName: sanitizeHtml(warehouseName, SANITIZE_CONFIG),
+      phone: sanitizeHtml(phone, SANITIZE_CONFIG),
+      warehouseCode: sanitizeHtml(warehouseCode, SANITIZE_CONFIG),
+      warehouseOwner: sanitizeHtml(warehouseOwner, SANITIZE_CONFIG),
+      address: sanitizeHtml(address, SANITIZE_CONFIG),
       country: selectedCountry
-        ? Country.getAllCountries().find((c) => c.isoCode === selectedCountry)
-            ?.name || ""
+        ? Country.getAllCountries().find((c) => c.isoCode === selectedCountry)?.name || ""
         : "",
       state: selectedState
-        ? State.getStatesOfCountry(selectedCountry).find(
-            (s) => s.isoCode === selectedState
-          )?.name || ""
+        ? State.getStatesOfCountry(selectedCountry).find((s) => s.isoCode === selectedState)?.name || ""
         : "",
-      city: selectedCity,
-      pinCode,
+      city: sanitizeHtml(selectedCity, SANITIZE_CONFIG),
+      pinCode: sanitizeHtml(pinCode, SANITIZE_CONFIG),
       layout: {
         rows: mainRows,
         columns: mainColumns,
@@ -175,6 +273,7 @@ function AddWarehouse() {
     setMainZones(1);
     setIsImported(false);
     setShowMessage(false);
+    setErrors({});
     // Navigate to AllWarehouse page
     navigate("/warehouse"); // Adjust route as needed
   };
@@ -222,24 +321,55 @@ function AddWarehouse() {
     e.preventDefault();
     setLoading(true);
 
+    // Validate all inputs before submitting
+    const newErrors = {
+      warehouseName: validateInput('warehouseName', warehouseName),
+      phone: validateInput('phone', phone),
+      warehouseCode: validateInput('warehouseCode', warehouseCode),
+      warehouseOwner: validateInput('warehouseOwner', warehouseOwner),
+      address: validateInput('address', address),
+      pinCode: validateInput('pinCode', pinCode),
+    };
+
+    setErrors(newErrors);
+
+    if (Object.values(newErrors).some(error => error !== "")) {
+      toast.error("Please fix all validation errors before submitting");
+      setLoading(false);
+      return;
+    }
+
     try {
       const warehouseData = {
-        warehouseName,
-        phone,
-        warehouseCode,
-        warehouseOwner,
-        address,
+        // warehouseName,
+        // phone,
+        // warehouseCode,
+        // warehouseOwner,
+        // address,
+        // country: selectedCountry
+        //   ? Country.getAllCountries().find((c) => c.isoCode === selectedCountry)
+        //     ?.name || ""
+        //   : "",
+        // state: selectedState
+        //   ? State.getStatesOfCountry(selectedCountry).find(
+        //     (s) => s.isoCode === selectedState
+        //   )?.name || ""
+        //   : "",
+        // city: selectedCity,
+        // pinCode,
+        warehouseName: sanitizeHtml(warehouseName, SANITIZE_CONFIG),
+        phone: sanitizeHtml(phone, SANITIZE_CONFIG),
+        warehouseCode: sanitizeHtml(warehouseCode, SANITIZE_CONFIG),
+        warehouseOwner: sanitizeHtml(warehouseOwner, SANITIZE_CONFIG),
+        address: sanitizeHtml(address, SANITIZE_CONFIG),
         country: selectedCountry
-          ? Country.getAllCountries().find((c) => c.isoCode === selectedCountry)
-              ?.name || ""
+          ? Country.getAllCountries().find((c) => c.isoCode === selectedCountry)?.name || ""
           : "",
         state: selectedState
-          ? State.getStatesOfCountry(selectedCountry).find(
-              (s) => s.isoCode === selectedState
-            )?.name || ""
+          ? State.getStatesOfCountry(selectedCountry).find((s) => s.isoCode === selectedState)?.name || ""
           : "",
-        city: selectedCity,
-        pinCode,
+        city: sanitizeHtml(selectedCity, SANITIZE_CONFIG),
+        pinCode: sanitizeHtml(pinCode, SANITIZE_CONFIG),
         layout: {
           rows: mainRows,
           columns: mainColumns,
@@ -326,9 +456,8 @@ function AddWarehouse() {
           <div
             style={{
               display: "grid",
-              gridTemplateColumns: `repeat(${
-                gridColumns || 3
-              }, ${cellWidthPx}px)`,
+              gridTemplateColumns: `repeat(${gridColumns || 3
+                }, ${cellWidthPx}px)`,
               gridTemplateRows: `repeat(${gridRows || 3}, ${cellWidthPx}px)`,
               gap: "8px",
               width: `${totalGridContentWidth}px`,
@@ -455,6 +584,11 @@ function AddWarehouse() {
                 }}
                 placeholder="Enter Warehouse Name"
               />
+              {errors.warehouseName && (
+                <div style={{ color: "#EF4444", fontSize: "12px", marginTop: "4px" }}>
+                  {errors.warehouseName}
+                </div>
+              )}
             </div>
             <div style={{ flex: 1 }}>
               <label
@@ -484,6 +618,11 @@ function AddWarehouse() {
                 }}
                 placeholder="Enter Warehouse Name"
               />
+              {errors.phone && (
+                <div style={{ color: "#EF4444", fontSize: "12px", marginTop: "4px" }}>
+                  {errors.phone}
+                </div>
+              )}
             </div>
           </div>
 
@@ -515,6 +654,12 @@ function AddWarehouse() {
                   outline: "none",
                 }}
               />
+              {errors.warehouseCode && (
+                <div style={{ color: "#EF4444", fontSize: "12px", marginTop: "4px" }}>
+                  {errors.warehouseCode}
+                </div>
+              )}
+
             </div>
             <div style={{ flex: 1 }}>
               <label
@@ -543,6 +688,11 @@ function AddWarehouse() {
                   outline: "none",
                 }}
               />
+              {errors.warehouseOwner && (
+                <div style={{ color: "#EF4444", fontSize: "12px", marginTop: "4px" }}>
+                  {errors.warehouseOwner}
+                </div>
+              )}
             </div>
           </div>
 
@@ -574,6 +724,11 @@ function AddWarehouse() {
                 outline: "none",
               }}
             ></textarea>
+            {errors.address && (
+              <div style={{ color: "#EF4444", fontSize: "12px", marginTop: "4px" }}>
+                {errors.address}
+              </div>
+            )}
           </div>
 
           <div style={{ display: "flex", gap: "16px" }}>
@@ -735,6 +890,11 @@ function AddWarehouse() {
                   outline: "none",
                 }}
               />
+              {errors.pinCode && (
+                <div style={{ color: "#EF4444", fontSize: "12px", marginTop: "4px" }}>
+                  {errors.pinCode}
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -823,7 +983,7 @@ function AddWarehouse() {
                   padding: "0",
                   borderRadius: "12px",
                   width: "900px",
-                  
+
                 }}
               >
                 {(close) => (
@@ -1113,8 +1273,8 @@ function AddWarehouse() {
                           Layout Preview
                         </span>
                         {parseInt(zones) > 0 &&
-                        rows !== "" &&
-                        columns !== "" ? (
+                          rows !== "" &&
+                          columns !== "" ? (
                           <div
                             style={{
                               display: "flex",
