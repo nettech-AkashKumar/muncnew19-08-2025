@@ -162,17 +162,38 @@ function AddWarehouse() {
 
   // Handler for Draft button
   const handleDraft = () => {
-    const warehouseData = {
-      warehouseName,
-      phone,
-      warehouseCode,
-      warehouseOwner,
-      // contactPerson,
-      address,
-      country,
-      state,
-      city,
-      pinCode,
+    // const warehouseData = {
+    //   warehouseName,
+    //   phone,
+    //   warehouseCode,
+    //   warehouseOwner,
+    //   // contactPerson,
+    //   address,
+    //   country,
+    //   state,
+    //   city,
+    //   pinCode,
+    //   layout: {
+    //     rows: mainRows,
+    //     columns: mainColumns,
+    //     width: mainWidth,
+    //     zones: mainZones,
+    //   },
+    // };
+     const warehouseData = {
+      warehouseName: sanitizeHtml(warehouseName, SANITIZE_CONFIG),
+      phone: sanitizeHtml(phone, SANITIZE_CONFIG),
+      warehouseCode: sanitizeHtml(warehouseCode, SANITIZE_CONFIG),
+      warehouseOwner: sanitizeHtml(warehouseOwner, SANITIZE_CONFIG),
+      address: sanitizeHtml(address, SANITIZE_CONFIG),
+      country: selectedCountry
+        ? Country.getAllCountries().find((c) => c.isoCode === selectedCountry)?.name || ""
+        : "",
+      state: selectedState
+        ? State.getStatesOfCountry(selectedCountry).find((s) => s.isoCode === selectedState)?.name || ""
+        : "",
+      city: sanitizeHtml(selectedCity, SANITIZE_CONFIG),
+      pinCode: sanitizeHtml(pinCode, SANITIZE_CONFIG),
       layout: {
         rows: mainRows,
         columns: mainColumns,
@@ -203,43 +224,43 @@ function AddWarehouse() {
       toast.error("Please fix all validation errors before saving");
       return;
     }
-    const warehouseData = {
-      // warehouseName,
-      // phone,
-      // warehouseCode,
-      // warehouseOwner,
-      // address,
-      // country: selectedCountry
-      //   ? Country.getAllCountries().find((c) => c.isoCode === selectedCountry)
-      //     ?.name || ""
-      //   : "",
-      // state: selectedState
-      //   ? State.getStatesOfCountry(selectedCountry).find(
-      //     (s) => s.isoCode === selectedState
-      //   )?.name || ""
-      //   : "",
-      // city: selectedCity,
-      // pinCode,
-      warehouseName: sanitizeHtml(warehouseName, SANITIZE_CONFIG),
-      phone: sanitizeHtml(phone, SANITIZE_CONFIG),
-      warehouseCode: sanitizeHtml(warehouseCode, SANITIZE_CONFIG),
-      warehouseOwner: sanitizeHtml(warehouseOwner, SANITIZE_CONFIG),
-      address: sanitizeHtml(address, SANITIZE_CONFIG),
-      country: selectedCountry
-        ? Country.getAllCountries().find((c) => c.isoCode === selectedCountry)?.name || ""
-        : "",
-      state: selectedState
-        ? State.getStatesOfCountry(selectedCountry).find((s) => s.isoCode === selectedState)?.name || ""
-        : "",
-      city: sanitizeHtml(selectedCity, SANITIZE_CONFIG),
-      pinCode: sanitizeHtml(pinCode, SANITIZE_CONFIG),
-      layout: {
-        rows: mainRows,
-        columns: mainColumns,
-        width: mainWidth,
-        zones: mainZones,
-      },
-    };
+    // const warehouseData = {
+    //   // warehouseName,
+    //   // phone,
+    //   // warehouseCode,
+    //   // warehouseOwner,
+    //   // address,
+    //   // country: selectedCountry
+    //   //   ? Country.getAllCountries().find((c) => c.isoCode === selectedCountry)
+    //   //     ?.name || ""
+    //   //   : "",
+    //   // state: selectedState
+    //   //   ? State.getStatesOfCountry(selectedCountry).find(
+    //   //     (s) => s.isoCode === selectedState
+    //   //   )?.name || ""
+    //   //   : "",
+    //   // city: selectedCity,
+    //   // pinCode,
+    //   warehouseName: sanitizeHtml(warehouseName, SANITIZE_CONFIG),
+    //   phone: sanitizeHtml(phone, SANITIZE_CONFIG),
+    //   warehouseCode: sanitizeHtml(warehouseCode, SANITIZE_CONFIG),
+    //   warehouseOwner: sanitizeHtml(warehouseOwner, SANITIZE_CONFIG),
+    //   address: sanitizeHtml(address, SANITIZE_CONFIG),
+    //   country: selectedCountry
+    //     ? Country.getAllCountries().find((c) => c.isoCode === selectedCountry)?.name || ""
+    //     : "",
+    //   state: selectedState
+    //     ? State.getStatesOfCountry(selectedCountry).find((s) => s.isoCode === selectedState)?.name || ""
+    //     : "",
+    //   city: sanitizeHtml(selectedCity, SANITIZE_CONFIG),
+    //   pinCode: sanitizeHtml(pinCode, SANITIZE_CONFIG),
+    //   layout: {
+    //     rows: mainRows,
+    //     columns: mainColumns,
+    //     width: mainWidth,
+    //     zones: mainZones,
+    //   },
+    // };
     try {
       await axios.post(`${BASE_URL}/api/warehouse`, warehouseData);
       toast.success("Warehouse saved successfully");
@@ -571,12 +592,14 @@ function AddWarehouse() {
               <input
                 type="text"
                 value={warehouseName}
-                onChange={(e) => setWarehouseName(e.target.value)}
+                // onChange={(e) => setWarehouseName(e.target.value)}
+                 onChange={handleInputChange(setWarehouseName, 'warehouseName')}
                 style={{
                   width: "100%",
                   padding: "12px",
                   borderRadius: "8px",
-                  border: "1px solid #D1D5DB",
+                  // border: "1px solid #D1D5DB",
+                   border: `1px solid ${errors.warehouseName ? '#EF4444' : '#D1D5DB'}`,
                   backgroundColor: "#F9FAFB",
                   color: "#6B7280",
                   fontSize: "14px",
@@ -603,20 +626,23 @@ function AddWarehouse() {
                 Contact No
               </label>
               <input
-                type="number"
+                // type="number"
+                type="tel"
                 value={phone}
-                onChange={(e) => setphone(e.target.value)}
+                // onChange={(e) => setphone(e.target.value)}
+                onChange={handleInputChange(setphone, 'phone')}
                 style={{
                   width: "100%",
                   padding: "12px",
                   borderRadius: "8px",
-                  border: "1px solid #D1D5DB",
+                  // border: "1px solid #D1D5DB",
+                   border: `1px solid ${errors.phone ? '#EF4444' : '#D1D5DB'}`,
                   backgroundColor: "#F9FAFB",
                   color: "#6B7280",
                   fontSize: "14px",
                   outline: "none",
                 }}
-                placeholder="Enter Warehouse Name"
+                placeholder="Enter Contact Number"
               />
               {errors.phone && (
                 <div style={{ color: "#EF4444", fontSize: "12px", marginTop: "4px" }}>
@@ -642,12 +668,14 @@ function AddWarehouse() {
               <input
                 type="text"
                 value={warehouseCode}
-                onChange={(e) => setWarehouseCode(e.target.value)}
+                // onChange={(e) => setWarehouseCode(e.target.value)}
+                 onChange={handleInputChange(setWarehouseCode, 'warehouseCode')}
                 style={{
                   width: "100%",
                   padding: "12px",
                   borderRadius: "8px",
-                  border: "1px solid #D1D5DB",
+                  // border: "1px solid #D1D5DB",
+                   border: `1px solid ${errors.warehouseCode ? '#EF4444' : '#D1D5DB'}`,
                   backgroundColor: "#F9FAFB",
                   color: "#6B7280",
                   fontSize: "14px",
@@ -676,12 +704,14 @@ function AddWarehouse() {
               <input
                 type="text"
                 value={warehouseOwner}
-                onChange={(e) => setWarehouseOwner(e.target.value)}
+                // onChange={(e) => setWarehouseOwner(e.target.value)}
+                onChange={handleInputChange(setWarehouseOwner, 'warehouseOwner')}
                 style={{
                   width: "100%",
                   padding: "12px",
                   borderRadius: "8px",
-                  border: "1px solid #D1D5DB",
+                  // border: "1px solid #D1D5DB",
+                   border: `1px solid ${errors.warehouseOwner ? '#EF4444' : '#D1D5DB'}`,
                   backgroundColor: "#F9FAFB",
                   color: "#6B7280",
                   fontSize: "14px",
@@ -710,12 +740,14 @@ function AddWarehouse() {
             </label>
             <textarea
               value={address}
-              onChange={(e) => setAddress(e.target.value)}
+              // onChange={(e) => setAddress(e.target.value)}
+              onChange={handleInputChange(setAddress, 'address')}
               style={{
                 width: "100%",
                 padding: "12px",
                 borderRadius: "8px",
-                border: "1px solid #D1D5DB",
+                // border: "1px solid #D1D5DB",
+                border: `1px solid ${errors.address ? '#EF4444' : '#D1D5DB'}`,
                 backgroundColor: "#F9FAFB",
                 color: "#6B7280",
                 fontSize: "14px",
@@ -841,7 +873,8 @@ function AddWarehouse() {
                 // value={city}
                 // onChange={(e) => setCity(e.target.value)}
                 value={selectedCity}
-                onChange={(e) => setSelectedCity(e.target.value)}
+                // onChange={(e) => setSelectedCity(e.target.value)}
+                onChange={(e) => setSelectedCity(sanitizeHtml(e.target.value, SANITIZE_CONFIG))}
                 style={{
                   width: "100%",
                   padding: "12px",
@@ -877,13 +910,15 @@ function AddWarehouse() {
 
               <input
                 value={pinCode}
-                onChange={(e) => setPinCode(e.target.value)}
+                // onChange={(e) => setPinCode(e.target.value)}
+                onChange={handleInputChange(setPinCode, 'pinCode')}
                 type="number"
                 style={{
                   width: "100%",
                   padding: "12px",
                   borderRadius: "8px",
-                  border: "1px solid #D1D5DB",
+                  // border: "1px solid #D1D5DB",
+                  border: `1px solid ${errors.pinCode ? '#EF4444' : '#D1D5DB'}`,
                   backgroundColor: "#F9FAFB",
                   color: "#6B7280",
                   fontSize: "14px",
