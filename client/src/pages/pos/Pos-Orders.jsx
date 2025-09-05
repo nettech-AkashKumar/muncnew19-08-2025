@@ -68,8 +68,6 @@ function Pos() {
         setExprationValue('');
     };
 
-
-
 //transaction popup---------------------------------------------------------------------------------------------------------------
   const [transactionpopup, setTransactionPopup] = useState(false);
   const TransactionRef = useRef(null);
@@ -507,9 +505,9 @@ const fetchCustomers = async () => {
                           value={categoryValue}
                           onChange={handleCategoryChange}>
                           <select className="" style={{ outline: 'none', border: 'none', color: categoryValue ? '#1368EC' : '#555252' }}>
-                            <option value="" style={{ color: '#555252' }}>Category</option>
-                            <option value="c1" style={{ color: '#555252' }}>Category 1</option>
-                            <option value="c2" style={{ color: '#555252' }}>Category 2</option>
+                            <option value="" style={{ color: '#555252' }} disabled selected>--status--</option>
+                            <option value="paid" style={{ color: '#555252' }}>Paid</option>
+                            <option value="due" style={{ color: '#555252' }}>Due</option>
                           </select>
                         </div>
 
@@ -518,8 +516,9 @@ const fetchCustomers = async () => {
                           value={socketValue}
                           onChange={handleSocketChange}>
                           <select className="" style={{ outline: 'none', border: 'none', color: socketValue ? '#1368EC' : '#555252' }}>
-                            <option value="" style={{ color: '#555252' }}>Socket Level</option>
-                            <option value="sl1" style={{ color: '#555252' }}>Last 7 days</option>
+                            <option value="" style={{ color: '#555252' }} disabled selected>--mode--</option>
+                            <option value="cash" style={{ color: '#555252' }}>Cash</option>
+                            <option value="online" style={{ color: '#555252' }}>Online</option>
                           </select>
                         </div>
 
