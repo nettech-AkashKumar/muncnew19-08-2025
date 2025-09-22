@@ -456,6 +456,7 @@ exports.updateProduct = async (req, res) => {
     res.status(400).json({ message: err.message });
   }
 };
+
 exports.deleteProductImage = async(req, res) => {
   try {
     const {id} = req.params;
