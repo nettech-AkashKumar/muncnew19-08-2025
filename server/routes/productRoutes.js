@@ -6,13 +6,16 @@ const {
   getAllProducts,
   getProductById,
   updateProduct,
-  deleteProductImage,
   deleteProduct,
   searchProductsByName,
   importProducts,
   getProductStock,
-
+  
+  getUpcomingExpiryProducts,
   getPurchaseReturnStock,
+
+  deleteProductImage,
+
   // getTotalStockValue 
 } = require("../controllers/productController");
 
@@ -20,27 +23,14 @@ const {
 const upload = require("../middleware/Multer/multer"); // ✅ fix double slash
 const path = require("path");
 
-// Product stock API
 router.get("/stock", getProductStock);
-// Purchase return stock API (must be above /:id)
-
-
 router.post("/create", upload.array("images", 10), createProduct);
-
-// ✅ New route: import products from CSV/Excel
 router.post("/import", upload.single("file"), importProducts);
-
-// ✅ Existing routes
-router.get("/search", searchProductsByName); // ✅ must come before /products/:id
-
-router.get("/", getAllProducts);         // Read All
-router.get("/:id", getProductById);      // Read Single
-router.put("/:id", upload.array("images", 10), updateProduct);       // Update
+router.get("/search", searchProductsByName);
+router.get("/", getAllProducts);
+router.get("/:id", getProductById);
+router.put("/:id", upload.array("images", 10), updateProduct);
 router.delete("/:id", deleteProductImage)
-router.delete("/pro/:id", deleteProduct);    // Delete
-
-
+router.delete("/pro/:id", deleteProduct);
 // router.get("/total-stock-value", getTotalStockValue);
-
-
 module.exports = router;
